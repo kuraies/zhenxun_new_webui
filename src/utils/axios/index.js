@@ -5,7 +5,7 @@ import { auth } from '../auth.js'
 import { navigateTo } from '@/utils/navigation.js'
 
 let baseUrl =getBaseUrl()
-let apiUrl = '/zhenxun/api'
+export const apiUrl = '/zhenxun/api'
 // console.log(baseUrl)
 
 const request = axios.create({
@@ -33,7 +33,7 @@ request.interceptors.response.use(
             return Promise.reject(error);
         }
 
-        if (error.response?.status === 401) {
+        if (error.response?.status === 401 ||error.response?.status === 400) {
 
             ZXNotification({
                 title: "状态失效",
@@ -47,7 +47,8 @@ request.interceptors.response.use(
             await navigateTo({
                 name: 'Login'
             })
-        } else if (error.response?.status >= 400 && error.response?.status < 500) {
+        }
+        else if (error.response?.status > 400 && error.response?.status < 500) {
             ZXNotification({
                 title: "对不起",
                 message: "服务器被小真寻吃掉惹(っ °Д °;)っ",
@@ -67,6 +68,10 @@ request.interceptors.response.use(
         return Promise.reject(error)
     }
 )
+
+export function setRequestBaseUrl() {
+    request.defaults.baseURL = getBaseUrl()+apiUrl
+}
 
 
 export default request

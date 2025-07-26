@@ -119,7 +119,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { getBaseUrl, setBaseApiUrl, setPort } from '@/utils/api/index.js'
+import { getBaseUrl, setUrl } from '@/utils/api/index.js'
 import { ZXNotification } from 'components'
 import { throttle } from '@/utils/util.js'
 import { useComponentStore } from '@/store/componet.js'
@@ -239,8 +239,7 @@ const onConfirm = async () => {
 
     let state = await handleTestAddress()
     if (state) {
-        setBaseApiUrl(url.value)
-        setPort(port.value)
+        setUrl(url.value,port.value)
         notificationModify(true)
         await leaveAnimation()
         visible.value = false
@@ -251,7 +250,6 @@ const onConfirm = async () => {
 
 function notificationConnect(state) {
     if (state) {
-
         ZXNotification({
             title: '成功😉',
             message: '连接测试成功ヾ(≧▽≦*)o',
@@ -263,7 +261,6 @@ function notificationConnect(state) {
             title: '失败🥲',
             message: '连接测试失败（；´д｀）ゞ',
             type: 'error'
-            // customClass: 'center-notification',
         })
     }
 
@@ -436,7 +433,9 @@ const handleTestAddress = throttle(() => {
     changeUrl(url.value)
     changePort(port.value)
     if (validate.url && validate.port) {
-        return systemApi.ping()
+        return systemApi.ping({
+            baseURL: url.value+':'+port.value+'/zhenxun/api',
+        })
             .then((res) => {
                 if (res?.suc) {
                     connect.msg = '连接成功'
