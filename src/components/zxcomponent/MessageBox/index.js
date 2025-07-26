@@ -13,11 +13,13 @@ export default function ZXMessageBox(options = {}) {
                 return h(MessageBox, {
                     ...options,
                     onConfirm: () => {
+                        options.onConfirm?.()
                         resolve(true)
                         app.unmount()
                         container.remove()
                     },
                     onCancel: () => {
+                        options.onCancel?.()
                         resolve(false)
                         app.unmount()
                         container.remove()

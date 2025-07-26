@@ -18,11 +18,11 @@
                     <slot>{{ message }}</slot>
                 </div>
 
-                <div class="flex justify-end gap-2">
+                <div class="flex justify-end gap-6">
                     <button
                         v-if="cancelButtonText"
                         @click="handleCancel"
-                        class="px-4 py-1.5 rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+                        class="px-4 py-1.5 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition cursor-pointer"
                     >
                         {{ cancelButtonText }}
                     </button>
@@ -31,7 +31,7 @@
                         @click="handleConfirm"
                         @mouseenter="hovering = true"
                         @mouseleave="hovering = false"
-                        class="px-4 py-1.5 rounded-full bg-orange-400 text-white hover:bg-orange-300 transition cursor-pointer"
+                        class="px-4 py-1.5 rounded-full bg-orange-400 text-white hover:bg-orange-500 transition cursor-pointer"
                     >
                         {{ hovering && confirmButtonHoverText ? confirmButtonHoverText : confirmButtonText }}
                     </button>
