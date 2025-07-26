@@ -7,40 +7,70 @@ const routes = [
     {
         path: '/login',
         name: 'Login',
-        component: () => import('@/views/Login.vue')
+        component: () => import('@/pages/Login.vue')
     },
     {
         path: '/configure',
         name: 'Configure',
-        component: () => import('@/views/Configure.vue')
+        component: () => import('@/pages/Configure.vue')
     },
     {
         path: '/',
         name: 'Home',
-        component: () => import('@/views/Home.vue'),
-        redirect: "/dashboard",
+        component: () => import('@/pages/Home.vue'),
+        redirect: '/dashboard',
         children: [
-            { path: "/dashboard", name: "仪表盘", component: () => import('components/dashboard/Dashboard.vue'), },
-            // { path: "/command", name: "BOT控制台", component: MainCommand },
-            // { path: "/plugin", name: "插件列表", component: PluginManage },
-            // { path: "/store", name: "插件商店", component: StoreManage },
-            // { path: "/manage", name: "好友/群组", component: FriendGroupManage },
-            // { path: "/database", name: "数据库管理", component: DatabaseManage },
-            // { path: "/system", name: "系统信息", component: SystemInfo },
-            // { path: "/about", name: "关于我们", component: About },
-        ],
+            {
+                path: '/dashboard',
+                name: '首页',
+                component: () => import('@/views/dashboard/Dashboard.vue'),
+                meta: { menuKey: 'dashboard' }
+            },
+            {
+                path: '/command', name: '控制台', component: () => import('@/views/command/Command.vue'),
+                meta: { menuKey: 'command' }
+            },
+            {
+                path: '/plugin', name: '插件列表', component: () => import('@/views/plugin/Plugin.vue'),
+                meta: { menuKey: 'plugin' }
+            },
+            {
+                path: '/store', name: '插件商店', component: () => import('@/views/store/Store.vue'),
+                meta: { menuKey: 'store' }
+            },
+            {
+                path: '/chat', name: '聊天', component: () => import('@/views/chat/Chat.vue'),
+                meta: { menuKey: 'chat' }
+            },
+            {
+                path: '/analytics', name: '数据统计', component: () => import('@/views/analytics/Analytics.vue'),
+                meta: { menuKey: 'analytics' }
+            },
+            {
+                path: '/files', name: '文件', component: () => import('@/views/files/Files.vue'),
+                meta: { menuKey: 'files' }
+            },
+            {
+                path: '/database', name: '数据库', component: () => import('@/views/database/Database.vue'),
+                meta: { menuKey: 'database' }
+            },
+            {
+                path: '/about', name: '关于我们', component: () => import('@/views/about/About.vue'),
+                meta: { menuKey: 'about' }
+            }
+        ]
     },
     {
         path: '/:pathMatch(.*)',
         redirect: {
             name: 'Home'
-        },
-    },
+        }
+    }
 ]
 
 export const router = createRouter({
     history: createWebHistory(),
-    routes,
+    routes
 })
 
 router.beforeEach((to, from, next) => {
@@ -50,7 +80,7 @@ router.beforeEach((to, from, next) => {
     if (to.name === 'Configure') {
         return next()
     }
-    console.log('Navigating to:', to.name, 'isAuthenticated:', typeof isAuthenticated);
+    console.log('Navigating to:', to.name, 'isAuthenticated:', typeof isAuthenticated)
     // 如果用户认证了但是又前往登录页，则组织他
     if (to.name === 'Login' && isAuthenticated) {
 
@@ -59,8 +89,8 @@ router.beforeEach((to, from, next) => {
             message: '哥哥这就嫌弃人家了吗?(ノへ￣、))',
             type: '😭',
             confetti: {
-                colors: ["#60a5fa", "#f472b6"]
-            },
+                colors: ['#60a5fa', '#f472b6']
+            }
         })
 
         if (from.path !== '/') {
@@ -78,9 +108,9 @@ router.beforeEach((to, from, next) => {
                 message: '请先登录哦 (｡･ω･｡)',
                 type: '🥳',
                 confetti: {
-                    colors: ["#60a5fa"]
-                },
-            });
+                    colors: ['#60a5fa']
+                }
+            })
         } else {
             // 从其他页面跳转过来
             ZXNotification({
@@ -88,13 +118,13 @@ router.beforeEach((to, from, next) => {
                 message: '您可还没登录呢~（〃｀ 3′〃）',
                 type: 'error',
                 confetti: {
-                    colors: ["#f87171"]
-                },
-            });
+                    colors: ['#f87171']
+                }
+            })
         }
         auth.deleteAuthToken()
 
-        next({name: 'Login'})
+        next({ name: 'Login' })
     } else {
         next()
     }
