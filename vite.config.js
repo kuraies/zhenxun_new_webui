@@ -135,7 +135,7 @@ export default defineConfig({
             }
         }
     },
-    // server: {
+    server: {
     //     proxy: {
     //         '/zhenxun/api': {
     //             target: 'http://localhost:8080',
@@ -160,8 +160,8 @@ export default defineConfig({
     //             }
     //         }
     //     },
-    //     host: '::'
-    // }
+        host: '::'
+    }
 })
 
 

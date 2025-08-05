@@ -1,18 +1,14 @@
-import { createWebSocket } from '@/utils/websocket/index.js'
-import { getHost } from '@/utils/api/index.js'
 
+import {useWebSocketStore} from '@/store/websocket.js'
+const socketStore = useWebSocketStore()
 const logs = {
     name:'logs',
-    initWebSocket(store) {
-        const socketManager = createWebSocket({
-            host: getHost(),
-            path: '/zhenxun/socket'
-        })
-
+    init(store) {
+        const socketManager =socketStore.socketManger
         // 系统状态命名空间
         const logsSocket = socketManager.of(this.name)
         logsSocket.on('message', (data) => {
-            console.log(data)
+            // console.log(data)
             // store.addMessage(this.name,data)
         })
         logsSocket.on('disconnect', () => {

@@ -11,7 +11,7 @@ export const apiUrl = '/zhenxun/api'
 
 const request = axios.create({
     baseURL: getBaseUrl()+apiUrl,
-    timeout: 10000,
+    timeout: 100000,
 })
 
 // 请求拦截器
@@ -32,6 +32,15 @@ request.interceptors.response.use(
 
         if (error.config?.skipInterceptor && error.response?.status === 500) {
             return Promise.reject(error);
+        }
+
+        if(error.code === 'ECONNABORTED'){
+            ZXNotification({
+                title: "哇啊啊啊",
+                message: "小真寻被超时了இ௰இ",
+                type: '😭',
+                position: 'top-right',
+            })
         }
 
         if (error.response?.status === 401 ||error.response?.status === 400) {

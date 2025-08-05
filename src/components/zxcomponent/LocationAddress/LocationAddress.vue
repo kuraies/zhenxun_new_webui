@@ -120,7 +120,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { getBaseUrl} from '@/utils/api/index.js'
-import { updateRequestUrl } from '@/utils/api/request.js'
+import { updateRequestUrl } from '@/utils/api/util.js'
 
 import ZXNotification  from 'components/zxcomponent/Notification/index.js'
 import { throttle } from '@/utils/util.js'

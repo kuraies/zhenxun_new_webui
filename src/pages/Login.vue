@@ -16,8 +16,7 @@ import ZXInput from 'components/zxcomponent/ZXInput.vue'
 import bg_img from '@/assets/img/title.png'
 import poster_img from '@/assets/img/img.png'
 import logo_img from '@/assets/img/title.png'
-import RainEffect from '@/pages/RainEffect.vue'
-
+import RainEffect from '@/utils/effects/RainEffect.vue'
 
 
 /*
@@ -149,12 +148,11 @@ onMounted(() => {
     window.addEventListener('keydown', handleKeyDown)
 
 
-
     const el = card.value?.$el ?? card.value
     const el2 = login_card.value?.$el ?? login_card.value
-    const el3=logo.value?.$el ?? logo.value
+    const el3 = logo.value?.$el ?? logo.value
 
-    useSodaBlast(el, el2,el3).then(() => {
+    useSodaBlast(el, el2, el3).then(() => {
         createParallaxEffect(bgRef.value, {
             depth: 0.8,
             duration: 0.1
@@ -166,7 +164,7 @@ onMounted(() => {
             duration: 1
         })
     })
-    createSVGConfetti();
+    createSVGConfetti()
 })
 
 onUnmounted(() => {
@@ -214,9 +212,8 @@ function useSodaBlast(el, el2, el3) {
         scale: 1.03,
         rotation: 0,
         duration: 0.6,
-        ease: 'power4.out',
+        ease: 'power4.out'
     }, '<') // "<" 表示与前一个动画同时开始
-
 
 
     // Step 3: 回落（el 单独回落）
@@ -239,44 +236,45 @@ function useSodaBlast(el, el2, el3) {
         scale: 1,
         duration: 0.6,
         ease: 'bounce.out',
-        delay:0.1
+        delay: 0.1
     }, '<') // "<" 表示与前一个动画同时开始
 
 
     return timeline
 }
+
 function createSVGConfetti() {
-    const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.top = '0';
-    container.style.left = '0';
-    container.style.width = '100%';
-    container.style.height = '100%';
-    container.style.pointerEvents = 'none';
-    container.style.zIndex = '0';
-    document.body.appendChild(container);
+    const container = document.createElement('div')
+    container.style.position = 'fixed'
+    container.style.top = '0'
+    container.style.left = '0'
+    container.style.width = '100%'
+    container.style.height = '100%'
+    container.style.pointerEvents = 'none'
+    container.style.zIndex = '0'
+    document.body.appendChild(container)
 
     // 创建彩条元素
-    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
-    const count = 100; // 彩条数量
+    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff']
+    const count = 100 // 彩条数量
 
     for (let i = 0; i < count; i++) {
-        const confetti = document.createElement('div');
-        confetti.style.position = 'absolute';
-        confetti.style.width = '10px';
-        confetti.style.height = '30px';
-        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-        confetti.style.left = '50%';
-        confetti.style.top = '50%';
-        confetti.style.transformOrigin = 'center center';
-        confetti.style.transform = 'translate(-50%, -50%)';
-        confetti.style.borderRadius = '2px';
-        container.appendChild(confetti);
+        const confetti = document.createElement('div')
+        confetti.style.position = 'absolute'
+        confetti.style.width = '10px'
+        confetti.style.height = '30px'
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)]
+        confetti.style.left = '50%'
+        confetti.style.top = '50%'
+        confetti.style.transformOrigin = 'center center'
+        confetti.style.transform = 'translate(-50%, -50%)'
+        confetti.style.borderRadius = '2px'
+        container.appendChild(confetti)
 
         // 动画设置
-        const angle = Math.random() * Math.PI * 2;
-        const distance = 100 + Math.random() * 1000;
-        const duration = 1 + Math.random() * 2;
+        const angle = Math.random() * Math.PI * 2
+        const distance = 100 + Math.random() * 1000
+        const duration = 1 + Math.random() * 2
 
         gsap.to(confetti, {
             x: Math.cos(angle) * distance,
@@ -286,52 +284,94 @@ function createSVGConfetti() {
             duration: duration,
             ease: 'power2.out',
             onComplete: () => {
-                container.removeChild(confetti);
+                container.removeChild(confetti)
                 if (container.children.length === 0) {
-                    document.body.removeChild(container);
+                    document.body.removeChild(container)
                 }
             }
-        });
+        })
     }
 }
 
 function createParallaxEffect(element, options = {}) {
-    // console.log(element)
     const {
-        xOffset = 200, // X轴最大偏移
-        yOffset = 200, // Y轴最大偏移
-        depth = 0.5, // 深度系数 (0-1)
+        xOffset = 200,
+        yOffset = 200,
+        depth = 0.5,
         easing = 'power2.out',
-        duration = 1.0
-    } = options
+        duration = 1.0,
+        throttleTime = 16 // 大约 60 FPS
+    } = options;
 
-    const animation = gsap.to(element, {
-        x: 0,
-        y: 0,
-        duration: options.duration,
-        ease: easing
-    })
+    let throttleTimeout = null;
+    let lastMouseX = 0;
+    let lastMouseY = 0;
 
+    /**
+     * 节流函数，限制函数执行频率。
+     * @param {function} func - 要节流的函数。
+     * @param {number} limit - 节流时间（毫秒）。
+     * @returns {function} 节流后的函数。
+     */
+    const throttler = (func, limit) => {
+        return function(e) {
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+
+            if (!throttleTimeout) {
+                throttleTimeout = setTimeout(() => {
+                    func.apply(this, [e]);
+                    throttleTimeout = null;
+                }, limit);
+            }
+        };
+    };
+
+    /**
+     * 实际处理鼠标移动并更新动画的函数。
+     * @param {MouseEvent} e - 鼠标事件对象。
+     */
     function handleMouseMove(e) {
-        const rect = element.getBoundingClientRect()
-        const centerX = rect.left + rect.width / 2
-        const centerY = rect.top + rect.height / 2
+        // 使用传入的事件对象或最后记录的鼠标位置，确保在节流后也能获取到最新位置
+        const currentClientX = e ? e.clientX : lastMouseX;
+        const currentClientY = e ? e.clientY : lastMouseY;
 
-        const relX = (e.clientX - centerX) / (rect.width / 2)
-        const relY = (e.clientY - centerY) / (rect.height / 2)
+        const rect = element.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
 
-        animation.vars.x = -relX * xOffset * depth
-        animation.vars.y = -relY * yOffset * depth
-        animation.invalidate().restart()
+        // 计算鼠标相对于元素中心的归一化位置 (-1 到 1)
+        const relX = (currentClientX - centerX) / (rect.width / 2);
+        const relY = (currentClientY - centerY) / (rect.height / 2);
+
+        // 计算目标 x 和 y 值
+        const targetX = -relX * xOffset * depth;
+        const targetY = -relY * yOffset * depth;
+
+        // 使用 GSAP 的 .to() 方法来平滑地更新元素位置
+        // GSAP 会智能地计算从当前位置到目标位置的过渡
+        // overwrite: true 确保如果有多个动画在尝试控制 x/y，新的动画会覆盖旧的，避免冲突和卡顿
+        gsap.to(element, {
+            x: targetX,
+            y: targetY,
+            ease: easing,
+            duration: duration,
+            overwrite: true // 确保每次只运行一个 x/y 动画
+        });
     }
 
-    window.addEventListener('mousemove', handleMouseMove)
+    // 将鼠标移动事件监听器绑定到节流函数上
+    const throttledHandleMouseMove = throttler(handleMouseMove, throttleTime);
+    window.addEventListener('mousemove', throttledHandleMouseMove);
 
+    // 返回一个清理函数
     return () => {
-        window.removeEventListener('mousemove', handleMouseMove)
-        gsap.killTweensOf(element)
-        gsap.set(element, { x: 0, y: 0 })
-    }
+        window.removeEventListener('mousemove', throttledHandleMouseMove);
+        // 停止并清理与该元素相关的所有 GSAP 动画
+        gsap.killTweensOf(element);
+        // 动画结束后，将元素位置重置
+        gsap.set(element, { x: 0, y: 0 });
+    };
 }
 
 function handleHoverShowLocation() {
@@ -362,9 +402,10 @@ function handleHoverShowLocation() {
     <div class="flex h-screen items-center justify-center   bg-[#fefefe]  select-none ">
 
         <RainEffect />
+
         <div
             ref="card"
-            class="login-card relative z-1 flex h-160 w-260 rounded-4xl bg-transparent outline-8 shadow-[0_0_16px_rgba(30,30,30,0.5)] outline-white max-sm:h-screen max-sm:bg-pink-100 sm:m-10   after:content-['']"
+            class="login-card roof relative z-1 flex h-160 w-260 rounded-4xl bg-transparent border-8 shadow-[0_0_16px_rgba(30,30,30,0.5)] border-white max-sm:h-screen max-sm:bg-pink-100 sm:m-10   after:content-['']"
         >
             <div
                 class="backdrop h-full overflow-hidden rounded-l-2xl bg-white max-md:hidden max-sm:hidden   pointer-events-none"
@@ -486,57 +527,59 @@ function handleHoverShowLocation() {
             </div>
         </div>
         <svg
-            width="300"
+            class='absolute'
             height="150"
             viewBox="0 0 300 150"
+            width="300"
             xmlns='http://www.w3.org/2000/svg'
-            class='absolute'
         >
             <defs>
                 <filter id='noiseFilter' color-interpolation-filters="sRGB">
                     <!-- 基础噪点生成 -->
                     <feTurbulence
-                        type='fractalNoise'
                         baseFrequency='0.65'
                         numOctaves='3'
-                        stitchTiles='stitch'
                         result='turbulence'
+                        stitchTiles='stitch'
+                        type='fractalNoise'
                     />
 
                     <!-- 颜色调整 -->
                     <feColorMatrix
+                        result='coloredNoise'
                         type='matrix'
                         values='0 0 0 0 0.5
                 0 0 0 0 0.5
                 0 0 0 0 0.5
                 0 0 0 0.2 0'
-                        result='coloredNoise'
                     />
 
                     <!-- 对比度增强 -->
                     <feComponentTransfer result='contrastNoise'>
-                        <feFuncR type="linear" slope="2" intercept="-0.5"/>
-                        <feFuncG type="linear" slope="2" intercept="-0.5"/>
-                        <feFuncB type="linear" slope="2" intercept="-0.5"/>
+                        <feFuncR intercept="-0.5" slope="2" type="linear" />
+                        <feFuncG intercept="-0.5" slope="2" type="linear" />
+                        <feFuncB intercept="-0.5" slope="2" type="linear" />
                     </feComponentTransfer>
 
                     <!-- 与原图混合 -->
                     <feBlend
-                        mode='multiply'
                         in='SourceGraphic'
                         in2='contrastNoise'
+                        mode='multiply'
                     />
                 </filter>
             </defs>
 
         </svg>
         <div
-            class="bg absolute -z-0 flex h-full w-full flex-col items-center justify-center  [filter:url(#noiseFilter)] overflow-hidden bg-gradient-to-br from-white/20 via-white/8 to-white/3"
+            class="bg absolute -z-0 flex h-full w-full flex-col items-center justify-center  overflow-hidden bg-gradient-to-br [filter:url(#noiseFilter)] from-white/20 via-white/8 to-white/3"
         >
-<!--            <div-->
-<!--                class="bg absolute -z-0 flex h-full w-full flex-col items-center justify-center overflow-hidden"-->
-<!--            >-->
-            <img ref="bgRef" :src="bg_img" alt="" class="w-full transition-transform duration-1000 ease-linear blur-3xl " />
+            <!--            -->
+            <!--            <div-->
+            <!--                class="bg absolute -z-0 flex h-full w-full flex-col items-center justify-center overflow-hidden"-->
+            <!--            >-->
+            <img ref="bgRef" :src="bg_img" alt="" class="w-full transition-transform blur-3xl duration-1000 ease-linear " />
+            <!--            -->
         </div>
     </div>
 </template>

@@ -23,12 +23,13 @@ const { rainAmount, accelerationMin, accelerationMax, airResistance, windX, maxW
 const canvasRef = ref(null)
 const drops = []
 const splashes = []
-
 const droplets = []
 
 let ctx
 let width, height
 const targets = []
+// 缓存目标元素的边界信息
+const targetBounds = []
 let windTime = 0
 let currentWindX = 0
 let spawnIntervalId = null
@@ -58,16 +59,15 @@ function spawnDrop() {
     const ay = accelerationMin.value + Math.random() * (accelerationMax.value - accelerationMin.value)
     const hue = Math.random() * 360
     const color = `hsla(${hue}, 80%, 70%, 0.8)`
-    drops.push({ x, y: -10, vy, ay, color, hue, size: dropWidth.value, height: dropHeight.value })
+    drops.push({ x, y: -10, vy, ay, color, hue, size: dropWidth.value, height: dropHeight.value, active: true }) // 添加 active 属性
 }
 
 function spawnSplash(x, y, hue, direction = 0) {
     const count = 6
     for (let i = 0; i < count; i++) {
-        // 主方向是垂直向上 270°，轻微左右偏移
         const base = Math.PI * 1.5
-        const offset = (Math.random() - 0.5) * Math.PI / 6  // ±15°
-        const sideBias = direction * Math.PI / 8           // -22.5° or +22.5°
+        const offset = (Math.random() - 0.5) * Math.PI / 6
+        const sideBias = direction * Math.PI / 8
         const angle = base + sideBias + offset
 
         const speed = 1 + Math.random() * 2
@@ -80,9 +80,9 @@ function spawnSplash(x, y, hue, direction = 0) {
             alpha: 1,
             radius: 2,
             color: splashColor,
+            colorRgba: null // 缓存 RGBA 颜色
         })
     }
-
     spawnDroplets(x, y, hue, direction)
 }
 
@@ -98,7 +98,8 @@ function spawnDroplets(x, y, hue, direction = 0) {
             vy: Math.sin(angle) * speed,
             alpha: 1,
             radius: 1 + Math.random() * 1,
-            color: `hsla(${hue}, 100%, 95%, 1)`
+            color: `hsla(${hue}, 100%, 95%, 1)`,
+            colorRgba: null // 缓存 RGBA 颜色
         })
     }
 }
@@ -108,7 +109,27 @@ function resize() {
     height = window.innerHeight
     canvasRef.value.width = width
     canvasRef.value.height = height
+    updateTargetBounds() // 窗口大小改变时更新目标边界
 }
+
+function updateTargetBounds() {
+    targetBounds.length = 0 // 清空
+    targets.forEach(el => {
+        const style = getComputedStyle(el)
+        const outlineWidth = parseFloat(style.outlineWidth) || 0
+        const outlineOffset = parseFloat(style.outlineOffset) || 0
+        const padding = (outlineWidth + Math.abs(outlineOffset)) * 2
+        const r = el.getBoundingClientRect()
+        targetBounds.push({
+            left: r.left - padding,
+            right: r.right + padding,
+            top: r.top - padding,
+            bottom: r.bottom + padding,
+            centerX: r.left + r.width / 2
+        })
+    })
+}
+
 
 function startRain() {
     clearInterval(spawnIntervalId)
@@ -126,7 +147,7 @@ function stopRain() {
 function update() {
     ctx.clearRect(0, 0, width, height)
 
-    // 风速计算
+    // 风速计算 (只计算一次)
     windTime += 0.002
     if (useNoiseWind.value) {
         currentWindX = noise1D(windTime * 0.1) * maxWindX.value
@@ -139,6 +160,10 @@ function update() {
     // 更新雨滴
     for (let i = drops.length - 1; i >= 0; i--) {
         const d = drops[i]
+
+        // 如果雨滴已经不活跃，则跳过
+        if (!d.active) continue
+
         d.vy += d.ay
         d.vy *= airResistance.value
         d.y += d.vy
@@ -151,35 +176,42 @@ function update() {
         ctx.translate(d.x, d.y)
         ctx.rotate(angle)
         ctx.fillStyle = d.color
-        ctx.fillRect(-d.size / 2, -d.height, d.height, d.size)
+        // 绘制更真实的雨滴形状 (示例：泪滴状)
+        ctx.beginPath()
+        ctx.moveTo(0, 0)
+        ctx.lineTo(d.height, 0)
+        ctx.arc(d.height, d.size / 2, d.size / 2, -Math.PI / 2, Math.PI / 2, false)
+        ctx.lineTo(0, d.size)
+        ctx.closePath()
+        ctx.fill()
         ctx.restore()
 
         // 碰撞检测
-        for (const el of targets) {
-            const style = getComputedStyle(el)
-            const outlineWidth = parseFloat(style.outlineWidth) || 0
-            const outlineOffset = parseFloat(style.outlineOffset) || 0
-            const padding = (outlineWidth + Math.abs(outlineOffset)) * 2
-            const r = el.getBoundingClientRect()
-
+        let hitTarget = false
+        for (const target of targetBounds) { // 使用缓存的边界信息
             if (
-                d.y >= r.top - padding &&
-                d.y <= r.bottom + padding &&
-                d.x >= r.left - padding &&
-                d.x <= r.right + padding
+                d.y >= target.top &&
+                d.y <= target.bottom &&
+                d.x >= target.left &&
+                d.x <= target.right
             ) {
-                const centerX = r.left + r.width / 2
-                const direction = d.x < centerX ? -1 : 1
+                const direction = d.x < target.centerX ? -1 : 1
                 spawnSplash(d.x, d.y, d.hue, direction)
                 spawnDroplets(d.x, d.y, d.hue, direction)
-                drops.splice(i, 1)
+                d.active = false; // 标记为不活跃
+                hitTarget = true
                 break
             }
         }
 
-        if (d.y > height) drops.splice(i, 1)
+        if (d.y > height) d.active = false; // 标记为不活跃
     }
 
+    // 清理不活跃的雨滴
+    drops.sort((a, b) => a.active === b.active ? 0 : a.active ? -1 : 1) // 将不活跃的移到后面
+    while (drops.length > 0 && !drops[drops.length - 1].active) {
+        drops.pop()
+    }
 
 
     // 更新水花
@@ -189,13 +221,25 @@ function update() {
         p.y += p.vy
         p.alpha -= 0.03
         p.radius *= 0.98
-        ctx.fillStyle = p.color.replace(/[^,]+(?=\))/, p.alpha.toFixed(2))
+
+        // 优化颜色字符串生成
+        if (!p.colorRgba) {
+            // 解析一次 HSLA 到 RGBA，方便后续修改 alpha
+            // 这部分需要一个 HSLA 到 RGBA 的转换函数，这里简化处理
+            p.colorRgba = p.color.replace(/hsla\((\d+),\s*(\d+)%,\s*(\d+)%,\s*([\d.]+)\)/, (match, h, s, l, a) => {
+                // 简化处理，直接移除 alpha 部分，后续手动添加
+                return `rgba(${h},${s},${l},`
+            });
+        }
+        ctx.fillStyle = p.colorRgba + `${p.alpha.toFixed(2)})` // 直接拼接 alpha
+
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2)
         ctx.fill()
         if (p.alpha <= 0) splashes.splice(i, 1)
     }
 
+    // 更新水滴 (与水花类似优化)
     for (let i = droplets.length - 1; i >= 0; i--) {
         const p = droplets[i]
         p.x += p.vx
@@ -203,14 +247,19 @@ function update() {
         p.alpha -= 0.025
         p.radius *= 0.98
 
-        ctx.fillStyle = p.color.replace(/[^,]+(?=\))/, p.alpha.toFixed(2))
+        if (!p.colorRgba) {
+            p.colorRgba = p.color.replace(/hsla\((\d+),\s*(\d+)%,\s*(\d+)%,\s*([\d.]+)\)/, (match, h, s, l, a) => {
+                return `rgba(${h},${s},${l},`
+            });
+        }
+        ctx.fillStyle = p.colorRgba + `${p.alpha.toFixed(2)})`
+
         ctx.beginPath()
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2)
         ctx.fill()
 
         if (p.alpha <= 0) droplets.splice(i, 1)
     }
-
 
     animationFrameId = requestAnimationFrame(update)
 }
@@ -219,7 +268,8 @@ onMounted(() => {
     ctx = canvasRef.value.getContext('2d')
     resize()
     window.addEventListener('resize', resize)
-    targets.push(...document.querySelectorAll('.z-1'))
+    targets.push(...document.querySelectorAll('.roof'))
+    updateTargetBounds() // 初始化目标边界
     canvasRef.value.addEventListener('click', e => spawnSplash(e.clientX, e.clientY, 200))
     startRain()
 

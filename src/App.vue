@@ -1,13 +1,4 @@
 <script setup>
-// import { router } from '@/router'
-import {setRouter} from "@/utils/navigation.js";
-import {useRoute} from 'vue-router'
-
-const router = useRoute()
-
-
-
-setRouter(router)
 // TO_DO
 // 多添加统计菜单
 

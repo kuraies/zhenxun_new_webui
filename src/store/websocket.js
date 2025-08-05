@@ -1,10 +1,17 @@
 // src/stores/websocket.js
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { createWebSocket } from '@/utils/websocket/index.js'
+import { getHost } from '@/utils/api/index.js'
 
 export const useWebSocketStore = defineStore('websocket', () => {
     // 使用Map存储各命名空间的消息，保持灵活性和高性能
     const namespaceMap = ref(new Map())
+    const socketManger = ref(createWebSocket({
+        host: getHost(),
+        path: '/zhenxun/socket'
+    }))
+
 
     /**
      * 通用消息存储方法
@@ -88,10 +95,13 @@ export const useWebSocketStore = defineStore('websocket', () => {
         }
     }
 
+
+
     return {
         namespaceMap,
+        socketManger,
         addMessage,
         getMessages,
-        clearMessages
+        clearMessages,
     }
 })

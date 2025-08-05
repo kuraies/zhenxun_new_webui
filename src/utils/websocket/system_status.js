@@ -1,19 +1,17 @@
-import { createWebSocket } from '@/utils/websocket/index.js'
-import { getHost } from '@/utils/api/index.js'
+import { useWebSocketStore } from '@/store/websocket.js'
+
+const socketStore = useWebSocketStore()
 
 const system_status = {
     name:'system_status',
-    initWebSocket(store) {
-        const socketManager = createWebSocket({
-            host: getHost(),
-            path: '/zhenxun/socket'
-        })
-
+    init(store) {
+        const socketManager =socketStore.socketManger
         // 系统状态命名空间
         const statusSocket = socketManager.of(this.name)
         statusSocket.on('message', (data) => {
             // console.log(data)
             store.addMessage(this.name,data)
+            localStorage.setItem("system_status", JSON.stringify(data));
         })
         statusSocket.on('disconnect', () => {
             console.log("断开连接")
@@ -34,7 +32,9 @@ const system_status = {
             // store.addMessage(this.name,data)
         })
 
-        return socketManager
+    },
+    disconnect() {
+
     }
 }
 
