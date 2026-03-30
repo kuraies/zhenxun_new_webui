@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { MessageCircle, UserX } from 'lucide-vue-next'
-import gsap from 'gsap'
 import type { Friend } from '@/types/manage.types'
 
 const props = defineProps<{
@@ -13,64 +11,20 @@ const emit = defineEmits<{
     (e: 'delete-friend', friend: Friend): void
 }>()
 
-const cardRef = ref<HTMLElement | null>(null)
-
-// 卡片悬停动画
-const handleMouseEnter = () => {
-    if (!cardRef.value) return
-    gsap.to(cardRef.value, {
-        y: -4,
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-        duration: 0.25,
-        ease: 'power2.out'
-    })
-}
-
-const handleMouseLeave = () => {
-    if (!cardRef.value) return
-    gsap.to(cardRef.value, {
-        y: 0,
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-        duration: 0.25,
-        ease: 'power2.out'
-    })
-}
-
-// 点击反馈动画
-const playClickFeedback = () => {
-    if (!cardRef.value) return
-    gsap.timeline()
-        .to(cardRef.value, {
-            scale: 0.98,
-            duration: 0.08,
-            ease: 'power2.in'
-        })
-        .to(cardRef.value, {
-            scale: 1,
-            duration: 0.15,
-            ease: 'back.out(1.5)'
-        })
-}
-
 // 发送消息
 const handleSendMessage = () => {
-    playClickFeedback()
     emit('send-message', props.friend)
 }
 
 // 移除好友
 const handleDeleteFriend = () => {
-    playClickFeedback()
     emit('delete-friend', props.friend)
 }
 </script>
 
 <template>
     <div
-        ref="cardRef"
-        class="flip-card friend bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 overflow-hidden transition-shadow duration-300"
-        @mouseenter="handleMouseEnter"
-        @mouseleave="handleMouseLeave"
+        class="friend bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
     >
         <div class="p-4 flex flex-col gap-3">
             <!-- 头部：好友信息 -->

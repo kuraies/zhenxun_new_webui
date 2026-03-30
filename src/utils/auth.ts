@@ -1,23 +1,36 @@
-export const auth ={
-    setAuthState(state:boolean){
-            sessionStorage.setItem('isAuthenticated', String(state));
+/**
+ * 认证工具函数
+ */
+
+const AUTH_KEY = 'isAuthenticated'
+const TOKEN_KEY = 'token'
+
+export const auth = {
+    setAuthState(state: boolean) {
+        sessionStorage.setItem(AUTH_KEY, String(state))
     },
-    getAuthState() {
-        return sessionStorage.getItem('isAuthenticated') === 'true';
+
+    getAuthState(): boolean {
+        return sessionStorage.getItem(AUTH_KEY) === 'true'
     },
-    setAuthToken(type:string,token:string){
-        let access_token = `${type.charAt(0).toUpperCase() + type.slice(1)} ${token}`
-        sessionStorage.setItem('token', access_token);
+
+    setAuthToken(type: string, token: string) {
+        const formattedToken = token.startsWith('Bearer ') || token.startsWith('bearer ')
+            ? token
+            : `${type.charAt(0).toUpperCase() + type.slice(1)} ${token}`
+        sessionStorage.setItem(TOKEN_KEY, formattedToken)
     },
-    getAuthToken(){
-        return sessionStorage.getItem('token');
+
+    getAuthToken(): string | null {
+        return sessionStorage.getItem(TOKEN_KEY)
     },
-    deleteAuthToken(){
-        sessionStorage.removeItem('token');
+
+    deleteAuthToken() {
+        sessionStorage.removeItem(TOKEN_KEY)
     },
-    logout(){
+
+    logout() {
         this.deleteAuthToken()
         this.setAuthState(false)
     }
-
 }

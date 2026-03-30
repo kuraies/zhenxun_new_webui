@@ -1,3 +1,344 @@
-.shadow-nf{
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.12);
+/* ===================================
+   统一遮罩样式 - 高斯模糊效果
+   =================================== */
+
+/* 基础遮罩类 - 适用于所有模态框/弹窗 */
+.glass-overlay {
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* 浅色遮罩 - 适用于更轻量的弹窗 */
+.glass-overlay-light {
+    background-color: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+/* 深色遮罩 - 适用于需要更强聚焦的场景 */
+.glass-overlay-dark {
+    background-color: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* 遮罩动画 */
+.glass-overlay-animate {
+    animation: overlay-fade-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes overlay-fade-in {
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+    to {
+        opacity: 1;
+        backdrop-filter: blur(8px);
+    }
+}
+
+/* ===================================
+   果冻弹窗动画
+   =================================== */
+
+/* 果冻进入动画 - 应用于弹窗内容容器 */
+.jelly-in {
+    animation: jelly-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* 果冻离开动画 */
+.jelly-out {
+    animation: jelly-leave 0.25s ease-in forwards;
+}
+
+/* 果冻进入关键帧 */
+@keyframes jelly-enter {
+    0% {
+        opacity: 0;
+        transform: scale(0.3);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.08);
+    }
+    70% {
+        transform: scale(0.95);
+    }
+    85% {
+        transform: scale(1.02);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 果冻离开关键帧 */
+@keyframes jelly-leave {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+}
+
+/* 弹窗容器过渡动画 - 配合 Transition 组件使用 */
+/* 容器不需要动画，使用 Vue 的 :duration prop 控制时长 */
+
+/* 弹窗内容果冻动画 */
+.modal-jelly-enter-active .modal-content {
+    animation: jelly-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.modal-jelly-leave-active .modal-content {
+    animation: jelly-leave 0.25s ease-in forwards;
+}
+
+/* ===================================
+   响应式布局工具类
+   =================================== */
+
+/* 隐藏滚动条但保持可滚动 */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* 移动端优化 - 触摸目标最小尺寸 */
+@media (pointer: coarse) {
+    .btn-touch {
+        min-height: 44px;
+        min-width: 44px;
+    }
+}
+
+/* 触摸反馈效果 */
+.btn-touch {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.btn-touch:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+    transition: all 0.1s ease;
+}
+
+/* 防止内容溢出 */
+.responsive-container {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* 防止水平滚动条 */
+.prevent-overflow {
+    overflow-x: hidden;
+    max-width: 100%;
+}
+
+/* 响应式字体大小 */
+.text-responsive-xs {
+    font-size: clamp(0.75rem, 2vw, 0.875rem);
+}
+
+.text-responsive-sm {
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+}
+
+.text-responsive-base {
+    font-size: clamp(1rem, 3vw, 1.125rem);
+}
+
+.text-responsive-lg {
+    font-size: clamp(1.125rem, 3.5vw, 1.25rem);
+}
+
+.text-responsive-xl {
+    font-size: clamp(1.25rem, 4vw, 1.5rem);
+}
+
+.text-responsive-2xl {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+}
+
+/* 响应式间距 */
+.responsive-p {
+    padding: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+.responsive-gap {
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+
+/* 移动端安全区域适配 */
+@supports (padding: max(0px)) {
+    .safe-area-inset-bottom {
+        padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    }
+    .safe-area-inset-top {
+        padding-top: max(0.5rem, env(safe-area-inset-top));
+    }
+}
+
+/* 最小触摸目标 */
+.min-touch-target {
+    min-width: 44px;
+    min-height: 44px;
+}
+
+/* 响应式字体大小 */
+.text-responsive-xs {
+    font-size: clamp(0.75rem, 2vw, 0.875rem);
+}
+
+.text-responsive-sm {
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+}
+
+.text-responsive-base {
+    font-size: clamp(1rem, 3vw, 1.125rem);
+}
+
+.text-responsive-lg {
+    font-size: clamp(1.125rem, 3.5vw, 1.25rem);
+}
+
+.text-responsive-xl {
+    font-size: clamp(1.25rem, 4vw, 1.5rem);
+}
+
+.text-responsive-2xl {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+}
+
+/* 响应式间距 */
+.responsive-p {
+    padding: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+.responsive-gap {
+    gap: clamp(0.5rem, 1.5vw, 1rem);
+}
+
+/* ===================================
+   动画工具类
+   =================================== */
+
+/* 淡入动画 */
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* 滑入动画（从上） */
+.slide-in-from-top {
+    animation: slideInFromTop 0.3s ease-out;
+}
+
+@keyframes slideInFromTop {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* 滑入动画（从左） */
+.slide-in-from-left {
+    animation: slideInFromLeft 0.3s ease-out;
+}
+
+@keyframes slideInFromLeft {
+    from {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* 滑入动画（从右） */
+.slide-in-from-right {
+    animation: slideInFromRight 0.3s ease-out;
+}
+
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* 缩放进入动画 */
+.scale-in {
+    animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* 脉冲动画 */
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* 骨架屏加载动画 */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
 }

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Users, MoreVertical, Eye, ToggleLeft, ToggleRight, LogOut } from 'lucide-vue-next'
-import gsap from 'gsap'
 import type { Group } from '@/types/manage.types'
 import { ZXNotification } from '@/components'
 
@@ -16,55 +15,15 @@ const emit = defineEmits<{
 }>()
 
 const processing = ref(false)
-const cardRef = ref<HTMLElement | null>(null)
-
-// 卡片悬停动画
-const handleMouseEnter = () => {
-    if (!cardRef.value) return
-    gsap.to(cardRef.value, {
-        y: -4,
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-        duration: 0.25,
-        ease: 'power2.out'
-    })
-}
-
-const handleMouseLeave = () => {
-    if (!cardRef.value) return
-    gsap.to(cardRef.value, {
-        y: 0,
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-        duration: 0.25,
-        ease: 'power2.out'
-    })
-}
-
-// 点击反馈动画
-const playClickFeedback = () => {
-    if (!cardRef.value) return
-    gsap.timeline()
-        .to(cardRef.value, {
-            scale: 0.98,
-            duration: 0.08,
-            ease: 'power2.in'
-        })
-        .to(cardRef.value, {
-            scale: 1,
-            duration: 0.15,
-            ease: 'back.out(1.5)'
-        })
-}
 
 // 查看详情
 const handleViewDetail = () => {
-    playClickFeedback()
     emit('view-detail', props.group)
 }
 
 // 切换状态
 const handleToggleStatus = async () => {
     if (processing.value) return
-    playClickFeedback()
     processing.value = true
     emit('toggle-status', props.group)
     processing.value = false
@@ -73,18 +32,14 @@ const handleToggleStatus = async () => {
 // 退群
 const handleLeaveGroup = () => {
     if (processing.value) return
-    playClickFeedback()
     emit('leave-group', props.group)
 }
 </script>
 
 <template>
     <div
-        ref="cardRef"
-        class="flip-card group bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 overflow-hidden transition-shadow duration-300"
+        class="group bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
         :class="{ 'opacity-75': !group.status }"
-        @mouseenter="handleMouseEnter"
-        @mouseleave="handleMouseLeave"
     >
         <div class="p-4 flex flex-col gap-3">
             <!-- 头部：群组信息 + 状态 -->

@@ -1,15 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Package, Search, X } from 'lucide-vue-next'
 import { storeApi, type StoreResponse } from '@/utils/api-next'
 import type { StorePlugin } from '@/types/store.types'
 import StoreCard from '@/components/zxcomponent/StoreCard/StoreCard.vue'
 import { ZXNotification, ZXMessageBox } from '@/components'
-import { useListAnimation } from '@/composables/useListAnimation'
-
-// 列表动画
-const { playEnterAnimation } = useListAnimation()
-const gridRef = ref<HTMLElement | null>(null)
 
 // 商店数据
 const storeData = ref<StoreResponse | null>(null)
@@ -33,14 +28,6 @@ const loadStoreData = async () => {
             storeData.value.plugin_list.forEach((plugin: StorePlugin) => {
                 plugin.is_installed = installedModules.has(plugin.module)
             })
-
-            // 播放列表项进入动画
-            await nextTick()
-            if (gridRef.value) {
-                const cards = gridRef.value.querySelectorAll('.flip-card')
-                playEnterAnimation(cards)
-            }
-
             ZXNotification({
                 title: '成功啦~',
                 message: '插件商店数据加载成功 ♪(´▽｀)',
@@ -265,7 +252,6 @@ onMounted(() => {
             <!-- 网格视图 -->
             <div
                 v-else
-                ref="gridRef"
                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3"
             >
                 <StoreCard

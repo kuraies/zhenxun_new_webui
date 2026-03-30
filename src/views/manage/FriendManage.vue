@@ -1,21 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Search, Users, UserCircle } from 'lucide-vue-next'
 import { ZXNotification, ZXMessageBox } from '@/components'
 import { manageApi } from '@/utils/api-next'
 import { useBotStore } from '@/store/bot'
-import { useListAnimation } from '@/composables/useListAnimation'
 import type { Friend, FriendDetail } from '@/types/manage.types'
 import FriendCard from '@/components/zxcomponent/FriendCard/FriendCard.vue'
 import FriendDetailInfo from '@/components/manage/FriendDetailInfo.vue'
 import FriendTrendChart from '@/components/manage/FriendTrendChart.vue'
 
 const botStore = useBotStore()
-
-// 列表动画
-const { playEnterAnimation } = useListAnimation()
-const gridRef = ref<HTMLElement | null>(null)
-
 const loading = ref(false)
 const friends = ref<Friend[]>([])
 const searchQuery = ref('')
@@ -49,13 +43,6 @@ const loadFriends = async () => {
         const res = await manageApi.getFriendList(botId)
         if (res.success && res.data) {
             friends.value = res.data
-
-            // 播放列表项进入动画
-            await nextTick()
-            if (gridRef.value) {
-                const cards = gridRef.value.querySelectorAll('.flip-card')
-                playEnterAnimation(cards)
-            }
         }
     } catch (error) {
         console.error('加载好友列表失败:', error)
@@ -234,7 +221,6 @@ onMounted(() => {
                     <!-- 网格视图 -->
                     <div
                         v-else
-                        ref="gridRef"
                         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3"
                     >
                         <div

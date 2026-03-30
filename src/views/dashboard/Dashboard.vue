@@ -31,14 +31,9 @@ import { useBotStore } from '@/store/bot'
 import { systemApi, mainApi, analyticsApi } from '@/utils/api-next'
 import { ZXNotification, ZXMessageBox } from '@/components'
 import { usePolling } from '@/composables/usePolling'
-import { useListAnimation } from '@/composables/useListAnimation'
 
 const systemStore = useSystemStore()
 const botStore = useBotStore()
-
-// 列表动画
-const { playEnterAnimationWithDelay } = useListAnimation()
-const containerRef = ref<HTMLElement | null>(null)
 
 // 启动时间
 const botStartTime = ref<Date | null>(null)
@@ -324,9 +319,6 @@ onMounted(async () => {
 
     // 启动运行时长计时器（页面可见性感知）
     startUptimePolling()
-
-    // 播放列表项进入动画
-    playEnterAnimationWithDelay(containerRef, '.list-item', 100)
 })
 
 onBeforeUnmount(() => {
@@ -336,9 +328,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div ref="containerRef" class="w-full h-full space-y-3 sm:space-y-4 overflow-y-auto">
+    <div class="w-full h-full space-y-3 sm:space-y-4 overflow-y-auto">
         <!-- 顶部状态栏 -->
-        <div class="list-item bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-3 sm:p-6">
+        <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-3 sm:p-6">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
                 <div class="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
                     <div class="w-10 h-10 sm:w-16 sm:h-16 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
@@ -395,7 +387,7 @@ onBeforeUnmount(() => {
 
         <!-- 核心统计 - 改进响应式网格 -->
         <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-1.5 sm:gap-3">
-            <div class="list-item flip-card bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
+            <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
                 <div class="flex items-center justify-between mb-1.5 sm:mb-2">
                     <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
                         <MessageSquare class="w-3 h-3 sm:w-4 sm:h-4 text-blue-600" />
@@ -406,7 +398,7 @@ onBeforeUnmount(() => {
                 <div class="text-xs text-gray-500 truncate">消息总数</div>
             </div>
 
-            <div class="list-item flip-card bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
+            <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
                 <div class="flex items-center justify-between mb-1.5 sm:mb-2">
                     <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
                         <Activity class="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
@@ -417,7 +409,7 @@ onBeforeUnmount(() => {
                 <div class="text-xs text-gray-500 truncate">今日消息</div>
             </div>
 
-            <div class="list-item flip-card bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
+            <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
                 <div class="flex items-center justify-between mb-1.5 sm:mb-2">
                     <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
                         <Plug class="w-3 h-3 sm:w-4 sm:h-4 text-purple-600" />
@@ -428,7 +420,7 @@ onBeforeUnmount(() => {
                 <div class="text-xs text-gray-500 truncate">调用总数</div>
             </div>
 
-            <div class="list-item flip-card bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
+            <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
                 <div class="flex items-center justify-between mb-1.5 sm:mb-2">
                     <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
                         <Activity class="w-3 h-3 sm:w-4 sm:h-4 text-pink-600" />
@@ -439,7 +431,7 @@ onBeforeUnmount(() => {
                 <div class="text-xs text-gray-500 truncate">今日调用</div>
             </div>
 
-            <div class="list-item flip-card bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
+            <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
                 <div class="flex items-center justify-between mb-1.5 sm:mb-2">
                     <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0">
                         <Users class="w-3 h-3 sm:w-4 sm:h-4 text-yellow-600" />
@@ -449,7 +441,7 @@ onBeforeUnmount(() => {
                 <div class="text-xs text-gray-500 truncate">好友数</div>
             </div>
 
-            <div class="list-item flip-card bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
+            <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
                 <div class="flex items-center justify-between mb-1.5 sm:mb-2">
                     <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
                         <Group class="w-3 h-3 sm:w-4 sm:h-4 text-indigo-600" />
@@ -459,7 +451,7 @@ onBeforeUnmount(() => {
                 <div class="text-xs text-gray-500 truncate">群组数</div>
             </div>
 
-            <div class="list-item flip-card bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
+            <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
                 <div class="flex items-center justify-between mb-1.5 sm:mb-2">
                     <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-cyan-100 flex items-center justify-center flex-shrink-0">
                         <Plug class="w-3 h-3 sm:w-4 sm:h-4 text-cyan-600" />
@@ -469,7 +461,7 @@ onBeforeUnmount(() => {
                 <div class="text-xs text-gray-500 truncate">插件数</div>
             </div>
 
-            <div class="list-item flip-card bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
+            <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-2 sm:p-3 hover:shadow-md transition-shadow min-w-0">
                 <div class="flex items-center justify-between mb-1.5 sm:mb-2">
                     <div class="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                         <Database class="w-3 h-3 sm:w-4 sm:h-4 text-orange-600" />
@@ -482,7 +474,7 @@ onBeforeUnmount(() => {
 
         <!-- 系统资源状态 - 改进响应式 -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
-            <div class="list-item flip-card bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-3 sm:p-5">
+            <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-3 sm:p-5">
                 <div class="flex items-center justify-between mb-2 sm:mb-3">
                     <div class="flex items-center space-x-1.5 sm:space-x-2 min-w-0">
                         <Cpu class="w-3.5 h-3.5 sm:w-5 sm:h-5 text-blue-500 flex-shrink-0" />
@@ -501,7 +493,7 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <div class="list-item flip-card bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-3 sm:p-5">
+            <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-3 sm:p-5">
                 <div class="flex items-center justify-between mb-2 sm:mb-3">
                     <div class="flex items-center space-x-1.5 sm:space-x-2 min-w-0">
                         <MemoryStick class="w-3.5 h-3.5 sm:w-5 sm:h-5 text-purple-500 flex-shrink-0" />
@@ -520,7 +512,7 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <div class="list-item flip-card bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-3 sm:p-5 sm:col-span-2 lg:col-span-1">
+            <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-3 sm:p-5 sm:col-span-2 lg:col-span-1">
                 <div class="flex items-center justify-between mb-2 sm:mb-3">
                     <div class="flex items-center space-x-1.5 sm:space-x-2 min-w-0">
                         <HardDrive class="w-3.5 h-3.5 sm:w-5 sm:h-5 text-orange-500 flex-shrink-0" />
@@ -541,7 +533,7 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- 系统信息 -->
-        <div class="list-item bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-3 sm:p-5">
+        <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-3 sm:p-5">
             <div class="flex items-center space-x-2 mb-4">
                 <Info class="w-5 h-5 text-cyan-500" />
                 <h3 class="font-semibold text-gray-700 text-sm sm:text-base">系统信息</h3>

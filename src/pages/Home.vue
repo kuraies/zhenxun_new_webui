@@ -5,19 +5,9 @@ import { Menu as MenuIcon, X } from 'lucide-vue-next'
 
 import { useWebSocketStore } from "@/store/websocket";
 import { useGlobalStore } from "@/store/global";
-import { useBreakpoint } from "@/composables/useBreakpoint";
 import { connectStatusWebSocket, disconnectStatusWebSocket, onStatusMessage, onConnectionStateChange } from "@/utils/api-next/websocket-status";
 import { connectLogsWebSocket, disconnectLogsWebSocket, onLogMessage } from "@/utils/api-next/websocket-logs";
 import User from "@/components/User.vue";
-
-// Flip 插件引用
-let FlipPlugin: any = null
-
-// 动态导入 Flip 插件
-import('gsap/Flip').then(module => {
-    FlipPlugin = module.Flip
-    gsap.registerPlugin(FlipPlugin)
-})
 
 const socketStore = useWebSocketStore();
 const globalStore = useGlobalStore();
@@ -30,30 +20,6 @@ const contentRef = ref<HTMLElement | null>(null);
 // 标记当前是否是模式切换过程中
 let isModeSwitch = false;
 let animationTl: gsap.core.Timeline | null = null; // GSAP 时间轴，用于管理复杂动画
-
-// 断点变化处理 - 用于触发 FLIP 动画
-const handleBreakpointChange = (from: string, to: string) => {
-    if (!contentRef.value || globalStore.isMobileMode || !FlipPlugin) return
-
-    // 获取内容区域内的所有卡片
-    const cards = contentRef.value.querySelectorAll('.flip-card')
-    if (cards.length === 0) return
-
-    // 记录当前状态
-    const state = FlipPlugin.getState(cards)
-
-    // 等待 DOM 更新后播放 FLIP 动画
-    nextTick(() => {
-        FlipPlugin.from(state, {
-            duration: 0.35,
-            ease: 'power2.inOut',
-            stagger: 0.025
-        })
-    })
-}
-
-// 使用断点 Hook
-const { currentBreakpoint } = useBreakpoint(handleBreakpointChange)
 
 // 根据屏幕尺寸计算侧边栏宽度
 const getNavWidth = (isMini: boolean): string => {
@@ -233,32 +199,12 @@ watch(
     }
 );
 
-// 监听 navMini 的变化，使用 FLIP 动画更新内容区域
+// 监听 navMini 的变化，更新桌面模式宽度
 watch(
     () => globalStore.navMini,
-    (newVal, oldVal) => {
-        if (globalStore.isMobileMode || globalStore.navHidden) return
-        if (oldVal === undefined) return // 初始化时跳过
-
-        // 更新侧边栏宽度
-        updateDesktopNavWidth()
-
-        // 对内容区域内的卡片执行 FLIP 动画
-        if (contentRef.value && FlipPlugin) {
-            const cards = contentRef.value.querySelectorAll('.flip-card')
-            if (cards.length > 0) {
-                // 记录当前状态
-                const state = FlipPlugin.getState(cards)
-
-                // 等待布局变化完成后播放动画
-                nextTick(() => {
-                    FlipPlugin.from(state, {
-                        duration: 0.35,
-                        ease: 'power2.inOut',
-                        stagger: 0.025
-                    })
-                })
-            }
+    () => {
+        if (!globalStore.isMobileMode && !globalStore.navHidden) {
+            updateDesktopNavWidth();
         }
     }
 );

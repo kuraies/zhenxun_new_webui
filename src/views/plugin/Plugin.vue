@@ -1,16 +1,11 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { Blocks, Search, X } from 'lucide-vue-next'
 import { pluginApi } from '@/utils/api-next'
 import type { PluginInfo } from '@/types/api-next.types'
 import PluginCard from '@/components/zxcomponent/PluginCard/PluginCard.vue'
 import PluginConfigModal from '@/components/zxcomponent/PluginConfigModal/PluginConfigModal.vue'
 import { ZXNotification } from '@/components'
-import { useListAnimation } from '@/composables/useListAnimation'
-
-// 列表动画
-const { playEnterAnimation } = useListAnimation()
-const gridRef = ref<HTMLElement | null>(null)
 
 // 插件列表
 const plugins = ref<PluginInfo[]>([])
@@ -41,13 +36,6 @@ const loadPlugins = async () => {
         })
         if (res?.success && res?.data) {
             plugins.value = res.data.items || []
-
-            // 播放列表项进入动画
-            await nextTick()
-            if (gridRef.value) {
-                const cards = gridRef.value.querySelectorAll('.flip-card')
-                playEnterAnimation(cards)
-            }
         }
     } catch (error) {
         ZXNotification({
@@ -254,7 +242,6 @@ onMounted(() => {
             <!-- 网格视图 -->
             <div
                 v-else
-                ref="gridRef"
                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3"
             >
                 <PluginCard

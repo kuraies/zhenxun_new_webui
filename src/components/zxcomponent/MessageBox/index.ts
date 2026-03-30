@@ -1,5 +1,5 @@
 import { createApp, h, Component, VNode, App } from 'vue'
-import { MessageBoxOptions } from "@/types/zxcomponets/messagebox.types";
+import { MessageBoxOptions } from './types'
 
 
 export default function ZXMessageBox(options: MessageBoxOptions = {}): Promise<boolean> {

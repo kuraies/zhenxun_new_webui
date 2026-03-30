@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Settings } from 'lucide-vue-next'
-import gsap from 'gsap'
 import { pluginApi } from '@/utils/api-next'
 import type { PluginInfo } from '@/types/api-next.types'
 import { ZXNotification } from '@/components'
@@ -16,47 +15,9 @@ const emit = defineEmits<{
 }>()
 
 const processing = ref(false)
-const cardRef = ref<HTMLElement | null>(null)
 
 // 计算开关是否可用 - allow_switch 才是不允许操作
 const switchDisabled = computed(() => props.plugin.allow_switch === false)
-
-// 卡片悬停动画
-const handleMouseEnter = () => {
-    if (!cardRef.value) return
-    gsap.to(cardRef.value, {
-        y: -4,
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-        duration: 0.25,
-        ease: 'power2.out'
-    })
-}
-
-const handleMouseLeave = () => {
-    if (!cardRef.value) return
-    gsap.to(cardRef.value, {
-        y: 0,
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-        duration: 0.25,
-        ease: 'power2.out'
-    })
-}
-
-// 点击反馈动画
-const playClickFeedback = () => {
-    if (!cardRef.value) return
-    gsap.timeline()
-        .to(cardRef.value, {
-            scale: 0.98,
-            duration: 0.08,
-            ease: 'power2.in'
-        })
-        .to(cardRef.value, {
-            scale: 1,
-            duration: 0.15,
-            ease: 'back.out(1.5)'
-        })
-}
 
 // 切换插件状态
 const handleToggleStatus = (newStatus: boolean) => {
@@ -71,7 +32,6 @@ const handleToggleStatus = (newStatus: boolean) => {
         return
     }
 
-    playClickFeedback()
     processing.value = true
 
     // 立即更新前端状态
@@ -122,10 +82,7 @@ const handleOpenConfig = (event: Event) => {
 
 <template>
     <div
-        ref="cardRef"
-        class="flip-card group bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 overflow-hidden transition-shadow duration-300"
-        @mouseenter="handleMouseEnter"
-        @mouseleave="handleMouseLeave"
+        class="group bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
     >
         <div class="p-4 flex flex-col gap-2">
             <!-- 头部：插件信息 + 状态 -->

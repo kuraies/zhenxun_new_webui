@@ -1,9 +1,10 @@
 <template>
     <!-- 输入框 -->
     <input
+        :type="type"
         :placeholder="placeholder"
         v-model="inputValue"
-        class="ease w-full rounded-md border border-slate-300 bg-white px-3 py-2 pl-6 text-sm font-light text-slate-700 transition duration-300 placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-400 focus:shadow focus:outline-none"
+        class="ease w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 pl-6 text-sm font-light text-slate-700 transition duration-300 placeholder:text-slate-400 hover:border-slate-300 focus:border-slate-400 focus:shadow focus:outline-none"
         v-bind="attrs"
     />
 
@@ -66,8 +67,8 @@ const props = defineProps({
         default: 'end'
     },
     type: {
-        type: [String, Boolean],
-        default: 'success'
+        type: String,
+        default: 'text' // 'text' | 'password' | 'number' | 'email' 等
     }
 })
 

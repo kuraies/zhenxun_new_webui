@@ -3,6 +3,8 @@ import vue from "@vitejs/plugin-vue";
 import { fileURLToPath, URL } from "node:url";
 import tailwindcss from "@tailwindcss/vite";
 import AutoImport from "unplugin-auto-import/vite";
+import Components from "unplugin-vue-components/vite";
+import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 import minipic from "vite-plugin-minipic";
 import compression from "vite-plugin-compression2";
 import vueDevTools from "vite-plugin-vue-devtools";
@@ -13,10 +15,11 @@ export default defineConfig({
         vue(),
         tailwindcss(),
         AutoImport({
-            // 如果你使用了 Element Plus，可以取消注释下面这行并安装对应 resolver
-            // resolvers: [require('@element-plus/resolvers').ElementPlusResolver()],
             imports: ["vue", "vue-router", "pinia"],
             dts: true,
+        }),
+        Components({
+            resolvers: [ElementPlusResolver()],
         }),
         minipic(), // 图片压缩插件
         compression({
@@ -25,6 +28,7 @@ export default defineConfig({
             skipIfLargerOrEqual: true, // 如果压缩后 >= 原文件，则不压缩
         }),
         vueDevTools(), // 开发时 Vue DevTools 支持
+        // Monaco Editor 插件已移除，改为在组件中动态加载 Workers
     ],
     resolve: {
         alias: {

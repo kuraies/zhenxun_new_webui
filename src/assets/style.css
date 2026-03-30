@@ -8,23 +8,11 @@
     font-display: swap; /* 避免布局偏移 */
 }
 
-/*@font-face {*/
-/*    font-family: "Yezi";*/
-/*    src: url("./fonts/yezi.ttf");*/
-/*    font-weight: normal;*/
-/*    font-display: swap; !* 避免布局偏移 *!*/
-/*}*/
-/*@font-face {*/
-/*    font-family: "RuanTang";*/
-/*    src: url("./fonts/RuanTang.ttf");*/
-/*    font-weight: normal;*/
-/*    font-display: swap; !* 避免布局偏移 *!*/
-/*}*/
-
-body{
+body {
     font-family: "Harmony", sans-serif;
     color: #212121;
 }
+
 .custom-center-notification {
     left: 50% !important;
     top: 20px !important;
@@ -41,4 +29,40 @@ body{
         transform: translate(-50%, 0);
         opacity: 1;
     }
+}
+
+/* 防止 Element Plus 下拉菜单滚动穿透 */
+.el-dropdown__popper .el-dropdown-menu,
+.el-select-dropdown,
+.el-cascader-menu {
+    max-height: 300px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+/* 自定义滚动条样式 */
+.el-dropdown__popper .el-dropdown-menu::-webkit-scrollbar,
+.el-select-dropdown::-webkit-scrollbar,
+.el-cascader-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.el-dropdown__popper .el-dropdown-menu::-webkit-scrollbar-track,
+.el-select-dropdown::-webkit-scrollbar-track,
+.el-cascader-menu::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.el-dropdown__popper .el-dropdown-menu::-webkit-scrollbar-thumb,
+.el-select-dropdown::-webkit-scrollbar-thumb,
+.el-cascader-menu::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.el-dropdown__popper .el-dropdown-menu::-webkit-scrollbar-thumb:hover,
+.el-select-dropdown::-webkit-scrollbar-thumb:hover,
+.el-cascader-menu::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
 }

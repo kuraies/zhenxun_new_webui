@@ -1,20 +1,14 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Search, Group } from 'lucide-vue-next'
 import { ZXNotification, ZXMessageBox } from '@/components'
 import { manageApi } from '@/utils/api-next'
 import { useBotStore } from '@/store/bot'
-import { useListAnimation } from '@/composables/useListAnimation'
 import type { Group as GroupType } from '@/types/manage.types'
 import GroupCard from '@/components/zxcomponent/GroupCard/GroupCard.vue'
 import GroupDetailModal from './GroupDetailModal.vue'
 
 const botStore = useBotStore()
-
-// 列表动画
-const { playEnterAnimation } = useListAnimation()
-const gridRef = ref<HTMLElement | null>(null)
-
 const loading = ref(false)
 const groups = ref<GroupType[]>([])
 const searchQuery = ref('')
@@ -50,13 +44,6 @@ const loadGroups = async () => {
         const res = await manageApi.getGroupList(botId)
         if (res.success && res.data) {
             groups.value = res.data
-
-            // 播放列表项进入动画
-            await nextTick()
-            if (gridRef.value) {
-                const cards = gridRef.value.querySelectorAll('.flip-card')
-                playEnterAnimation(cards)
-            }
         } else {
             ZXNotification({
                 title: '呜呼~',
@@ -206,7 +193,6 @@ onMounted(() => {
             <!-- 网格视图 -->
             <div
                 v-else
-                ref="gridRef"
                 class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
             >
                 <GroupCard

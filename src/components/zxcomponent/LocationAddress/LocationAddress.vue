@@ -1,10 +1,11 @@
 <template>
     <Teleport to="body">
-        <div class="LocationAddress  fixed inset-0  flex items-center justify-center z-50">
-            <div v-if="bg_visible" ref="bgRef" class="bg bg-black/50 w-full h-full absolute -z-1"
-                 @click="onCancel"></div>
-            <div ref="cardRef"
-                 class=" bg-white rounded-4xl flex outline-8 outline-white relative  w-260 h-160  z-1  max-md:h-screen max-md:flex-col">
+        <Transition name="modal-jelly" :duration="{ enter: 500, leave: 250 }">
+            <div v-if="visible" class="LocationAddress fixed inset-0 flex items-center justify-center z-50">
+                <div v-if="bg_visible" ref="bgRef" class="bg glass-overlay w-full h-full absolute -z-1"
+                     @click="onCancel"></div>
+                <div ref="cardRef"
+                     class="modal-content bg-white rounded-2xl flex outline-8 outline-white relative w-260 h-160 z-1 max-md:h-screen max-md:flex-col">
                 <div
                     class="backdrop rounded-l-2xl bg-white flex justify-center flex-col overflow-hidden min-w-50 w-100 h-full max-md:w-full">
                     <img :src="poster"
@@ -12,7 +13,7 @@
                          class="h-full object-cover object-center filter url(#remove-white) max-md:object-top">
                 </div>
                 <div
-                    class="right-area flex-1 flex flex-col px-[10%] pt-16 pb-8 z-2 rounded-r-4xl space-y-8  max-md:rounded-t-4xl max-md:shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
+                    class="right-area flex-1 flex flex-col px-[10%] pt-16 pb-8 z-2 rounded-r-2xl space-y-8  max-md:rounded-t-2xl max-md:shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
                     <div class="title text-4xl font-bold text-slate-800 tracking-wide">
                         API地址设置
                     </div>
@@ -54,7 +55,7 @@
                                 </div>
                             </div>
                             <button
-                                class="w-20 cursor-pointer  items-center rounded-xl bg-green-600 py-1 px-4 border border-transparent text-center text-lg text-white transition-all shadow-sm hover:shadow-md hover:bg-green-500  disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                                class="w-20 cursor-pointer  items-center rounded-2xl bg-green-600 py-1 px-4 border border-transparent text-center text-lg text-white transition-all shadow-sm hover:shadow-md hover:bg-green-500  disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                                 type="button"
                                 @click="testAddress">
                                 测试
@@ -75,13 +76,13 @@
                         </div>
                         <div class="change-button flex justify-between">
                             <button
-                                class="w-20 cursor-pointer font-bold items-center rounded-xl bg-red-400 py-2 px-4 border border-transparent text-center text-lg text-white transition-all shadow-sm hover:shadow-md hover:bg-slate-700  disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                                class="w-20 cursor-pointer font-bold items-center rounded-2xl bg-red-400 py-2 px-4 border border-transparent text-center text-lg text-white transition-all shadow-sm hover:shadow-md hover:bg-slate-700  disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                                 type="button"
                                 @click="onCancel">
                                 取消
                             </button>
                             <button
-                                class="w-50 cursor-pointer font-bold items-center rounded-xl bg-slate-800 py-2 px-4 border border-transparent text-center text-lg text-white transition-all shadow-sm hover:shadow-md hover:bg-slate-700  disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                                class="w-50 cursor-pointer font-bold items-center rounded-2xl bg-slate-800 py-2 px-4 border border-transparent text-center text-lg text-white transition-all shadow-sm hover:shadow-md hover:bg-slate-700  disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                                 type="button"
                                 @click="onConfirm">
                                 修改
@@ -93,22 +94,27 @@
                     <img :src="right_top_img" alt="" class="w-50">
                 </div>
             </div>
-        </div>
+            </div>
+        </Transition>
     </Teleport>
 </template>
 
 <script setup>
 import { ref, watch } from "vue";
-import { getBaseUrl } from "@/utils/api/index.ts";
-import { updateRequestUrl } from "@/utils/api/util.ts";
-
-import ZXNotification from "components/zxcomponent/Notification/index.ts";
+import { getWsBaseUrl, updateApiBaseUrl, getPort, getBaseUrl, setBaseApiUrl, setPort } from "@/utils/api-next/client";
+import ZXNotification from "components/zxcomponent/Notification";
 import { throttle } from "@/utils/util.ts";
-import { useComponentStore } from "@/store/componet.js";
-import { systemApi } from "@/utils/api/system.ts";
-import { gsap } from "gsap";
+import { useComponentStore } from "@/store/component.js";
+import { systemApi } from "@/utils/api-next";
 
 const componentStore = useComponentStore();
+
+// 兼容旧代码的 updateRequestUrl
+const updateRequestUrl = (url, port) => {
+    setPort(port)
+    setBaseApiUrl(url)
+    updateApiBaseUrl()
+}
 
 
 /*
@@ -132,7 +138,6 @@ const props = defineProps({
 
 const bgRef = useTemplateRef("bgRef");
 const cardRef = useTemplateRef("cardRef");
-// console.log(baseApiUrl)
 const url = ref(null);
 const port = ref(null);
 
@@ -172,7 +177,6 @@ watch(visible, val => {
 
 
 onMounted(() => {
-    enterAnimation();
     url.value = getBaseUrl();
     changeUrl(url.value);
 });
@@ -181,35 +185,9 @@ onUnmounted(() => {
 });
 
 
-// 动画相关方法
-const enterAnimation = () => {
-    nextTick(() => {
-        if (bgRef.value && props.bg_visible) {
-            gsap.fromTo(bgRef.value,
-                { opacity: 0 },
-                { opacity: 1, duration: 0.2 }
-            );
-        }
-        if (cardRef.value) {
-            gsap.fromTo(cardRef.value,
-                { scale: 0.8, opacity: 0 },
-                { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(2)" }
-            );
-        }
-    });
-};
-
-const leaveAnimation = async () => {
-    if (cardRef.value) {
-        if (bgRef.value && props.bg_visible) {
-            await Promise.all([
-                gsap.to(cardRef.value, { scale: 0.8, opacity: 0, duration: 0.25 }),
-                gsap.to(bgRef.value, { opacity: 0, duration: 0.2 })
-            ]);
-        } else {
-            await gsap.to(cardRef.value, { scale: 0.8, opacity: 0, duration: 0.5, ease: "back.in(2)" });
-        }
-    }
+// 关闭弹窗
+const closeDialog = () => {
+    visible.value = false;
 };
 
 // 修改确认逻辑
@@ -223,7 +201,6 @@ const onConfirm = async () => {
     if (state) {
         updateRequestUrl(url.value, port.value);
         notificationModify(true);
-        await leaveAnimation();
         visible.value = false;
     } else {
         notificationModify(false);
@@ -266,14 +243,12 @@ function notificationModify(state) {
     });
 }
 
-const onCancel = async () => {
-    await leaveAnimation();
+const onCancel = () => {
     visible.value = false;
 };
 
 
 function changeUrl(newUrl) {
-    // console.log(url)
     if (newUrl) {
         let result = validateUrl(newUrl);
         if (result.isValid) {
@@ -299,7 +274,6 @@ function changeUrl(newUrl) {
 function changePort(newPort) {
     if (newPort) {
         let result = validatePort(newPort);
-        // console.log(result);
         if (result.isValid) {
             port.value = result.port;
 
@@ -416,16 +390,16 @@ const handleTestAddress = throttle(() => {
     changePort(port.value);
     if (validate.url && validate.port) {
         return systemApi.ping({
-            baseURL: url.value + ":" + port.value + "/zhenxun/api"
+            baseURL: url.value + ":" + port.value + "/zhenxun/api/v1"
         })
             .then((res) => {
-                if (res?.suc) {
+                if (res?.success) {
                     connect.msg = "连接成功";
                     connect.state = true;
                     connect.show = true;
                     return true; // 返回 true
                 }
-                return false; // 如果 res.suc 不存在，返回 false
+                return false; // 如果 res.success 不存在，返回 false
             })
             .catch(error => {
                 console.error(error);
@@ -459,8 +433,6 @@ function testAddress() {
 // 暴露ref给父组件
 defineExpose({
     bgRef,
-    cardRef,
-    enterAnimation,
-    leaveAnimation
+    cardRef
 });
 </script>
