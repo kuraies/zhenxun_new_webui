@@ -1,11 +1,11 @@
 import { createVNode, render, ComponentInternalInstance } from 'vue'
-import { ZXNotificationFn, ZXNotificationOptions } from "@/types/zxcomponets/notification.types";
+import { ZXNotificationFn, ZXNotificationOptions } from './types'
 
 
 // 🔧 默认设置
 const defaultOptions: Required<ZXNotificationOptions> = {
     duration: 3000,
-    position: 'top-center',
+    position: 'top-right',
     type: 'info',
     customClass: '',
     confetti: false,
@@ -76,7 +76,7 @@ ZXNotification.setDefaultOptions = (opts: Partial<ZXNotificationOptions>) => {
 ZXNotification.resetDefaultOptions = () => {
     Object.assign(defaultOptions, {
         duration: 3000,
-        position: 'top-center',
+        position: 'top-right',
         type: 'info',
         customClass: '',
         confetti: false,

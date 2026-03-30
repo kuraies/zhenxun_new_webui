@@ -1,5 +1,5 @@
 import { createApp, defineAsyncComponent, h, ref, Ref } from 'vue'
-import { useComponentStore } from '@/store/componet.js'
+import { useComponentStore } from '@/store/component.js'
 
 // 异步加载组件
 const LocationAddress = defineAsyncComponent(() => import('./LocationAddress.vue'))

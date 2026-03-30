@@ -1,5 +1,5 @@
 import { createVNode, render, ComponentInternalInstance } from 'vue'
-import { ZXConfettiExposed, ZXConfettiOptions, ZXConfettiFn } from "@/types/zxcomponets/confetti.types";
+import { ZXConfettiExposed, ZXConfettiOptions, ZXConfettiFn } from './types'
 
 
 

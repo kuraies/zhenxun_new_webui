@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { gsap } from 'gsap'
-import type { ZXConfettiOptions, ZXConfettiExposed } from '@/types/zxcomponets/confetti.types' // 直接复用你定义的 types
+import type { ZXConfettiOptions, ZXConfettiExposed } from './types'
 
 const container = ref<HTMLDivElement | null>(null)
 

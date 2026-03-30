@@ -3,12 +3,13 @@
         <div
             v-show="visible"
             ref="overlay"
-            class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
+            class="fixed inset-0 glass-overlay z-50 flex items-center justify-center"
+            :class="animating ? (closing ? 'modal-jelly-leave-active' : 'modal-jelly-enter-active') : ''"
             @click.self="handleCancel"
         >
             <div
                 ref="box"
-                class="bg-white rounded-2xl shadow-xl p-6 w-100 max-w-[90%] relative opacity-0 scale-95"
+                class="modal-content bg-white rounded-2xl shadow-xl p-6 w-100 max-w-[90%] relative"
             >
                 <h3 v-if="title" class="text-xl font-semibold mb-4 text-gray-800">
                     {{ title }}
@@ -59,7 +60,6 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { gsap } from 'gsap'
 
 const props = defineProps({
     title: String,
@@ -73,23 +73,19 @@ const props = defineProps({
 
 const visible = ref(false)
 const hovering = ref(false)
+const animating = ref(false)
+const closing = ref(false)
 const overlay = useTemplateRef("overlay")
 const box = useTemplateRef("box")
 
 onMounted(() => {
     visible.value = true
+    animating.value = true
 
-    // 动画进入
-    gsap.fromTo(
-        overlay.value,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.3, ease: 'power2.out' }
-    )
-    gsap.fromTo(
-        box.value,
-        { opacity: 0, scale: 0.8 },
-        { opacity: 1, scale: 1.1, duration: 0.5, ease: 'back.out(1.7)' }
-    )
+    // 动画结束后清理
+    setTimeout(() => {
+        animating.value = false
+    }, 500)
 })
 
 function handleConfirm() {
@@ -101,20 +97,13 @@ function handleCancel() {
 }
 
 function close(callback) {
-    gsap.to(box.value, {
-        opacity: 0,
-        scale: 0.8,
-        duration: 0.5,
-        ease: 'power2.in',
-    })
-    gsap.to(overlay.value, {
-        opacity: 0,
-        duration: 0.2,
-        ease: 'power2.in',
-        onComplete() {
-            visible.value = false
-            callback?.()
-        },
-    })
+    closing.value = true
+    animating.value = true
+
+    // 等待离开动画完成
+    setTimeout(() => {
+        visible.value = false
+        callback?.()
+    }, 250)
 }
 </script>

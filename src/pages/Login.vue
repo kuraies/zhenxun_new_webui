@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import { ref, reactive, onMounted, onUnmounted, useTemplateRef } from "vue";
 import { ZXMessageBox, ZXNotification } from "components/index.js";
 import { showLocationAddress } from "components/zxcomponent/LocationAddress";
 import { throttle } from "@/utils/util";
 import { auth } from "@/utils/auth.js";
 import { useRouter } from "vue-router";
-import { useComponentStore } from "@/store/componet.js";
-import { systemApi } from "@/utils/api/system.js";
+import { useComponentStore } from "@/store/component.js";
+import { authApi } from "@/utils/api-next";
 import { gsap } from "gsap";
 import ZXInput from "@/components/zxcomponent/ZXInput.vue";
 
@@ -16,8 +17,6 @@ import ZXInput from "@/components/zxcomponent/ZXInput.vue";
 import bg_img from "@/assets/img/title.png";
 import poster_img from "@/assets/img/img.png";
 import logo_img from "@/assets/img/title.png";
-import RainEffect from "@/utils/effects/RainEffect.vue";
-import type { BaseResponse } from "@/types";
 
 /*
 图片导入区结束
@@ -70,20 +69,19 @@ const changePassword = (_password: string) => {
 };
 
 const handleSubmitLogin = throttle(() => {
-    const formData = new URLSearchParams();
-    formData.append("username", username.value);
-    formData.append("password", password.value);
-
-    systemApi
-        .login(formData)
-        .then((axiosRes: object) => {
-            const response = axiosRes as BaseResponse;
-            if (response?.suc) {
+    authApi
+        .login({
+            username: username.value,
+            password: password.value
+        })
+        .then((axiosRes) => {
+            const response = axiosRes as any;
+            if (response?.success) {
                 if (response?.warning) {
                     ZXNotification({
                         title: "警告＞︿＜",
                         type: "warning",
-                        message: response?.info,
+                        message: response.warning,
                     });
                     return;
                 }
@@ -98,7 +96,7 @@ const handleSubmitLogin = throttle(() => {
                 ZXNotification({
                     title: "🥳",
                     type: "success",
-                    message: response?.info,
+                    message: response?.message || "登录成功",
                     confetti: true,
                 });
 
@@ -107,12 +105,20 @@ const handleSubmitLogin = throttle(() => {
                 ZXNotification({
                     title: "哎呀（；´д｀）ゞ",
                     type: "error",
-                    message: response?.info,
+                    message: response?.message || "登录失败",
                 });
             }
         })
         .catch((error: Error) => {
             console.error(error);
+            // 显示错误消息
+            const axiosError = error as any;
+            const message = axiosError.response?.data?.message || "登录失败，请检查网络";
+            ZXNotification({
+                title: "哎呀（；´д｀）ゞ",
+                type: "error",
+                message: message,
+            });
         });
 }, 1000);
 
@@ -348,13 +354,9 @@ function createParallaxEffect(
     } = options
 
     let throttleTimeout: number | null = null
-    let lastMouseX = 0
-    let lastMouseY = 0
 
     const throttler = (func: (e: MouseEvent) => void, limit: number) => {
         return (e: MouseEvent) => {
-            lastMouseX = e.clientX
-            lastMouseY = e.clientY
             if (!throttleTimeout) {
                 throttleTimeout = window.setTimeout(() => {
                     func(e)
@@ -410,11 +412,9 @@ function handleHoverShowLocation(): gsap.core.Timeline {
     <div
         class="flex h-screen items-center justify-center bg-[#fefefe] select-none"
     >
-        <RainEffect />
-
         <div
             ref="card"
-            class="login-card roof relative z-1 flex h-160 w-260 rounded-4xl border-8 border-white bg-transparent shadow-[0_0_16px_rgba(30,30,30,0.5)] after:content-[''] max-sm:h-screen max-sm:bg-pink-100 sm:m-10"
+            class="login-card roof relative z-1 flex h-160 w-260 rounded-2xl border-8 border-white bg-transparent shadow-[0_0_16px_rgba(30,30,30,0.5)] after:content-[''] max-sm:h-screen max-sm:bg-pink-100 sm:m-10"
         >
             <div
                 class="backdrop pointer-events-none h-full overflow-hidden rounded-l-2xl bg-white max-md:hidden max-sm:hidden"
@@ -455,12 +455,12 @@ function handleHoverShowLocation(): gsap.core.Timeline {
                 </div>
             </div>
             <div
-                class="right-area z-2 flex flex-1 flex-col rounded-r-4xl py-6 backdrop-blur-xl max-sm:pb-0"
+                class="right-area z-2 flex flex-1 flex-col rounded-r-2xl py-6 backdrop-blur-xl max-sm:pb-0"
             >
                 <div class="location mx-6 ml-auto max-sm:mb-20">
                     <button
                         ref="showLocationButton"
-                        class="flex cursor-pointer items-center rounded-xl border border-transparent bg-white px-4 py-2 text-center text-xs text-slate-800 shadow-sm hover:shadow-md focus:outline-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                        class="flex cursor-pointer items-center rounded-2xl border border-transparent bg-white px-4 py-2 text-center text-xs text-slate-800 shadow-sm hover:shadow-md focus:outline-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                         type="button"
                         @click="showLocation"
                         @mouseenter="handleHoverShowLocation"
@@ -492,7 +492,7 @@ function handleHoverShowLocation(): gsap.core.Timeline {
                 </div>
                 <div
                     ref="login_card"
-                    class="login relative mx-30 mb-8 flex-1 space-y-10 rounded-4xl px-8 pt-12 text-sm text-gray-700 shadow-sm before:absolute before:inset-0 before:-z-10 before:rounded-4xl before:bg-white before:bg-cover before:bg-center before:content-[''] max-sm:m-0 max-sm:px-10"
+                    class="login relative mx-30 mb-8 flex-1 space-y-10 rounded-2xl px-8 pt-12 text-sm text-gray-700 shadow-sm before:absolute before:inset-0 before:-z-10 before:rounded-2xl before:bg-white before:bg-cover before:bg-center before:content-[''] max-sm:m-0 max-sm:px-10"
                 >
                     <div class="user space-y-2">
                         <div class="title font-bold">用户名</div>
@@ -510,15 +510,16 @@ function handleHoverShowLocation(): gsap.core.Timeline {
                         <div class="relative w-full min-w-[200px]">
                             <ZXInput
                                 v-model="password"
+                                type="password"
                                 :message="message.password"
-                                placeholder="请输入用户名"
+                                placeholder="请输入密码"
                                 @blur="changePassword(password)"
                             />
                         </div>
                     </div>
                     <div class="login-button mb-6">
                         <button
-                            class="w-full cursor-pointer items-center rounded-xl border border-transparent bg-slate-800 px-4 py-2 text-center text-lg font-bold text-white shadow-sm transition-all hover:bg-slate-700 hover:shadow-md disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                            class="w-full cursor-pointer items-center rounded-2xl border border-transparent bg-slate-800 px-4 py-2 text-center text-lg font-bold text-white shadow-sm transition-all hover:bg-slate-700 hover:shadow-md disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                             type="button"
                             @click="submitLogin"
                         >
