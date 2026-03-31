@@ -57,12 +57,12 @@ const routes = [
                 component: () => import('@/views/database/Database.vue'),
                 meta: { menuKey: 'database' }
             },
-            // {
-            //     path: '/logs',
-            //     name: '实时日志',
-            //     component: () => import('@/views/logs/Logs.vue'),
-            //     meta: { menuKey: 'logs' }
-            // },
+            {
+                path: '/logs',
+                name: '实时日志',
+                component: () => import('@/views/logs/Logs.vue'),
+                meta: { menuKey: 'logs' }
+            },
             {
                 path: '/settings',
                 name: '设置',
