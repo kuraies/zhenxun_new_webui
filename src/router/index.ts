@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, type Router, type NavigationGuardNext, type RouteLocationNormalized } from 'vue-router'
 import { ZXNotification } from 'components/index.js'
 import { auth } from '@/utils/auth'
+import { eventBus } from "@/events/eventBus.ts";
 
 const routes = [
     {
@@ -56,12 +57,12 @@ const routes = [
                 component: () => import('@/views/database/Database.vue'),
                 meta: { menuKey: 'database' }
             },
-            {
-                path: '/logs',
-                name: '实时日志',
-                component: () => import('@/views/logs/Logs.vue'),
-                meta: { menuKey: 'logs' }
-            },
+            // {
+            //     path: '/logs',
+            //     name: '实时日志',
+            //     component: () => import('@/views/logs/Logs.vue'),
+            //     meta: { menuKey: 'logs' }
+            // },
             {
                 path: '/settings',
                 name: '设置',
@@ -143,4 +144,8 @@ router.beforeEach((to: RouteLocationNormalized, from: RouteLocationNormalized, n
     } else {
         next()
     }
+})
+
+eventBus.on("LOGIN:SUCCESS",()=>{
+    router.push({name: 'Home'})
 })
