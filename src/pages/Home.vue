@@ -27,15 +27,15 @@ const getNavWidth = (isMini: boolean): string => {
     const width = window.innerWidth;
     if (isMini) {
         // 迷你模式：所有尺寸统一
-        return '4.5rem';
+        return '3.75rem';
     }
     // 展开模式：响应式宽度
     if (width < 1024) {
-        return '11rem';  // lg 以下
+        return '16rem';  // lg 以下
     } else if (width < 1280) {
-        return '15rem';  // lg 到 xl
+        return '16rem';  // lg 到 xl
     } else {
-        return '18rem';  // xl 以上
+        return '17.5rem';  // xl 以上
     }
 };
 
@@ -329,7 +329,7 @@ onUnmounted(() => {
                 class="left-nav select-none @container z-[35] sm:z-auto
                        absolute sm:relative
                        left-0 top-0 bottom-0 sm:left-auto sm:top-auto sm:bottom-auto
-                       overflow-hidden"
+                       "
             >
                 <Menu></Menu>
             </div>
