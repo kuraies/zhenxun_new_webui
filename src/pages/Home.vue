@@ -8,6 +8,7 @@ import { useGlobalStore } from "@/store/global";
 import { connectStatusWebSocket, disconnectStatusWebSocket, onStatusMessage, onConnectionStateChange } from "@/utils/api-next/websocket-status";
 import { connectLogsWebSocket, disconnectLogsWebSocket, onLogMessage } from "@/utils/api-next/websocket-logs";
 import User from "@/components/User.vue";
+import { whiteScreen } from "@/components";
 
 const socketStore = useWebSocketStore();
 const globalStore = useGlobalStore();
@@ -268,6 +269,7 @@ const handleLogMessage = (log: any) => {
 };
 
 onMounted(() => {
+    whiteScreen.out()
     document.documentElement.classList.add("bg-gray-100");
 
     // 初始化 WebSocket 连接

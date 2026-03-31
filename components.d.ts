@@ -36,6 +36,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     StoreCard: typeof import('./src/components/zxcomponent/StoreCard/StoreCard.vue')['default']
     User: typeof import('./src/components/User.vue')['default']
+    WhiteScreen: typeof import('./src/components/zxcomponent/WhiteScreen/WhiteScreen.vue')['default']
     ZXInput: typeof import('./src/components/zxcomponent/ZXInput.vue')['default']
     ZXMonacoEditor: typeof import('./src/components/ZXMonacoEditor/index.vue')['default']
   }

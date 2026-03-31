@@ -1,14 +1,21 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, useTemplateRef } from "vue";
+import {
+    ref,
+    reactive,
+    onMounted,
+    onUnmounted,
+    useTemplateRef,
+    watch,
+} from "vue";
 import { ZXMessageBox, ZXNotification } from "components/index.js";
 import { showLocationAddress } from "components/zxcomponent/LocationAddress";
 import { throttle } from "@/utils/util";
 import { auth } from "@/utils/auth.js";
-import { useRouter } from "vue-router";
 import { useComponentStore } from "@/store/component.js";
 import { authApi } from "@/utils/api-next";
 import { gsap } from "gsap";
 import ZXInput from "@/components/zxcomponent/ZXInput.vue";
+import { eventBus } from "@/events/eventBus.ts";
 
 /*
 图片导入区
@@ -22,21 +29,21 @@ import logo_img from "@/assets/img/title.png";
 图片导入区结束
  */
 
-const router = useRouter();
-
 const componentStore = useComponentStore();
 
 // 表单数据
 const username = ref<string>("");
 const password = ref<string>("");
 
+const img_loaded = ref<boolean>(false);
+
 // Refs for template refs (确保类型正确)
-const bgRef = useTemplateRef("bgRef")
-const imgRef = useTemplateRef("imgRef")
-const card = useTemplateRef("card")
-const login_card = useTemplateRef("login_card")
-const logo = useTemplateRef("logo")
-const showLocationButton = useTemplateRef("showLocationButton")
+const bgRef = useTemplateRef("bgRef");
+const imgRef = useTemplateRef("imgRef");
+const card = useTemplateRef("card");
+const login_card = useTemplateRef("login_card");
+const logo = useTemplateRef("logo");
+const showLocationButton = useTemplateRef("showLocationButton");
 
 const validate = reactive({
     username: false,
@@ -72,7 +79,7 @@ const handleSubmitLogin = throttle(() => {
     authApi
         .login({
             username: username.value,
-            password: password.value
+            password: password.value,
         })
         .then((axiosRes) => {
             const response = axiosRes as any;
@@ -86,13 +93,6 @@ const handleSubmitLogin = throttle(() => {
                     return;
                 }
 
-                auth.setAuthState(true);
-
-                auth.setAuthToken(
-                    response?.data?.token_type,
-                    response?.data?.access_token,
-                );
-
                 ZXNotification({
                     title: "🥳",
                     type: "success",
@@ -100,7 +100,24 @@ const handleSubmitLogin = throttle(() => {
                     confetti: true,
                 });
 
-                router.push({ name: "Home" });
+                auth.setAuthState(true);
+
+                auth.setAuthToken(
+                    response?.data?.token_type,
+                    response?.data?.access_token,
+                );
+                eventBus.emit("LOGIN:BOT")
+
+                // const botList = await botStore.getBotList();
+                // await whiteScreen.in();
+                //
+                // // console.log(botList);
+                //
+                // if (!botList.self_id) {
+                //     await whiteScreen.out()
+                // }
+
+                // eventBus.emit("LOGIN:SUCCESS");
             } else {
                 ZXNotification({
                     title: "哎呀（；´д｀）ゞ",
@@ -113,7 +130,8 @@ const handleSubmitLogin = throttle(() => {
             console.error(error);
             // 显示错误消息
             const axiosError = error as any;
-            const message = axiosError.response?.data?.message || "登录失败，请检查网络";
+            const message =
+                axiosError.response?.data?.message || "登录失败，请检查网络";
             ZXNotification({
                 title: "哎呀（；´д｀）ゞ",
                 type: "error",
@@ -154,26 +172,33 @@ const handleKeyDown = (e: KeyboardEvent) => {
     }
 };
 
+watch(img_loaded, (newVal, oldVal) => {
+    if (newVal) {
+        requestAnimationFrame(() => {
+            const el = card.value;
+            const el2 = login_card.value;
+            const el3 = logo.value;
+
+            useSodaBlast(el, el2, el3).then(() => {
+                createParallaxEffect(bgRef.value, {
+                    depth: 0.8,
+                    duration: 0.1,
+                });
+                createParallaxEffect(imgRef.value, {
+                    xOffset: 10,
+                    yOffset: 10,
+                    depth: 0.15,
+                    duration: 1,
+                });
+            });
+
+            createSVGConfetti();
+        });
+    }
+});
+
 onMounted(() => {
     window.addEventListener("keydown", handleKeyDown);
-
-    const el = card.value;
-    const el2 = login_card.value;
-    const el3 = logo.value;
-
-    useSodaBlast(el, el2, el3).then(() => {
-        createParallaxEffect(bgRef.value, {
-            depth: 0.8,
-            duration: 0.1,
-        });
-        createParallaxEffect(imgRef.value, {
-            xOffset: 10,
-            yOffset: 10,
-            depth: 0.15,
-            duration: 1,
-        });
-    });
-    createSVGConfetti();
 });
 
 onUnmounted(() => {
@@ -187,7 +212,7 @@ function useSodaBlast(
 ) {
     const timeline = gsap.timeline();
 
-    const start_scale = 0.3;
+    const start_scale = 0.7;
 
     // Step 1: 变小
     timeline.to(el, {
@@ -333,78 +358,86 @@ function createSVGConfetti() {
 function createParallaxEffect(
     element: HTMLElement | null,
     options: {
-        xOffset?: number
-        yOffset?: number
-        depth?: number
-        easing?: string
-        duration?: number
-        throttleTime?: number
-    } = {}
+        xOffset?: number;
+        yOffset?: number;
+        depth?: number;
+        easing?: string;
+        duration?: number;
+        throttleTime?: number;
+    } = {},
 ): () => void {
-    const el = element
-    if (!el) return () => {}
+    const el = element;
+    if (!el) return () => {};
 
     const {
         xOffset = 200,
         yOffset = 200,
         depth = 0.5,
-        easing = 'power2.out',
+        easing = "power2.out",
         duration = 1.0,
         throttleTime = 16,
-    } = options
+    } = options;
 
-    let throttleTimeout: number | null = null
+    let throttleTimeout: number | null = null;
 
     const throttler = (func: (e: MouseEvent) => void, limit: number) => {
         return (e: MouseEvent) => {
             if (!throttleTimeout) {
                 throttleTimeout = window.setTimeout(() => {
-                    func(e)
-                    throttleTimeout = null
-                }, limit) as unknown as number
+                    func(e);
+                    throttleTimeout = null;
+                }, limit) as unknown as number;
             }
-        }
-    }
+        };
+    };
 
     const handleMouseMove = (e: MouseEvent) => {
-        const rect = el.getBoundingClientRect()
-        const centerX = rect.left + rect.width / 2
-        const centerY = rect.top + rect.height / 2
+        const rect = el.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
 
-        const relX = (e.clientX - centerX) / (rect.width / 2)
-        const relY = (e.clientY - centerY) / (rect.height / 2)
+        const relX = (e.clientX - centerX) / (rect.width / 2);
+        const relY = (e.clientY - centerY) / (rect.height / 2);
 
-        const targetX = -relX * xOffset * depth
-        const targetY = -relY * yOffset * depth
+        const targetX = -relX * xOffset * depth;
+        const targetY = -relY * yOffset * depth;
 
-        gsap.to(el, { x: targetX, y: targetY, ease: easing, duration: duration, overwrite: true })
-    }
+        gsap.to(el, {
+            x: targetX,
+            y: targetY,
+            ease: easing,
+            duration: duration,
+            overwrite: true,
+        });
+    };
 
-    const throttledHandleMouseMove = throttler(handleMouseMove, throttleTime)
-    window.addEventListener('mousemove', throttledHandleMouseMove)
+    const throttledHandleMouseMove = throttler(handleMouseMove, throttleTime);
+    window.addEventListener("mousemove", throttledHandleMouseMove);
 
     return () => {
-        window.removeEventListener('mousemove', throttledHandleMouseMove)
-        gsap.killTweensOf(el)
-        gsap.set(el, { x: 0, y: 0 })
-    }
+        window.removeEventListener("mousemove", throttledHandleMouseMove);
+        gsap.killTweensOf(el);
+        gsap.set(el, { x: 0, y: 0 });
+    };
 }
 
-
 function handleHoverShowLocation(): gsap.core.Timeline {
-    const el = showLocationButton.value
-    if (!el) return gsap.timeline()
+    const el = showLocationButton.value;
+    if (!el) return gsap.timeline();
 
     const tl = gsap.timeline({
         paused: true,
         repeat: 1,
         onComplete: function () {
-            gsap.to(el, { rotation: 0, duration: 0.2 })
-        }
-    })
+            gsap.to(el, { rotation: 0, duration: 0.2 });
+        },
+    });
 
-    tl.to(el, { rotation: 4, duration: 0.1 }).to(el, { rotation: -4, duration: 0.1 })
-    return tl.restart()
+    tl.to(el, { rotation: 4, duration: 0.1 }).to(el, {
+        rotation: -4,
+        duration: 0.1,
+    });
+    return tl.restart();
 }
 </script>
 
@@ -413,11 +446,12 @@ function handleHoverShowLocation(): gsap.core.Timeline {
         class="flex h-screen items-center justify-center bg-[#fefefe] select-none"
     >
         <div
+            v-show="img_loaded"
             ref="card"
             class="login-card roof relative z-1 flex h-160 w-260 rounded-2xl border-8 border-white bg-transparent shadow-[0_0_16px_rgba(30,30,30,0.5)] after:content-[''] max-sm:h-screen max-sm:bg-pink-100 sm:m-10"
         >
             <div
-                class="backdrop pointer-events-none h-full overflow-hidden rounded-l-2xl bg-white max-md:hidden max-sm:hidden"
+                class="backdrop pointer-events-none h-full overflow-hidden bg-white max-md:hidden max-sm:hidden"
             >
                 <div
                     class="flex h-full w-full flex-col justify-center bg-white"
@@ -450,7 +484,9 @@ function handleHoverShowLocation(): gsap.core.Timeline {
                         ref="imgRef"
                         :src="poster_img"
                         alt=""
-                        class="h-full w-100 object-cover object-center filter-[url(#remove-white)]"
+                        @load="img_loaded = true"
+                        class="h-full w-100 object-cover object-center"
+                        :class="img_loaded ? 'filter-[url(#remove-white)]' : ''"
                     />
                 </div>
             </div>
@@ -460,7 +496,7 @@ function handleHoverShowLocation(): gsap.core.Timeline {
                 <div class="location mx-6 ml-auto max-sm:mb-20">
                     <button
                         ref="showLocationButton"
-                        class="flex cursor-pointer items-center rounded-2xl border border-transparent bg-white px-4 py-2 text-center text-xs text-slate-800 shadow-sm hover:shadow-md focus:outline-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
+                        class="flex cursor-pointer items-center rounded-xl border border-transparent bg-white px-4 py-2 text-center text-xs text-slate-800 shadow-sm hover:shadow-md focus:outline-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
                         type="button"
                         @click="showLocation"
                         @mouseenter="handleHoverShowLocation"
@@ -492,7 +528,7 @@ function handleHoverShowLocation(): gsap.core.Timeline {
                 </div>
                 <div
                     ref="login_card"
-                    class="login relative mx-30 mb-8 flex-1 space-y-10 rounded-2xl px-8 pt-12 text-sm text-gray-700 shadow-sm before:absolute before:inset-0 before:-z-10 before:rounded-2xl before:bg-white before:bg-cover before:bg-center before:content-[''] max-sm:m-0 max-sm:px-10"
+                    class="login relative mx-30 mb-8 flex-1 space-y-10 rounded-4xl px-8 pt-12 text-sm text-gray-700 shadow-sm before:absolute before:inset-0 before:-z-10 before:rounded-4xl before:bg-white before:bg-cover before:bg-center before:content-[''] max-sm:m-0 max-sm:px-10"
                 >
                     <div class="user space-y-2">
                         <div class="title font-bold">用户名</div>
@@ -526,9 +562,9 @@ function handleHoverShowLocation(): gsap.core.Timeline {
                             登录
                         </button>
                     </div>
-                    <div class="forget text-right font-light">
+                    <div class="forget text-right ">
                         <span
-                            class="cursor-pointer text-blue-600 hover:text-blue-400"
+                            class="cursor-pointer text-blue-500 hover:text-blue-400"
                             @click="showForgetPassword"
                             >忘记密码？</span
                         >

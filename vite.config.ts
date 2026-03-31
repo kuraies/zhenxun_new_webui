@@ -5,7 +5,7 @@ import tailwindcss from "@tailwindcss/vite";
 import AutoImport from "unplugin-auto-import/vite";
 import Components from "unplugin-vue-components/vite";
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
-import minipic from "vite-plugin-minipic";
+// import minipic from "vite-plugin-minipic";
 import compression from "vite-plugin-compression2";
 import vueDevTools from "vite-plugin-vue-devtools";
 
@@ -21,7 +21,7 @@ export default defineConfig({
         Components({
             resolvers: [ElementPlusResolver()],
         }),
-        minipic(), // 图片压缩插件
+        // minipic(), // 图片压缩插件
         compression({
             threshold: 2000, // 只有大于 2kb 的文件才压缩
             deleteOriginalAssets: false, // 不删除原文件
