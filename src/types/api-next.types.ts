@@ -56,17 +56,46 @@ export interface SystemHealth {
 }
 
 export interface BotStatus {
-    self_id: string | null
-    nickname: string | null
-    ava_url: string | null
-    is_running: boolean
-    uptime: number
-    uptime_formatted: string
-    group_count: number
-    friend_count: number
-    message_count: number
-    start_time: string
+    self_id: string | null;
+    nickname: string | null;
+    ava_url: string | null;
+    is_running: boolean;
+    uptime: number;
+    uptime_formatted: string;
+    group_count: number;
+    friend_count: number;
+    message_count: number;
+    start_time: string;
 }
+
+export interface BotInfo {
+    // 基础信息
+    self_id: string | null;
+    nickname: string | null;
+    ava_url: string | null;
+    platform: string | null;
+
+    // 统计
+    friend_count: number;
+    group_count: number;
+
+    // 新字段（后端返回）
+    received_messages: number;
+    day_call: number;
+    connect_date: string | null;
+    total_call: number;
+    messages_total: number;
+
+    // 兼容旧 BotStatus
+    is_running: boolean;
+    uptime: number;
+    uptime_formatted: string;
+    start_time: string;
+
+    // 兼容旧 message_count（和 received_messages 对应）
+    message_count?: number;
+}
+
 
 export interface SystemInfo {
     version: string

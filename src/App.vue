@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <div class="min-h-screen overflow-hidden">
+  <div class="min-h-screen w-full overflow-hidden">
     <router-view></router-view>
   </div>
 </template>

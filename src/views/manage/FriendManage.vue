@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { Search, Users, UserCircle } from 'lucide-vue-next'
-import { ZXNotification, ZXMessageBox } from '@/components'
-import { manageApi } from '@/utils/api-next'
-import { useBotStore } from '@/store/bot'
-import type { Friend, FriendDetail } from '@/types/manage.types'
-import FriendCard from '@/components/zxcomponent/FriendCard/FriendCard.vue'
-import FriendDetailInfo from '@/components/manage/FriendDetailInfo.vue'
-import FriendTrendChart from '@/components/manage/FriendTrendChart.vue'
+import { computed, onMounted, ref } from "vue";
+import { Search, UserCircle, Users } from "lucide-vue-next";
+import { ZXMessageBox, ZXNotification } from "@/components";
+import { manageApi } from "@/utils/api-next";
+import { useBotStore } from "@/store/bot";
+import type { Friend, FriendDetail } from "@/types/manage.types";
+import FriendCard from "@/components/zxcomponent/FriendCard/FriendCard.vue";
+import FriendDetailInfo from "@/components/manage/FriendDetailInfo.vue";
+import FriendTrendChart from "@/components/manage/FriendTrendChart.vue";
 
 const botStore = useBotStore()
 const loading = ref(false)
@@ -62,7 +62,7 @@ const selectFriend = async (friend: Friend) => {
     selectedFriend.value = friend
     loadingDetail.value = true
     try {
-        const res = await manageApi.getFriendDetail(friend.user_id)
+        const res = await manageApi.getFriendDetail(friend.user_id,<string>botStore.selectedBotId)
         if (res.success && res.data) {
             friendDetail.value = res.data
         } else {
@@ -80,7 +80,7 @@ const selectFriend = async (friend: Friend) => {
 const refreshFriendDetail = async () => {
     if (!selectedFriend.value) return
     try {
-        const res = await manageApi.getFriendDetail(selectedFriend.value.user_id)
+        const res = await manageApi.getFriendDetail(selectedFriend.value.user_id,<string>botStore.selectedBotId)
         if (res.success && res.data) {
             friendDetail.value = res.data
         }
@@ -317,6 +317,7 @@ onMounted(() => {
                             </div>
                         </div>
                     </div>
+                </div>
                 </div>
             </Transition>
         </Teleport>

@@ -17,7 +17,6 @@ export { databaseApi } from './database'
 export { mainApi } from './main'
 export { storeApi, type StoreResponse } from './store'
 export { chatApi } from './chat'
-export { botApi } from './bot'
 
 // WebSocket 工具
 export { connectLogsWebSocket, disconnectLogsWebSocket, onLogMessage, onConnectionStateChange as onLogsConnectionStateChange } from './websocket-logs'

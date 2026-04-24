@@ -66,3 +66,25 @@ body {
 .el-cascader-menu::-webkit-scrollbar-thumb:hover {
     background: #a8a8a8;
 }
+
+::-webkit-scrollbar {
+    width: 4px;
+    height: 1px;
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    background: #e2e8f0;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e1;
+}
+
+::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-track {
+    border: 0;
+}
+
+.gutter {
+    scrollbar-gutter: stable;
+}

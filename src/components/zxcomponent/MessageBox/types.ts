@@ -18,6 +18,7 @@ export interface MessageBoxOptions {
     confirmButtonText?: string
     confirmButtonHoverText?: string
     cancelButtonText?: string
+    confirmButtonHoverBg?: string
     type?: 'error' | 'warning' | 'info' | 'success'
     // 事件处理 - 这些将覆盖组件内部的 onConfirm/onCancel
     onConfirm?: () => void

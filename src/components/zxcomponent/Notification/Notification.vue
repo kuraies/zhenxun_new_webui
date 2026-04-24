@@ -1,79 +1,137 @@
 <template>
     <Teleport to="body">
-        <!-- 预定义所有位置容器 -->
         <div
-            v-for="position in positions"
+            v-for="(list, position) in groupedNotifications"
             :key="position"
-            :class="['fixed z-9999', positionClasses[position]]"
+            :class="['fixed z-9999', position]"
         >
-            <TransitionGroup tag="div"
-                             class="space-y-3"
-                             :css="false"
-                             appear
-                             @before-enter="onBeforeEnter"
-                             @enter="onEnter"
-                             @leave="onLeave"
-                             @after-leave="onAfterLeave"
+            <TransitionGroup
+                tag="div"
+                class="space-y-4"
+                @before-enter="onBeforeEnter"
+                @enter="onEnter"
             >
                 <div
-                    v-for="item in getNotificationsByPosition(position)"
+                    v-for="(item, index) in list"
                     :key="item.id"
-                    :data-index="item.index"
+                    :data-index="index"
                     :data-notification-id="item.id"
                     :class="[
-                        'notification-card min-w-80 max-w-96 rounded-2xl px-4 py-3.5 shadow-lg btn-touch',
-                        typeClasses[item.type] || 'bg-white/95 border-l-4 border-blue-500',
-                        item.customClass
+                        'min-h-20 min-w-80 rounded-xl bg-white px-4 py-4 shadow-sm',
+                        item.type,
+                        item.customClass,
                     ]"
                     @mouseenter="pauseTimer(item)"
                     @mouseleave="resumeTimer(item)"
                 >
-                    <div class="relative flex items-start">
-                        <!-- 图标 -->
-                        <div class="icon flex-shrink-0">
-                            <!-- emoji 类型直接显示 emoji -->
-                            <span
-                                v-if="['🥳', '😭', '⚠️', '✅'].includes(item.type)"
-                                class="text-2xl"
-                            >{{ item.type }}</span>
-                            <!-- 其他类型显示图标 -->
-                            <component
-                                v-else
-                                :is="typeIcons[item.type]"
-                                class="w-5 h-5"
-                                :class="iconColorClasses[item.type] || 'text-blue-500'"
-                            />
+                    <div class="relative flex">
+                        <div class="logo">
+                            <!--info-->
+                            <div v-if="item.type === 'info'">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-6 text-slate-500"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"
+                                    />
+                                </svg>
+                            </div>
+                            <!--warning-->
+                            <div v-else-if="item.type === 'warning'">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-6 text-orange-500"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
+                                    />
+                                </svg>
+                            </div>
+                            <!--success-->
+                            <div v-else-if="item.type === 'success'">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-6 text-green-500"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                    />
+                                </svg>
+                            </div>
+                            <!--error-->
+
+                            <div v-else-if="item.type === 'error'">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-6 text-red-500"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                                    />
+                                </svg>
+                            </div>
+                            <!--custom-->
+                            <div v-else>
+                                {{ item.type }}
+                            </div>
                         </div>
-                        <!-- 内容 -->
-                        <div class="content flex-1 min-w-0 pl-3">
-                            <div v-if="item.title" class="notification-header font-medium text-sm mb-1">
-                                {{ item.title }}
+                        <div class="content w-full pl-2">
+                            <div class="notification-header">
+                                <strong v-if="item.title" class="title">{{
+                                    item.title
+                                }}</strong>
                             </div>
                             <div
-                                class="message text-sm leading-relaxed break-words"
-                                :class="item.contentClass || 'text-gray-600'"
+                                class="message mt-2 text-sm"
+                                :class="item.contentClass"
                             >
                                 {{ item.message }}
                             </div>
-                            <!-- 进度条（仅在有时长的通知中显示） -->
                             <div
-                                v-if="item.duration > 0"
-                                class="progress-bar mt-2 h-0.5 rounded-full overflow-hidden"
-                                :style="{ '--progress-duration': item.duration + 'ms' }"
+                                class="absolute top-0 right-0 cursor-pointer text-gray-400"
+                                @click="manualClose(item)"
                             >
-                                <div
-                                    class="progress-fill h-full rounded-full"
-                                    :class="progressColorClasses[item.type] || 'bg-blue-500'"
-                                ></div>
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke-width="1.5"
+                                    stroke="currentColor"
+                                    class="size-4"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        d="M6 18 18 6M6 6l12 12"
+                                    />
+                                </svg>
                             </div>
                         </div>
-                        <!-- 关闭按钮 -->
-                        <button
-                            class="close-btn absolute -top-1 -right-1 p-1 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-200 btn-touch"
-                            @click="manualClose(item)"
-                        >
-                            <X class="w-3.5 h-3.5" />
-                        </button>
                     </div>
                 </div>
             </TransitionGroup>
@@ -82,119 +140,43 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick } from 'vue'
-import gsap from 'gsap'
-import { ZXConfetti } from "components/zxcomponent/Confetti"
-import { ZXMessageBox } from '@/components/index.js'
-import { Info, AlertTriangle, CheckCircle, XCircle, Bell } from 'lucide-vue-next'
+import { computed, ref } from "vue";
+import gsap from "gsap";
+import { ZXConfetti } from "components/zxcomponent/Confetti/index.ts";
 
-const MAX_PER_POSITION = 99
-const notifications = ref([])
-const timers = new Map()
-const pendingRemovals = new Map()
+const MAX_PER_POSITION = 99;
+const notifications = ref([]);
+const timers = new Map();
 
-// 预定义所有位置
-const positions = [
-    'top-center',
-    'top-right',
-    'top-left',
-    'bottom-center',
-    'bottom-right',
-    'bottom-left'
-]
-
-// 位置类名映射
-const positionClasses = {
-    'top-center': 'top-center',
-    'top-right': 'top-right',
-    'top-left': 'top-left',
-    'bottom-center': 'bottom-center',
-    'bottom-right': 'bottom-right',
-    'bottom-left': 'bottom-left'
-}
-
-// 根据位置获取通知列表
-function getNotificationsByPosition(position) {
-    return notifications.value
-        .filter((n) => n.position === position)
-        .map((n, index) => ({ ...n, index }))
-}
-
-// 类型样式映射
-const typeClasses = {
-    'info': 'bg-white/95 border-l-4 border-blue-500',
-    'success': 'bg-white/95 border-l-4 border-green-500',
-    'warning': 'bg-white/95 border-l-4 border-orange-500',
-    'error': 'bg-white/95 border-l-4 border-red-500',
-    'default': 'bg-white/95 border-l-4 border-blue-500',
-    // Emoji 表情类型映射
-    '🥳': 'bg-white/95 border-l-4 border-blue-500',
-    '😭': 'bg-white/95 border-l-4 border-red-500',
-    '⚠️': 'bg-white/95 border-l-4 border-orange-500',
-    '✅': 'bg-white/95 border-l-4 border-green-500'
-}
-
-// 图标映射
-const typeIcons = {
-    'info': Info,
-    'success': CheckCircle,
-    'warning': AlertTriangle,
-    'error': XCircle,
-    'default': Bell,
-    // Emoji 表情类型 - 显示为文字
-    '🥳': Bell,
-    '😭': XCircle,
-    '⚠️': AlertTriangle,
-    '✅': CheckCircle
-}
-
-// 图标颜色映射
-const iconColorClasses = {
-    'info': 'text-blue-500',
-    'success': 'text-green-500',
-    'warning': 'text-orange-500',
-    'error': 'text-red-500',
-    'default': 'text-blue-500',
-    // Emoji 表情类型映射
-    '🥳': 'text-blue-500',
-    '😭': 'text-red-500',
-    '⚠️': 'text-orange-500',
-    '✅': 'text-green-500'
-}
-
-// 进度条颜色映射
-const progressColorClasses = {
-    'info': 'bg-blue-500',
-    'success': 'bg-green-500',
-    'warning': 'bg-orange-500',
-    'error': 'bg-red-500',
-    'default': 'bg-blue-500',
-    // Emoji 表情类型映射
-    '🥳': 'bg-blue-500',
-    '😭': 'bg-red-500',
-    '⚠️': 'bg-orange-500',
-    '✅': 'bg-green-500'
-}
+// 分组通知（按位置）
+const groupedNotifications = computed(() => {
+    const groups = {};
+    for (const n of notifications.value) {
+        if (!groups[n.position]) groups[n.position] = [];
+        groups[n.position].push(n);
+    }
+    return groups;
+});
 
 // 暴露方法供外部调用
 function addNotification(config) {
-    const id = Date.now() + Math.random()
+    const id = Date.now() + Math.random();
     const {
-        title = '',
-        message = '',
-        type = 'info',
+        title = "",
+        message = "",
+        type = "info",
         duration = 3000,
-        position = 'top-center',
+        position = "top-center",
         onClose,
-        customClass = '',
-        contentClass = 'text-gray-500',
+        customClass = "",
+        contentClass = "text-gray-500",
         confetti = false,
-    } = config
+    } = config;
 
-    const list = notifications.value.filter((n) => n.position === position)
+    const list = notifications.value.filter((n) => n.position === position);
     if (list.length >= MAX_PER_POSITION) {
-        const first = list[0]
-        removeNotification(first.id, first.onClose)
+        const first = list[0];
+        removeNotification(first.id, first.onClose);
     }
 
     const notification = {
@@ -210,233 +192,226 @@ function addNotification(config) {
         remaining: duration,
         createdAt: Date.now(),
         confetti,
-    }
+    };
 
-    notifications.value.push(notification)
+    notifications.value.push(notification);
 
     nextTick(() => {
         if (confetti) {
-            const el = document.querySelector(`[data-notification-id="${id}"]`)
+            const el = document.querySelector(`[data-notification-id="${id}"]`);
             if (el) {
-                const confettiConfig = typeof confetti === 'boolean' ? {} : confetti
-                ZXConfetti.atElement(el, confettiConfig)
+                const confettiConfig =
+                    typeof confetti === "boolean" ? {} : confetti;
+                ZXConfetti.atElement(el, confettiConfig);
             }
         }
-    })
-
+    });
 
     if (duration > 0) {
-        startTimer(notification)
+        startTimer(notification);
     }
 }
 
-defineExpose({addNotification})
+defineExpose({ addNotification });
+
+// 手动移除项目
+const removeItem = async (item) => {
+    // 1. 找到对应的DOM元素
+    const el = document.querySelector(`[key="${item.id}"]`);
+
+    // 2. 执行离开动画
+    await animateOut(el);
+};
+
+// 封装动画为Promise
+const animateOut = (el) => {
+    return new Promise((resolve) => {
+        gsap.to(el, {
+            opacity: 0,
+            y: -20,
+            duration: 0.3,
+            onComplete: resolve,
+        });
+    });
+};
 
 // 手动关闭
 function manualClose(item) {
-    removeNotification(item.id, item.onClose)
+    // removeItem(item)
+    removeNotification(item.id, item.onClose);
+}
+
+// 移除通知
+function removeNotification(id, onClose) {
+    const notificationEl = document.querySelector(
+        `[data-notification-id="${id}"]`,
+    );
+
+    if (notificationEl) {
+        const position = notificationEl
+            .closest('[class*="top-"], [class*="bottom-"]')
+            .className.split(" ")
+            .find((c) => c.includes("top-") || c.includes("bottom-"));
+
+        let animationProps = {};
+        if (position.includes("top-")) {
+            animationProps = { opacity: 0, y: -20 };
+        } else {
+            animationProps = { opacity: 0, y: 20 };
+        }
+
+        gsap.to(notificationEl, {
+            ...animationProps,
+            duration: 0.1,
+            onComplete: () => {
+                notifications.value = notifications.value.filter(
+                    (n) => n.id !== id,
+                );
+                timers.delete(id);
+                if (onClose) onClose();
+            },
+        });
+    } else {
+        notifications.value = notifications.value.filter((n) => n.id !== id);
+        timers.delete(id);
+        if (onClose) onClose();
+    }
 }
 
 // 启动计时器
 function startTimer(item) {
-    const id = item.id
-    const start = Date.now()
+    const id = item.id;
+    const start = Date.now();
     const timer = setTimeout(() => {
-        removeNotification(id, item.onClose)
-    }, item.remaining)
+        removeNotification(id, item.onClose);
+    }, item.remaining);
 
     timers.set(id, {
         timer,
         start,
-    })
+    });
 }
-
 
 // 鼠标悬停时暂停
 function pauseTimer(item) {
-    const t = timers.get(item.id)
-    if (!t) return
-    clearTimeout(t.timer)
-    item.remaining -= Date.now() - t.start
+    const t = timers.get(item.id);
+    if (!t) return;
+    clearTimeout(t.timer);
+    item.remaining -= Date.now() - t.start;
 }
 
 // 鼠标移开时继续
 function resumeTimer(item) {
-    startTimer(item)
+    startTimer(item);
 }
 
-// GSAP 进入前设置
+// ✅ GSAP 动画
 function onBeforeEnter(el) {
-    // 获取外层容器的位置类名（parentElement 是 TransitionGroup 的 div，再外层是位置容器）
-    const containerClass = el.parentElement?.parentElement?.className || ''
-    const isTop = containerClass.includes('top-')
-    const isBottom = containerClass.includes('bottom-')
+    // 更安全的方式查找位置容器
+    const positionContainer = el.closest(
+        ".top-center, .top-right, .top-left, .bottom-center, .bottom-right, .bottom-left",
+    );
 
-    gsap.set(el, {
-        opacity: 0,
-        y: isBottom ? 20 : -20,
-        scale: 0.95
-    })
+    if (positionContainer) {
+        const positionClass = Array.from(positionContainer.classList).find(
+            (cls) => cls.startsWith("top-") || cls.startsWith("bottom-"),
+        );
+
+        if (positionClass) {
+            gsap.set(el, {
+                opacity: 0,
+                y: positionClass.startsWith("top-") ? -20 : 20,
+            });
+            return;
+        }
+    }
+
+    // 默认设置（如果找不到位置容器或位置类）
+    gsap.set(el, { opacity: 0, y: -20 });
 }
-
 
 function onEnter(el, done) {
-    gsap.to(el, {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.35,
-        ease: 'power2.out',
-        onComplete: done,
-        // 超时保护：确保 done 总是被调用
-        onReverseComplete: done
-    })
-}
-
-// 离开动画
-function onLeave(el, done) {
-    // 获取外层容器的位置类名
-    const containerClass = el.parentElement?.parentElement?.className || ''
-    const isTop = containerClass.includes('top-')
-    const isBottom = containerClass.includes('bottom-')
-
-    // 顶部位置向上滑出，底部位置向下滑出
-    const yValue = isBottom ? 20 : -20
-
-    gsap.to(el, {
-        opacity: 0,
-        y: yValue,
-        scale: 0.95,
-        duration: 0.3,
-        ease: 'power2.in',
-        onComplete: done,
-        // 超时保护：确保 done 总是被调用
-        onReverseComplete: done
-    })
-
-    // 强制超时：3 秒后如果动画还没完成，手动调用 done
-    setTimeout(() => {
-        if (el.parentElement) {
-            done()
-        }
-    }, 3000)
-}
-
-// 离开动画完成后清理
-function onAfterLeave(el) {
-    // 从 DOM 元素获取通知 ID 并清理
-    const id = el.getAttribute('data-notification-id')
-    if (id) {
-        const pending = pendingRemovals.get(Number(id))
-        if (pending?.onClose) {
-            pending.onClose()
-        }
-        pendingRemovals.delete(Number(id))
+    const position = el.parentElement.classList[1];
+    switch (position) {
+        case "top-center":
+        case "top-right":
+        case "top-left":
+            gsap.to(el, {
+                opacity: 1,
+                y: 0,
+                duration: 0.35,
+                ease: "power2.out",
+                onComplete: done,
+            });
+            break;
+        case "bottom-center":
+        case "bottom-right":
+        case "bottom-left":
+            gsap.to(el, {
+                opacity: 1,
+                y: 0,
+                duration: 0.35,
+                ease: "power2.out",
+                onComplete: done,
+            });
+            break;
+        default:
+            gsap.to(el, {
+                opacity: 1,
+                y: 0,
+                duration: 0.35,
+                ease: "power2.out",
+                onComplete: done,
+            });
     }
 }
-
-// 移除通知 - 触发 TransitionGroup 的 leave 动画
-function removeNotification(id, onClose) {
-    // 保存 onClose 回调，供动画完成后调用
-    pendingRemovals.set(id, { onClose })
-
-    // 清除定时器
-    const t = timers.get(id)
-    if (t) {
-        clearTimeout(t.timer)
-        timers.delete(id)
-    }
-
-    // 从数组中移除，触发 TransitionGroup 的 leave 动画
-    const index = notifications.value.findIndex((n) => n.id === id)
-    if (index !== -1) {
-        notifications.value.splice(index, 1)
-    }
-}
-
 </script>
 
 <style scoped>
-/* 位置样式 */
 .top-center {
-    top: 1rem;
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
 }
 
 .top-right {
-    top: 1rem;
-    right: 1rem;
+    top: 20px;
+    right: 20px;
 }
 
 .top-left {
-    top: 1rem;
-    left: 1rem;
+    top: 20px;
+    left: 20px;
 }
 
 .bottom-center {
-    bottom: 1rem;
+    bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
 }
 
 .bottom-left {
-    bottom: 1rem;
-    left: 1rem;
+    bottom: 20px;
+    left: 20px;
 }
 
 .bottom-right {
-    bottom: 1rem;
-    right: 1rem;
+    bottom: 20px;
+    right: 20px;
 }
 
-/* 通知卡片样式 */
-.notification-card {
-    background-color: rgba(255, 255, 255, 0.95);
-}
+.notification-item {
+    background-color: #fff;
+    border-radius: 4px;
 
-/* 移动设备响应式 */
-@media (max-width: 640px) {
-    .top-center,
-    .bottom-center {
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
-        min-width: 90vw;
-        max-width: calc(100vw - 2rem);
-    }
-
-    .top-right,
-    .top-left,
-    .bottom-right,
-    .bottom-left {
-        left: 0.75rem;
-        right: 0.75rem;
-        min-width: auto;
-        max-width: none;
-    }
-}
-
-/* 进度条动画 */
-@keyframes progress {
-    from {
-        width: 100%;
-    }
-    to {
-        width: 0%;
-    }
-}
-
-.progress-bar {
-    background-color: #e5e7eb;
-}
-
-.progress-fill {
-    animation: progress var(--progress-duration) linear forwards;
-}
-
-/* 关闭按钮触摸反馈 */
-.close-btn:active {
-    background-color: #e5e7eb;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    min-width: 280px;
+    max-width: 400px;
+    pointer-events: auto;
+    opacity: 0.95;
+    animation: slide-down 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 </style>

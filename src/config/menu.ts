@@ -3,21 +3,19 @@
  * 集中管理侧边栏菜单项配置
  */
 
-import type { Component } from 'vue'
+import type { Component } from "vue";
 import {
-    LayoutPanelLeft,
-    FileText,
     Blocks,
-    Package,
-    MessageSquareMore,
     ChartBar,
-    Folder,
     Database,
-    Info,
-    Settings,
+    FileText,
+    Folder,
+    LayoutPanelLeft,
     LogOut,
+    MessageSquareMore,
+    Package,
     Shield
-} from 'lucide-vue-next'
+} from "lucide-vue-next";
 
 export interface MenuItem {
     /** 菜单名称 */
@@ -49,6 +47,12 @@ export const mainMenus: MenuItem[] = [
         key: 'analytics',
         icon: ChartBar,
         path: '/analytics'
+    },
+    {
+        name: '管理',
+        key: 'manage',
+        icon: Shield,
+        path: '/manage'
     },
     {
         name: '聊天',
@@ -86,24 +90,18 @@ export const mainMenus: MenuItem[] = [
         icon: FileText,
         path: '/logs'
     },
-    {
-        name: '管理',
-        key: 'manage',
-        icon: Shield,
-        path: '/manage'
-    },
-    {
-        name: '设置',
-        key: 'settings',
-        icon: Settings,
-        path: '/settings'
-    },
-    {
-        name: '关于',
-        key: 'about',
-        icon: Info,
-        path: '/about'
-    }
+    // {
+    //     name: '设置',
+    //     key: 'settings',
+    //     icon: Settings,
+    //     path: '/settings'
+    // },
+    // {
+    //     name: '关于',
+    //     key: 'about',
+    //     icon: Info,
+    //     path: '/about'
+    // }
 ]
 
 /**
