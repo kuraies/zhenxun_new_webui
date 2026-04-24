@@ -2,28 +2,27 @@
  * WebUI Next API - 管理模块接口
  */
 
-import { api } from './client'
-import type { APIResponse } from '@/types/api-next.types'
+import { api } from "./client";
+import type { APIResponse } from "@/types/api-next.types";
 import type {
+    DeleteFriend,
+    Friend,
+    FriendDetail,
+    FriendTrend,
+    Group,
     GroupDetailNew,
     GroupMember,
     GroupPlugin,
     GroupStatistics,
-    LeaveGroup,
-    DeleteFriend,
-    MemberDetail,
-    TogglePluginRequest,
-    UpdateGroupRequest,
-    UpdateMemberRequest,
-    Friend,
-    Group,
-    ReqResult,
     HandleRequest,
-    ClearRequest,
-    FriendDetail,
-    FriendTrend,
+    LeaveGroup,
+    MemberDetail,
+    ReqResult,
+    TogglePluginRequest,
     UpdateFriendRequest,
-} from '@/types/manage.types'
+    UpdateGroupRequest,
+    UpdateMemberRequest
+} from "@/types/manage.types";
 
 export const manageApi = {
     /**
@@ -208,8 +207,8 @@ export const manageApi = {
     /**
      * 获取好友详情
      */
-    getFriendDetail(user_id: string): Promise<APIResponse<FriendDetail | null>> {
-        return api.get('/manage/friend-detail', { user_id })
+    getFriendDetail(user_id: string,bot_id:string): Promise<APIResponse<FriendDetail | null>> {
+        return api.get('/manage/friend-detail', { user_id,bot_id })
     },
 
     /**

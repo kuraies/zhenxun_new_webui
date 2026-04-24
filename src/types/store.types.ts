@@ -32,7 +32,7 @@ export interface StorePlugin {
     description: string
     author: string
     version: string
-    plugin_type: 'builtin' | 'third'
+    plugin_type: string
     is_installed?: boolean
     has_update?: boolean
     installed_version?: string

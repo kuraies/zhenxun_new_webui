@@ -7,10 +7,9 @@ import Components from "unplugin-vue-components/vite";
 import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 // import minipic from "vite-plugin-minipic";
 import compression from "vite-plugin-compression2";
-import vueDevTools from "vite-plugin-vue-devtools";
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) =>({
     plugins: [
         vue(),
         tailwindcss(),
@@ -27,9 +26,11 @@ export default defineConfig({
             deleteOriginalAssets: false, // 不删除原文件
             skipIfLargerOrEqual: true, // 如果压缩后 >= 原文件，则不压缩
         }),
-        vueDevTools(), // 开发时 Vue DevTools 支持
+
+        // vueDevTools(), // 开发时 Vue DevTools 支持
         // Monaco Editor 插件已移除，改为在组件中动态加载 Workers
     ],
+    base: command === "build" ? "/next/" : "/",
     resolve: {
         alias: {
             "@": fileURLToPath(new URL("./src", import.meta.url)),
@@ -70,6 +71,12 @@ export default defineConfig({
                         if (match) {
                             return match[1];
                         }
+                        if (
+                            id.includes("typescript") ||
+                            id.includes("ts.worker")
+                        ) {
+                            return "ignore";
+                        }
                     }
                 },
             },
@@ -78,4 +85,4 @@ export default defineConfig({
     server: {
         host: "::", // 监听所有 IPv4 和 IPv6 地址（等同于 0.0.0.0）
     },
-});
+}));

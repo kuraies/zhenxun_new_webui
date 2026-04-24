@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import {
-    ref,
-    reactive,
     onMounted,
     onUnmounted,
+    reactive,
+    ref,
     useTemplateRef,
     watch,
 } from "vue";
@@ -20,10 +20,9 @@ import { eventBus } from "@/events/eventBus.ts";
 /*
 图片导入区
  */
-
 import bg_img from "@/assets/img/title.png";
-import poster_img from "@/assets/img/img.png";
 import logo_img from "@/assets/img/title.png";
+import poster_img from "@/assets/img/img.png";
 
 /*
 图片导入区结束
@@ -93,20 +92,19 @@ const handleSubmitLogin = throttle(() => {
                     return;
                 }
 
-                ZXNotification({
-                    title: "🥳",
-                    type: "success",
-                    message: response?.message || "登录成功",
-                    confetti: true,
-                });
-
                 auth.setAuthState(true);
 
                 auth.setAuthToken(
                     response?.data?.token_type,
                     response?.data?.access_token,
                 );
-                eventBus.emit("LOGIN:BOT")
+                eventBus.emit("LOGIN:BOT");
+                ZXNotification({
+                    title: "🥳",
+                    type: "success",
+                    message: response?.message || "登录成功",
+                    confetti: true,
+                });
 
                 // const botList = await botStore.getBotList();
                 // await whiteScreen.in();
@@ -163,6 +161,7 @@ const showForgetPassword = () => {
         message: "哥哥竟然忘记密码了呢~人家好伤心哦🤣",
         confirmButtonText: "😡",
         confirmButtonHoverText: "🤡",
+        confirmButtonHoverBg: "bg-orange-500 hover:bg-orange-600",
     });
 };
 
@@ -562,7 +561,7 @@ function handleHoverShowLocation(): gsap.core.Timeline {
                             登录
                         </button>
                     </div>
-                    <div class="forget text-right ">
+                    <div class="forget text-right">
                         <span
                             class="cursor-pointer text-blue-500 hover:text-blue-400"
                             @click="showForgetPassword"

@@ -61,10 +61,10 @@
     }
     50% {
         opacity: 1;
-        transform: scale(1.08);
+        transform: scale(1.02);
     }
     70% {
-        transform: scale(0.95);
+        transform: scale(0.96);
     }
     85% {
         transform: scale(1.02);
