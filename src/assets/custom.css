@@ -4,21 +4,21 @@
 
 /* 基础遮罩类 - 适用于所有模态框/弹窗 */
 .glass-overlay {
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: var(--zx-overlay);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
 }
 
 /* 浅色遮罩 - 适用于更轻量的弹窗 */
 .glass-overlay-light {
-    background-color: rgba(0, 0, 0, 0.25);
+    background-color: var(--zx-overlay-light);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
 }
 
 /* 深色遮罩 - 适用于需要更强聚焦的场景 */
 .glass-overlay-dark {
-    background-color: rgba(0, 0, 0, 0.55);
+    background-color: var(--zx-overlay-dark);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
 }
@@ -329,7 +329,12 @@
 
 /* 骨架屏加载动画 */
 .skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background: linear-gradient(
+        90deg,
+        var(--zx-color-surface-muted) 25%,
+        var(--zx-color-border-soft) 50%,
+        var(--zx-color-surface-muted) 75%
+    );
     background-size: 200% 100%;
     animation: skeleton-loading 1.5s infinite;
 }

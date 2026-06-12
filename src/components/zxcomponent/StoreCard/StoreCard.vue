@@ -29,7 +29,7 @@ const handleUpdate = () => {
 
 <template>
     <div
-        class="group overflow-hidden rounded-4xl bg-white px-2 pt-2 shadow-sm outline-1 outline-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+        class="group overflow-hidden rounded-3xl bg-white px-2 pt-2 shadow-sm outline-1 outline-slate-200 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
     >
         <div class="flex flex-col gap-2 p-4">
             <!-- 头部：插件信息 + 状态 -->
@@ -52,19 +52,19 @@ const handleUpdate = () => {
                 <span
                     :class="
                         plugin.is_installed
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-600'
+                            ? 'bg-green-100 text-green-600'
+                            : 'bg-gray-100 text-gray-500'
                     "
-                    class="flex-shrink-0 rounded-full px-3 py-1 text-[11px] font-medium"
+                    class="inline-flex h-[22px] flex-shrink-0 items-center rounded-full px-2 text-[11px] leading-none font-medium whitespace-nowrap"
                 >
                     {{ plugin.is_installed ? "已安装" : "未安装" }}
                 </span>
             </div>
 
             <!-- 描述 -->
-            <div class="my-2 h-[45px] overflow-hidden">
+            <div class="my-2 overflow-hidden">
                 <p
-                    class="line-clamp-2 text-sm leading-snug break-words text-gray-600"
+                    class="line-clamp-4 text-sm leading-snug break-words text-gray-600"
                 >
                     {{ plugin.description || "暂无描述" }}
                 </p>
@@ -73,17 +73,17 @@ const handleUpdate = () => {
             <!-- 版本和作者信息 -->
             <div class="flex flex-wrap items-center gap-2">
                 <span
-                    class="inline-flex h-5 items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700"
+                    class="inline-flex h-[22px] items-center rounded-full bg-blue-100 px-2 text-[11px] leading-none font-medium text-blue-600"
                 >
                     v{{ plugin.version || "1.0.0" }}
                 </span>
                 <span
                     v-if="plugin.plugin_type"
-                    class="flex-shrink-0 rounded-full bg-gray-100 px-3 py-0.5 text-[11px] font-bold text-gray-800"
+                    class="inline-flex h-[22px] flex-shrink-0 items-center rounded-full bg-gray-100 px-2 text-[11px] leading-none font-medium text-gray-600"
                     :class="{
-                        'bg-green-200 text-green-600':
+                        'bg-green-100 text-green-600':
                             plugin.plugin_type == 'NORMAL',
-                        'bg-red-200 text-red-600':
+                        'bg-red-100 text-red-600':
                             plugin.plugin_type == 'ADMIN',
                     }"
                 >
@@ -92,7 +92,7 @@ const handleUpdate = () => {
                 <span
                     v-for="tag in (plugin.tags || []).slice(0, 2)"
                     :key="tag"
-                    class="flex-shrink-0 rounded-full bg-blue-50 px-3 py-0.5 text-[11px] font-medium text-blue-600"
+                    class="inline-flex h-[22px] flex-shrink-0 items-center rounded-full bg-gray-100 px-2 text-[11px] leading-none font-medium text-gray-500"
                 >
                     {{ tag }}
                 </span>

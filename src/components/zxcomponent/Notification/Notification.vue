@@ -401,10 +401,10 @@ function onEnter(el, done) {
 }
 
 .notification-item {
-    background-color: #fff;
+    background-color: var(--zx-color-surface);
     border-radius: 4px;
 
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--zx-shadow-popover);
     min-width: 280px;
     max-width: 400px;
     pointer-events: auto;

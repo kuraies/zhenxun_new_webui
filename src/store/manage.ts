@@ -5,7 +5,7 @@ import {
     GroupRequestResult,
 } from "@/types/manage.types.ts";
 import { manageApi } from "@/utils/api-next";
-import { ZXNotification } from "@/components";
+import { ZXNotification } from "@/services/ui";
 
 export const useManageStore = defineStore("manage", () => {
     const requestDialogOpen = ref(false);

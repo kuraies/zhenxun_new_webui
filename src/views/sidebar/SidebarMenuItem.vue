@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { gsap } from "gsap";
 import { ChevronRight } from "lucide-vue-next";
 import { useGlobalStore } from "@/store/global.js";
@@ -22,7 +22,7 @@ let rightAnimation: gsap.core.Animation | null = null;
 const isActive = computed(() => globalStore.activeMenuKey === props.item.key);
 
 const startAnim = () => {
-    if (!iconRef.value || !arrowRef.value) return;
+    if (!iconRef.value) return;
     if (globalStore.activeMenuKey) {
         stopAnim();
     }
@@ -39,11 +39,13 @@ const startAnim = () => {
         },
     );
 
-    rightAnimation = gsap.fromTo(
-        arrowRef.value,
-        { x: -5 },
-        { x: 5, duration: 1, yoyo: true, repeat: -1, ease: "sine.inOut" },
-    );
+    if (!globalStore.navMini && arrowRef.value) {
+        rightAnimation = gsap.fromTo(
+            arrowRef.value,
+            { x: -5 },
+            { x: 5, duration: 1, yoyo: true, repeat: -1, ease: "sine.inOut" },
+        );
+    }
 };
 
 const stopAnim = () => {
@@ -60,6 +62,7 @@ const stopAnim = () => {
     }
     if (rightAnimation) {
         rightAnimation.kill();
+        rightAnimation = null;
         if (arrowRef.value) gsap.to(arrowRef.value, { x: 0, duration: 0.2 });
     }
 };
@@ -73,6 +76,18 @@ watch(
     },
     { immediate: true },
 );
+
+watch(
+    () => globalStore.navMini,
+    () => {
+        if (isActive.value) startAnim();
+    },
+);
+
+onMounted(async () => {
+    await nextTick();
+    if (isActive.value) startAnim();
+});
 
 // 事件处理
 const handleClick = () => {
@@ -93,12 +108,17 @@ onUnmounted(() => stopAnim());
 
 <template>
     <div
-        class="menus-item group flex h-14 w-full cursor-pointer snap-start items-center rounded-full border-slate-300 p-1 transition-[padding] duration-300 ease-in-out hover:shadow-sm"
+        class="menus-item group flex cursor-pointer snap-start items-center rounded-full border transition-all duration-[400ms] ease-in-out"
         :class="{
-            'scale-105 border border-slate-300 shadow-sm': isActive,
-            'hover:scale-110 hover:border': !isActive,
-            'translate-x-0.5 space-x-0! border-none! p-0! shadow-none!':
+            'h-12 w-12 justify-center p-0':
                 globalStore.navMini,
+            'h-14 w-full p-1': !globalStore.navMini,
+            'scale-105 border-slate-300 shadow-sm':
+                isActive && !globalStore.navMini,
+            'border-transparent': !isActive || globalStore.navMini,
+            'hover:scale-105 hover:border-slate-300 hover:shadow-sm':
+                !isActive && !globalStore.navMini,
+            'hover:scale-110': globalStore.navMini,
             // 'no-scrollbar': globalStore.navMini,
         }"
         @click="handleClick"
@@ -107,15 +127,27 @@ onUnmounted(() => stopAnim());
     >
         <div
             ref="iconRef"
-            :class="{ 'bg-black text-white': isActive }"
-            class="icon flex items-center justify-center rounded-full bg-[#f0f1f6] p-3.5 group-hover:bg-black group-hover:text-white"
+            :class="[
+                isActive
+                    ? 'bg-zx-nav-icon-hover text-[color:var(--zx-nav-icon-hover-text)] shadow-sm'
+                    : 'bg-zx-nav-icon text-slate-700',
+                globalStore.navMini && isActive
+                    ? 'border border-slate-300'
+                    : 'border border-transparent',
+                globalStore.navMini ? 'h-12 w-12 p-0' : 'p-3.5',
+            ]"
+            class="icon flex items-center justify-center rounded-full transition-[width,height,padding,background-color,color,border-color,box-shadow] duration-[400ms] ease-in-out group-hover:bg-zx-nav-icon-hover group-hover:text-[color:var(--zx-nav-icon-hover-text)]"
         >
             <component :is="item.icon" class="h-5 w-5" />
         </div>
 
         <div
-            class="right flex min-w-0 flex-1 items-center pl-1.5 sm:pl-2"
-            :class="{ hidden: globalStore.navMini }"
+            class="right flex min-w-0 flex-1 items-center overflow-hidden transition-all duration-[400ms] ease-in-out"
+            :class="
+                globalStore.navMini
+                    ? 'max-w-0 pl-0 opacity-0'
+                    : 'max-w-48 pl-1.5 opacity-100 sm:pl-2'
+            "
         >
             <span class="whitespace-nowrap group-hover:text-right">
                 {{ item.name }}

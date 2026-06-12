@@ -8,28 +8,24 @@ import {
     Blocks,
     ChartBar,
     Database,
-    FileText,
     Folder,
     LayoutPanelLeft,
-    LogOut,
     MessageSquareMore,
-    Package,
-    Shield
 } from "lucide-vue-next";
 
 export interface MenuItem {
     /** 菜单名称 */
-    name: string
+    name: string;
     /** 菜单唯一标识（用于路由匹配） */
-    key: string
+    key: string;
     /** 菜单图标 */
-    icon?: Component
+    icon?: Component;
     /** 路由路径 */
-    path?: string
+    path?: string;
     /** 子菜单 */
-    children?: MenuItem[]
+    children?: MenuItem[];
     /** 是否隐藏 */
-    hidden?: boolean
+    hidden?: boolean;
 }
 
 /**
@@ -37,58 +33,40 @@ export interface MenuItem {
  */
 export const mainMenus: MenuItem[] = [
     {
-        name: '首页',
-        key: 'dashboard',
+        name: "首页",
+        key: "dashboard",
         icon: LayoutPanelLeft,
-        path: '/dashboard'
+        path: "/dashboard",
     },
     {
-        name: '数据统计',
-        key: 'analytics',
-        icon: ChartBar,
-        path: '/analytics'
-    },
-    {
-        name: '管理',
-        key: 'manage',
-        icon: Shield,
-        path: '/manage'
-    },
-    {
-        name: '聊天',
-        key: 'chat',
+        name: "联系人",
+        key: "chat",
         icon: MessageSquareMore,
-        path: '/chat'
+        path: "/chat",
     },
     {
-        name: '插件列表',
-        key: 'plugin',
+        name: "插件",
+        key: "plugin",
         icon: Blocks,
-        path: '/plugin'
+        path: "/plugin",
     },
     {
-        name: '插件市场',
-        key: 'store',
-        icon: Package,
-        path: '/store'
-    },
-    {
-        name: '文件',
-        key: 'files',
+        name: "文件",
+        key: "files",
         icon: Folder,
-        path: '/files'
+        path: "/files",
     },
     {
-        name: '数据库',
-        key: 'database',
+        name: "数据库",
+        key: "database",
         icon: Database,
-        path: '/database'
+        path: "/database",
     },
     {
-        name: '实时日志',
-        key: 'logs',
-        icon: FileText,
-        path: '/logs'
+        name: "数据统计",
+        key: "analytics",
+        icon: ChartBar,
+        path: "/analytics",
     },
     // {
     //     name: '设置',
@@ -102,23 +80,11 @@ export const mainMenus: MenuItem[] = [
     //     icon: Info,
     //     path: '/about'
     // }
-]
-
-/**
- * 底部菜单配置
- */
-export const bottomMenus: MenuItem[] = [
-    {
-        name: '退出登录',
-        key: 'logout',
-        icon: LogOut,
-        path: '/login'
-    }
-]
+];
 
 /**
  * 获取菜单项通过 key
  */
 export function getMenuByKey(key: string): MenuItem | undefined {
-    return [...mainMenus, ...bottomMenus].find(menu => menu.key === key)
+    return mainMenus.find((menu) => menu.key === key);
 }

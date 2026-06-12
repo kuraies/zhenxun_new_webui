@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { ZXNotification } from "@/components";
+import { ZXNotification } from "@/services/ui";
 import { pluginApi } from "@/utils/api-next";
 import { PluginInfo } from "@/types";
 

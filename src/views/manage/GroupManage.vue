@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { Search, Group } from 'lucide-vue-next'
-import { ZXNotification, ZXMessageBox } from '@/components'
+import { ZXNotification, ZXMessageBox } from '@/services/ui'
 import { manageApi } from '@/utils/api-next'
 import { useBotStore } from '@/store/bot'
 import type { Group as GroupType } from '@/types/manage.types'
@@ -134,7 +134,7 @@ onMounted(() => {
 <template>
     <div class="w-full h-full flex flex-col space-y-3 sm:space-y-4">
         <!-- 头部标题和统计 -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 bg-white rounded-2xl shadow-sm p-4 outline-1 outline-slate-200">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 bg-white rounded-3xl shadow-sm p-4 outline-1 outline-slate-200">
             <div class="flex items-center space-x-3">
                 <Group class="h-6 w-6 text-blue-500 flex-shrink-0" />
                 <h2 class="text-lg font-semibold text-gray-800">群组管理</h2>
@@ -155,19 +155,19 @@ onMounted(() => {
 
         <!-- 统计卡片 -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-            <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
+            <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
                 <div class="text-lg sm:text-xl font-bold text-blue-600">{{ stats.total }}</div>
                 <div class="text-xs text-gray-500 mt-0.5">总群组数</div>
             </div>
-            <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
+            <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
                 <div class="text-lg sm:text-xl font-bold text-green-600">{{ stats.active }}</div>
                 <div class="text-xs text-gray-500 mt-0.5">已启用</div>
             </div>
-            <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
+            <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
                 <div class="text-lg sm:text-xl font-bold text-gray-600">{{ stats.inactive }}</div>
                 <div class="text-xs text-gray-500 mt-0.5">已禁用</div>
             </div>
-            <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
+            <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
                 <div class="text-lg sm:text-xl font-bold text-purple-600">{{ stats.totalMembers }}</div>
                 <div class="text-xs text-gray-500 mt-0.5">成员总数</div>
             </div>
@@ -246,16 +246,16 @@ onMounted(() => {
 }
 
 .overflow-y-auto::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: var(--zx-color-border-soft);
     border-radius: 4px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: var(--zx-slate-300);
     border-radius: 4px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: var(--zx-color-text-subtle);
 }
 </style>

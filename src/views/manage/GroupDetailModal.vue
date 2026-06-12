@@ -11,7 +11,7 @@ import {
     Heart,
     Search
 } from 'lucide-vue-next'
-import { ZXNotification } from '@/components'
+import { ZXNotification } from '@/services/ui'
 import { manageApi } from '@/utils/api-next'
 import { useBotStore } from '@/store/bot'
 import type { GroupDetailNew, GroupPlugin, GroupMember, MemberDetail, AnyMember } from '@/types/manage.types'
@@ -563,17 +563,17 @@ onMounted(() => {
 }
 
 .plugin-list::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: var(--zx-color-border-soft);
     border-radius: 3px;
 }
 
 .plugin-list::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: var(--zx-slate-300);
     border-radius: 3px;
 }
 
 .plugin-list::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: var(--zx-color-text-subtle);
 }
 
 .member-list::-webkit-scrollbar {
@@ -581,17 +581,17 @@ onMounted(() => {
 }
 
 .member-list::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: var(--zx-color-border-soft);
     border-radius: 3px;
 }
 
 .member-list::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: var(--zx-slate-300);
     border-radius: 3px;
 }
 
 .member-list::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: var(--zx-color-text-subtle);
 }
 
 .member-detail {
@@ -608,7 +608,7 @@ onMounted(() => {
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--zx-color-primary) 22%, transparent);
     flex-shrink: 0;
 }
 
@@ -616,13 +616,13 @@ onMounted(() => {
     margin: 0;
     font-size: 16px;
     font-weight: 600;
-    color: #1f2937;
+    color: var(--zx-color-text-strong);
 }
 
 .member-detail-remark {
     margin: 2px 0 0;
     font-size: 12px;
-    color: #6b7280;
+    color: var(--zx-color-text-muted);
 }
 
 .member-detail-id {
@@ -634,7 +634,7 @@ onMounted(() => {
 :deep(.el-input-number__decrease),
 :deep(.el-input-number__increase) {
     background: #f9fafb;
-    border-color: #e5e7eb;
+    border-color: var(--zx-color-border);
 }
 
 :deep(.el-input-number__decrease:hover),

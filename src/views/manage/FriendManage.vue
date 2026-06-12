@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { Search, UserCircle, Users } from "lucide-vue-next";
-import { ZXMessageBox, ZXNotification } from "@/components";
+import { ZXMessageBox, ZXNotification } from "@/services/ui";
 import { manageApi } from "@/utils/api-next";
 import { useBotStore } from "@/store/bot";
 import type { Friend, FriendDetail } from "@/types/manage.types";
@@ -170,7 +170,7 @@ onMounted(() => {
 <template>
     <div class="w-full h-full flex flex-col space-y-3 sm:space-y-4">
         <!-- 头部标题和统计 -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 bg-white rounded-2xl shadow-sm p-4 outline-1 outline-slate-200">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 bg-white rounded-3xl shadow-sm p-4 outline-1 outline-slate-200">
             <div class="flex items-center space-x-3">
                 <Users class="h-6 w-6 text-blue-500 flex-shrink-0" />
                 <h2 class="text-lg font-semibold text-gray-800">好友管理</h2>
@@ -195,7 +195,7 @@ onMounted(() => {
             <div class="flex-1 flex flex-col min-w-0">
                 <!-- 统计卡片 -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mb-3">
-                    <div class="bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
+                    <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
                         <div class="text-lg sm:text-xl font-bold text-blue-600">{{ stats.total }}</div>
                         <div class="text-xs text-gray-500 mt-0.5">好友总数</div>
                     </div>
@@ -226,7 +226,7 @@ onMounted(() => {
                         <div
                             v-for="friend in filteredFriends"
                             :key="friend.user_id"
-                            class="cursor-pointer transition-all duration-200 rounded-2xl"
+                            class="cursor-pointer transition-all duration-200 rounded-3xl"
                             :class="{
                                 'ring-2 ring-blue-500 shadow-lg': selectedFriend?.user_id === friend.user_id,
                                 'hover:ring-2 hover:ring-blue-300': selectedFriend?.user_id !== friend.user_id
@@ -244,7 +244,7 @@ onMounted(() => {
             </div>
 
             <!-- 右侧：好友详情面板 -->
-            <div class="hidden lg:flex lg:flex-col w-80 flex-shrink-0 bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 overflow-hidden">
+            <div class="hidden lg:flex lg:flex-col w-80 flex-shrink-0 bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 overflow-hidden">
                 <!-- 未选中状态 -->
                 <div v-if="!selectedFriend" class="flex-1 flex flex-col items-center justify-center text-gray-400 p-6">
                     <UserCircle class="w-16 h-16 mb-4 opacity-30" />
@@ -266,7 +266,7 @@ onMounted(() => {
                         />
 
                         <!-- 互动趋势图表 -->
-                        <div class="bg-white rounded-2xl outline-1 outline-slate-200 p-4">
+                        <div class="bg-white rounded-3xl outline-1 outline-slate-200 p-4">
                             <FriendTrendChart :user-id="selectedFriend?.user_id || null" />
                         </div>
                     </div>
@@ -330,7 +330,11 @@ onMounted(() => {
     align-items: center;
     gap: 12px;
     padding: 12px;
-    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    background: linear-gradient(
+        135deg,
+        var(--zx-color-primary-tint) 0%,
+        var(--zx-color-primary-soft) 100%
+    );
     border-radius: 12px;
     margin-bottom: 16px;
 }
@@ -339,29 +343,29 @@ onMounted(() => {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--zx-color-primary) 22%, transparent);
 }
 
 .message-target-name {
     font-weight: 600;
-    color: #1f2937;
+    color: var(--zx-color-text-strong);
     font-size: 14px;
 }
 
 .message-target-id {
     font-size: 12px;
-    color: #6b7280;
+    color: var(--zx-color-text-muted);
     font-family: monospace;
 }
 
 .message-input :deep(.el-textarea__inner) {
     border-radius: 12px;
-    border-color: #e5e7eb;
+    border-color: var(--zx-color-border);
 }
 
 .message-input :deep(.el-textarea__inner:focus) {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--zx-color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--zx-color-primary) 16%, transparent);
 }
 
 .dialog-actions {
@@ -377,16 +381,16 @@ onMounted(() => {
 }
 
 .overflow-y-auto::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: var(--zx-color-border-soft);
     border-radius: 4px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: var(--zx-slate-300);
     border-radius: 4px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: var(--zx-color-text-subtle);
 }
 </style>

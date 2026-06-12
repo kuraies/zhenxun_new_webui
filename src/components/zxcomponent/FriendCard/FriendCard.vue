@@ -24,7 +24,7 @@ const handleDeleteFriend = () => {
 
 <template>
     <div
-        class="friend bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+        class="friend bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
     >
         <div class="p-4 flex flex-col gap-3">
             <!-- 头部：好友信息 -->

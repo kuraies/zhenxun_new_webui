@@ -133,7 +133,7 @@ onBeforeUnmount(() => {
     <div class="flex h-full w-full flex-col space-y-3 sm:space-y-4">
         <!-- 头部标题 -->
         <div
-            class="flex flex-col items-start justify-between gap-3 rounded-2xl bg-white p-4 shadow-sm outline-1 outline-slate-200 sm:flex-row sm:items-center sm:gap-0"
+            class="flex flex-col items-start justify-between gap-3 rounded-3xl bg-white p-4 shadow-sm outline-1 outline-slate-200 sm:flex-row sm:items-center sm:gap-0"
             v-if="!globalStore.isDesktopMode"
         >
             <div class="flex items-center space-x-3">
@@ -222,7 +222,7 @@ onBeforeUnmount(() => {
         <!-- 日志列表 -->
         <div
             ref="logsContainer"
-            class="min-h-0 flex-1 rounded-4xl bg-white p-4 pr-0.5 shadow-sm outline-1 outline-slate-200"
+            class="min-h-0 flex-1 rounded-3xl bg-white p-4 pr-0.5 shadow-sm outline-1 outline-slate-200"
         >
             <div class="h-full overflow-y-auto">
                 <div
@@ -321,16 +321,16 @@ onBeforeUnmount(() => {
 }
 
 .logs-container::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: var(--zx-color-border-soft);
     border-radius: 4px;
 }
 
 .logs-container::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: var(--zx-slate-300);
     border-radius: 4px;
 }
 
 .logs-container::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: var(--zx-color-text-subtle);
 }
 </style>

@@ -3,7 +3,7 @@ import { computed, ref } from "vue";
 import { Settings } from "lucide-vue-next";
 import { pluginApi } from "@/utils/api-next";
 import type { PluginInfo } from "@/types/api-next.types";
-import { ZXNotification } from "@/components";
+import { ZXNotification } from "@/services/ui";
 
 const props = defineProps<{
     plugin: PluginInfo;
@@ -91,7 +91,7 @@ const handleOpenConfig = (event: Event) => {
 
 <template>
     <div
-        class="group overflow-hidden rounded-4xl bg-white px-2 pt-2 shadow-sm outline-1 outline-slate-200 transition-all duration-300 select-none hover:-translate-y-1 hover:shadow-xl"
+        class="group overflow-hidden rounded-3xl bg-white px-2 pt-2 shadow-sm outline-1 outline-slate-200 transition-all duration-300 select-none hover:-translate-y-1 hover:shadow-xl"
     >
         <div class="flex flex-col gap-2 p-4">
             <!-- 头部：插件信息 + 状态 -->
@@ -117,10 +117,10 @@ const handleOpenConfig = (event: Event) => {
                 <span
                     :class="
                         plugin.is_enabled
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-600'
+                            ? 'bg-green-100 text-green-600'
+                            : 'bg-gray-100 text-gray-500'
                     "
-                    class="flex-shrink-0 rounded-full px-3 py-1 text-[11px] font-medium"
+                    class="inline-flex h-[22px] flex-shrink-0 items-center rounded-full px-2 text-[11px] leading-none font-medium whitespace-nowrap"
                 >
                     {{ plugin.is_enabled ? "已启用" : "已禁用" }}
                 </span>
@@ -138,16 +138,16 @@ const handleOpenConfig = (event: Event) => {
             <!-- 版本信息 -->
             <div class="flex items-center gap-2">
                 <span
-                    class="inline-flex h-5 items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700"
+                    class="inline-flex h-[22px] items-center rounded-full bg-blue-100 px-2 text-[11px] leading-none font-medium text-blue-600"
                 >
                     v{{ plugin.version || "1.0.0" }}
                 </span>
                 <span
-                    class="flex-shrink-0 rounded-full px-3 py-0.5 text-[11px] font-medium"
+                    class="inline-flex h-[22px] flex-shrink-0 items-center rounded-full px-2 text-[11px] leading-none font-medium"
                     :class="
                         plugin.is_builtin
-                            ? 'bg-purple-100 text-purple-700'
-                            : 'bg-orange-100 text-orange-700'
+                            ? 'bg-purple-100 text-purple-600'
+                            : 'bg-orange-100 text-orange-600'
                     "
                 >
                     {{ plugin.is_builtin ? "内置" : "三方" }}
@@ -174,18 +174,18 @@ const handleOpenConfig = (event: Event) => {
                     :disabled="processing || switchDisabled"
                 />
                 <div
-                    class="peer h-6 w-11 rounded-full after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"
+                    class="peer relative h-[22px] w-10 rounded-full shadow-inner transition-colors after:absolute after:start-[2px] after:top-[2px] after:h-[18px] after:w-[18px] after:rounded-full after:bg-white after:shadow-sm after:transition-all after:content-[''] peer-checked:after:translate-x-[18px]"
                     :class="[
                         switchDisabled
-                            ? 'bg-blue-200 peer-checked:bg-blue-300'
-                            : 'bg-gray-200 peer-checked:bg-blue-600',
+                            ? 'bg-blue-100 peer-checked:bg-blue-200'
+                            : 'bg-gray-200 peer-checked:bg-blue-500',
                         !switchDisabled &&
-                            'peer-focus:ring-2 peer-focus:ring-blue-500 peer-focus:outline-none',
+                            'peer-focus:ring-2 peer-focus:ring-blue-200 peer-focus:outline-none hover:bg-gray-300 peer-checked:hover:bg-blue-600',
                     ]"
                 ></div>
                 <span
-                    class="ms-2 text-xs font-medium whitespace-nowrap"
-                    :class="switchDisabled ? 'text-blue-400' : 'text-gray-600'"
+                    class="ms-2 text-[11px] leading-none font-medium whitespace-nowrap"
+                    :class="switchDisabled ? 'text-blue-300' : 'text-gray-500'"
                 >
                     {{ plugin.is_enabled ? "开" : "关" }}
                 </span>

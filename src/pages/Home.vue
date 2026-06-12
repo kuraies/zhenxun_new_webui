@@ -13,7 +13,7 @@ import {
     disconnectLogsWebSocket,
     onLogMessage,
 } from "@/utils/api-next/websocket-logs";
-import { whiteScreen } from "@/components";
+import { whiteScreen } from "@/services/ui";
 
 // 引入拆分出的组件
 import HomeHeader from "@/components/home/HomeHeader.vue";
@@ -60,22 +60,21 @@ onUnmounted(() => {
 });
 
 const toggleNav = () => {
+    // hidden -> 全还原
+    if (globalStore.navHidden) {
+        globalStore.navMini = false;
+        globalStore.navHidden = false;
+        return;
+    }
+
     // 普通 -> mini
-    if (!globalStore.navMini && !globalStore.navHidden) {
+    if (!globalStore.navMini) {
         globalStore.navMini = true;
         return;
     }
 
-    // mini -> hidden
-    if (globalStore.navMini && !globalStore.navHidden) {
-        globalStore.navMini = false;
-        globalStore.navHidden = true;
-        return;
-    }
-
-    // hidden -> 全还原
-    globalStore.navMini = false;
-    globalStore.navHidden = false;
+    // mini -> hidden：保留 mini 宽度，避免收起动画闪回完整侧边栏
+    globalStore.navHidden = true;
 };
 </script>
 

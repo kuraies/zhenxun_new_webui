@@ -24,6 +24,19 @@ const getNavWidth = () => {
     return globalStore.navMini ? 64 : 288; // 对应 w-15 和 w-72
 };
 
+const getNavWidthByState = (navMini: boolean, navHidden: boolean) => {
+    if (navHidden) return 0;
+    return navMini ? 64 : 288;
+};
+
+const lockDesktopWidth = (width: number) => {
+    if (!navRef.value || globalStore.isMobileMode) return;
+    const container = navRef.value.parentElement;
+    if (!container) return;
+
+    gsap.set([container, navRef.value], { width });
+};
+
 // ✅ 仅负责移动端判断（不再处理宽度）
 const updateMobileMode = () => {
     const width = window.innerWidth;
@@ -129,24 +142,39 @@ const playNavAnimation = (show: boolean) => {
 };
 
 // ✅ 桌面端隐藏/显示（不再改 width）
-const updateDesktopNav = () => {
+const updateDesktopNav = (fromWidth?: number) => {
     if (!navRef.value || globalStore.isMobileMode) return;
 
     // 获取外层容器 (navRef 的父级)
     const container = navRef.value.parentElement;
     if (!container) return;
 
+    if (animationTl) {
+        animationTl.kill();
+        animationTl = null;
+    }
     gsap.killTweensOf([navRef.value, container]);
 
     const targetWidth = getNavWidth();
     const isShowing = !globalStore.navHidden;
+    const shouldTweenNavWidth = fromWidth !== undefined && isShowing;
+
+    if (fromWidth !== undefined) {
+        gsap.set(container, { width: fromWidth });
+        gsap.set(navRef.value, { width: isShowing ? fromWidth : 64 });
+    }
 
     // 同步执行：外层管宽度，内层管位移和透明度
-    const tl = gsap.timeline({
+    animationTl = gsap.timeline({
         defaults: { duration: 0.4, ease: "power2.inOut" },
+        onComplete: () => {
+            if (navRef.value) navRef.value.style.width = "";
+            container.style.width = "";
+            animationTl = null;
+        },
     });
 
-    tl.to(
+    animationTl.to(
         container,
         {
             width: targetWidth,
@@ -154,7 +182,17 @@ const updateDesktopNav = () => {
         0,
     );
 
-    tl.to(
+    if (shouldTweenNavWidth) {
+        animationTl.to(
+            navRef.value,
+            {
+                width: targetWidth,
+            },
+            0,
+        );
+    }
+
+    animationTl.to(
         navRef.value,
         {
             x: isShowing ? "0%" : "-100%",
@@ -170,25 +208,24 @@ const updateDesktopNav = () => {
     );
 };
 
-// ✅ 关键：监听 Mini 模式切换也要触发动画同步
+// ✅ 桌面端统一监听状态，避免一次点击触发多段互相覆盖的动画
 watch(
-    () => globalStore.navMini,
-    () => {
-        if (!globalStore.isMobileMode) {
-            updateDesktopNav();
-        }
-    },
-);
-
-// ✅ 监听隐藏/显示
-watch(
-    () => globalStore.navHidden,
-    (newVal) => {
+    () => [globalStore.navMini, globalStore.navHidden] as const,
+    ([, navHidden], [oldNavMini, oldNavHidden]) => {
         if (isModeSwitch) return;
+
+        const previousWidth = getNavWidthByState(oldNavMini, oldNavHidden);
+        lockDesktopWidth(previousWidth);
+
         nextTick(() => {
-            globalStore.isMobileMode
-                ? playNavAnimation(!newVal)
-                : updateDesktopNav();
+            if (globalStore.isMobileMode) {
+                if (navHidden !== oldNavHidden) {
+                    playNavAnimation(!navHidden);
+                }
+                return;
+            }
+
+            updateDesktopNav(previousWidth);
         });
     },
 );

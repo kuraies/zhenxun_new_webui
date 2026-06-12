@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed } from "vue";
-import { ZXMessageBox, ZXNotification } from "@/components";
+import { ZXMessageBox, ZXNotification } from "@/services/ui";
 import { systemApi } from "@/utils/api-next";
 
 import avatar from "@/assets/img/avatar.jpg";
@@ -59,14 +59,15 @@ const handleRestart = async () => {
 
 <template>
     <div
+        v-tile-glow
         class="relative overflow-hidden rounded-4xl border border-slate-200 bg-white px-8 py-6 shadow-sm select-none"
     >
         <img
             :src="avatarUrl"
-            class="absolute inset-0 h-full w-full scale-110 transform-gpu object-cover blur-md will-change-transform"
+            class="user-card-bg absolute inset-0 h-full w-full scale-110 transform-gpu object-cover blur-md will-change-transform"
             alt=""
         />
-        <div class="absolute -inset-2 bg-black/20"></div>
+        <div class="user-card-overlay absolute -inset-2"></div>
 
         <div class="relative z-10 flex h-full w-full flex-col justify-between">
             <div
@@ -134,10 +135,10 @@ const handleRestart = async () => {
             </div>
             <div class="flex justify-between space-x-2 font-bold">
                 <div
-                    class="flex h-8 items-center justify-center rounded-full bg-white px-4 py-1 pl-3"
+                    class="flex h-8 items-center justify-center rounded-full border border-white/20 bg-zx-user-card-chip px-4 py-1 pl-3 text-zx-user-card-chip-text shadow-sm backdrop-blur-sm"
                 >
                     <svg
-                        class="icon h-6 w-6"
+                        class="icon h-6 w-6 fill-current"
                         viewBox="0 0 1024 1024"
                         version="1.1"
                         xmlns="http://www.w3.org/2000/svg"
@@ -150,7 +151,7 @@ const handleRestart = async () => {
                 </div>
                 <div>
                     <button
-                        class="btn-touch group shrink-0 cursor-pointer rounded-full bg-white p-2 hover:bg-red-600"
+                        class="btn-touch group shrink-0 cursor-pointer rounded-full border border-white/20 bg-zx-user-card-chip p-2 text-zx-user-card-chip-text shadow-sm backdrop-blur-sm hover:bg-red-600"
                         title="重启 Bot"
                         @click="handleRestart"
                     >
@@ -183,4 +184,12 @@ const handleRestart = async () => {
     </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.user-card-bg {
+    filter: blur(12px) var(--zx-user-card-image-filter);
+}
+
+.user-card-overlay {
+    background: var(--zx-user-card-overlay);
+}
+</style>

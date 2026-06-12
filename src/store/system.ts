@@ -7,7 +7,7 @@ import type {
     SystemCount,
     SystemStatus as SystemStatusType,
 } from "@/types/store.types";
-import { ZXNotification } from "@/components";
+import { ZXNotification } from "@/services/ui";
 
 export const useSystemStore = defineStore("system", () => {
     /**

@@ -4,7 +4,7 @@
  */
 
 import axios from 'axios'
-import { ZXNotification } from '@/components'
+import { ZXNotification } from '@/services/ui'
 import { auth } from '../auth'
 import { navigateTo } from '@/utils/navigation'
 import type { APIResponse } from '@/types/api-next.types'

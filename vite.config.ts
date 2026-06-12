@@ -28,7 +28,7 @@ export default defineConfig(({ command }) =>({
         }),
 
         // vueDevTools(), // 开发时 Vue DevTools 支持
-        // Monaco Editor 插件已移除，改为在组件中动态加载 Workers
+        // 编辑器已替换为轻量 textarea 实现，避免 worker 进入构建
     ],
     base: command === "build" ? "/next/" : "/",
     resolve: {
@@ -50,33 +50,37 @@ export default defineConfig(({ command }) =>({
         rollupOptions: {
             output: {
                 manualChunks(id) {
-                    if (id.includes("node_modules")) {
-                        if (
-                            ["birpc", "hookable", "perfect-debounce"].some(
-                                (pkg) => id.includes(pkg),
-                            )
-                        ) {
-                            return undefined; // 这几个库不分包
-                        }
-                        if (id.includes("vue")) {
-                            return "vendor_vue"; // Vue 相关库打包到 vendor_vue
-                        }
-                        if (id.includes("element-plus")) {
-                            return "vendor_element"; // Element Plus 打包到 vendor_element
-                        }
-                        // 其它 node_modules 中的库，按第一层目录分包
-                        const match = id
-                            .toString()
-                            .match(/node_modules\/(.+)\/.+\.js/);
-                        if (match) {
-                            return match[1];
-                        }
-                        if (
-                            id.includes("typescript") ||
-                            id.includes("ts.worker")
-                        ) {
-                            return "ignore";
-                        }
+                    if (!id.includes("node_modules")) return;
+
+                    if (
+                        id.includes("chart.js") ||
+                        id.includes("vue-chartjs")
+                    ) {
+                        return "vendor_charts";
+                    }
+
+                    if (id.includes("element-plus")) {
+                        return "vendor_element";
+                    }
+
+                    if (
+                        id.includes("/vue/") ||
+                        id.includes("vue-router") ||
+                        id.includes("pinia")
+                    ) {
+                        return "vendor_vue";
+                    }
+
+                    if (id.includes("gsap")) {
+                        return "vendor_animation";
+                    }
+
+                    if (id.includes("lucide-vue-next")) {
+                        return "vendor_icons";
+                    }
+
+                    if (id.includes("axios") || id.includes("js-yaml")) {
+                        return "vendor_utils";
                     }
                 },
             },

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from "vue";
 import { useBotStore } from "@/store/bot";
-import { Check, ChevronDown } from "lucide-vue-next";
+import { Check, ChevronDown, LogOut } from "lucide-vue-next";
 import { useGlobalStore } from "@/store/global";
 import avatar from "@/assets/img/avatar.jpg";
 import { auth } from "@/utils/auth.ts";
 import { whiteScreen } from "components/zxcomponent/WhiteScreen";
+import { ZXMessageBox } from "@/services/ui";
+import { router } from "@/router/index.js";
 
 const globalStore = useGlobalStore();
 const botStore = useBotStore();
@@ -25,6 +27,18 @@ const toggleDropdown = () => {
 const selectBot = (botId: string) => {
     botStore.setSelectedBot(botId);
     dropdownOpen.value = false;
+};
+
+const handleLogout = () => {
+    ZXMessageBox({
+        title: "退出登录",
+        message: "你是否要退出登录",
+        cancelButtonText: "取消",
+        onConfirm: () => {
+            auth.logout();
+            router.push({ name: "Login" });
+        },
+    });
 };
 
 // 点击外部关闭下拉菜单
@@ -65,8 +79,9 @@ onBeforeUnmount(() => {
 
 <template>
     <div
+        v-tile-glow="110"
         ref="dropdownRef"
-        class="relative flex h-15 w-full min-w-0 items-center gap-2 rounded-full bg-white p-1 pr-2 shadow-sm outline-1 outline-slate-200 sm:w-72 sm:gap-3 sm:pr-3"
+        class="relative flex h-15 w-full min-w-0 items-center gap-2 rounded-full border border-slate-200 bg-white p-1 pr-1.5 shadow-sm sm:w-72 sm:gap-2 sm:pr-2"
     >
         <div class="avatar h-full flex-shrink-0 cursor-pointer rounded-full">
             <img
@@ -84,13 +99,21 @@ onBeforeUnmount(() => {
             </div>
         </div>
         <button
-            class="flex h-7 w-7 flex-shrink-0 cursor-pointer items-center justify-center rounded-full bg-slate-100 transition-colors hover:bg-slate-200 sm:h-8 sm:w-8"
+            class="flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+            title="切换 Bot"
             @click="toggleDropdown"
         >
             <ChevronDown
-                class="size-3.5 text-slate-600 transition-transform duration-200 sm:size-4"
+                class="size-4 transition-transform duration-200"
                 :class="{ 'rotate-180': dropdownOpen }"
             />
+        </button>
+        <button
+            class="flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-red-400 transition-colors hover:bg-red-50 hover:text-red-500"
+            title="退出登录"
+            @click.stop="handleLogout"
+        >
+            <LogOut class="size-4" />
         </button>
     </div>
 
@@ -98,7 +121,7 @@ onBeforeUnmount(() => {
         <Transition name="dropdown">
             <div
                 v-if="dropdownOpen"
-                class="fixed z-[9999] overflow-hidden rounded-2xl bg-white shadow-xl outline-1 outline-slate-200"
+                class="fixed z-[9999] overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-lg"
                 :style="{
                     top: dropdownRef
                         ? `${dropdownRef.getBoundingClientRect().bottom + 8}px`
@@ -115,14 +138,15 @@ onBeforeUnmount(() => {
                 <div
                     v-for="bot in botStore.botList"
                     :key="bot.self_id || 'unknown'"
-                    class="flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors hover:bg-sky-200"
+                    class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-slate-100"
                     :style="{
                         width: dropdownRef
-                            ? `${dropdownRef.offsetWidth}px`
+                            ? `${dropdownRef.offsetWidth - 16}px`
                             : 'auto',
                     }"
                     :class="{
-                        'bg-sky-100': botStore.selectedBotId === bot.self_id,
+                        'bg-sky-50 text-sky-700':
+                            botStore.selectedBotId === bot.self_id,
                     }"
                     @click="selectBot(<string>bot.self_id)"
                 >
@@ -133,7 +157,7 @@ onBeforeUnmount(() => {
                     />
                     <div class="min-w-0 flex-1">
                         <div
-                            class="truncate text-sm font-medium text-slate-700"
+                            class="truncate text-sm font-medium"
                         >
                             {{ bot.nickname || bot.self_id }}
                         </div>
@@ -143,13 +167,13 @@ onBeforeUnmount(() => {
                     </div>
                     <Check
                         v-if="botStore.selectedBotId === bot.self_id"
-                        class="size-4 flex-shrink-0 text-blue-500"
+                        class="size-4 flex-shrink-0 text-sky-500"
                     />
                 </div>
 
                 <div
                     v-if="botStore.botList.length === 0"
-                    class="px-4 py-8 text-center"
+                    class="rounded-xl px-4 py-8 text-center"
                 >
                     <p class="text-sm text-slate-400">暂无可用的 Bot</p>
                 </div>
@@ -168,12 +192,15 @@ onBeforeUnmount(() => {
 /* 下拉菜单动画 */
 .dropdown-enter-active,
 .dropdown-leave-active {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: top center;
+    transition:
+        opacity 0.18s ease,
+        transform 0.18s ease;
 }
 
 .dropdown-enter-from,
 .dropdown-leave-to {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-6px) scale(0.98);
 }
 </style>

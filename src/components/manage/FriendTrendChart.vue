@@ -16,6 +16,7 @@ import {
 import { TrendingUp, MessageSquare, Zap } from 'lucide-vue-next'
 import { manageApi } from '@/utils/api-next'
 import type { FriendTrend, FriendTrendPoint } from '@/types/manage.types'
+import { createLineDatasetStyle, createLineOptions, themeChartTextColor } from '@/utils/chart-theme'
 
 // 注册 ChartJS 组件
 ChartJS.register(
@@ -84,19 +85,13 @@ const chartData = computed(() => {
         datasets: [
             {
                 label: '聊天次数',
-                backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                borderColor: 'rgba(59, 130, 246, 1)',
-                fill: true,
-                tension: 0.4,
+                ...createLineDatasetStyle('blue'),
                 data: trendData.value.data.map((p: FriendTrendPoint) => p.chat_count),
                 yAxisID: 'y'
             },
             {
                 label: '调用次数',
-                backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                borderColor: 'rgba(16, 185, 129, 1)',
-                fill: true,
-                tension: 0.4,
+                ...createLineDatasetStyle('green'),
                 data: trendData.value.data.map((p: FriendTrendPoint) => p.call_count),
                 yAxisID: 'y1'
             }
@@ -105,39 +100,11 @@ const chartData = computed(() => {
 })
 
 // 图表配置
-const chartOptions: ChartOptions<'line'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: {
-        mode: 'index',
-        intersect: false
-    },
-    plugins: {
-        legend: {
-            position: 'top',
-            labels: {
-                usePointStyle: true,
-                padding: 15,
-                font: {
-                    size: 12
-                }
-            }
-        },
-        tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            padding: 12,
-            cornerRadius: 8
-        }
-    },
+const chartOptions: ChartOptions<'line'> = createLineOptions({
     scales: {
         x: {
             grid: {
                 display: false
-            },
-            ticks: {
-                font: {
-                    size: 11
-                }
             }
         },
         y: {
@@ -147,12 +114,7 @@ const chartOptions: ChartOptions<'line'> = {
             title: {
                 display: true,
                 text: '聊天次数',
-                font: {
-                    size: 11
-                }
-            },
-            grid: {
-                color: 'rgba(0, 0, 0, 0.05)'
+                color: themeChartTextColor
             },
             beginAtZero: true
         },
@@ -163,9 +125,7 @@ const chartOptions: ChartOptions<'line'> = {
             title: {
                 display: true,
                 text: '调用次数',
-                font: {
-                    size: 11
-                }
+                color: themeChartTextColor
             },
             grid: {
                 drawOnChartArea: false
@@ -173,7 +133,7 @@ const chartOptions: ChartOptions<'line'> = {
             beginAtZero: true
         }
     }
-}
+})
 </script>
 
 <template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { Coins, Heart, Pencil, Check, X } from 'lucide-vue-next'
-import { ZXNotification } from '@/components'
+import { ZXNotification } from '@/services/ui'
 import { manageApi } from '@/utils/api-next'
 import type { FriendDetail } from '@/types/manage.types'
 

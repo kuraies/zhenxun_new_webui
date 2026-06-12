@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { X, Save, RotateCcw, Search, Settings, Plus, Minus } from 'lucide-vue-next'
 import { gsap } from 'gsap'
 import { pluginApi } from '@/utils/api-next'
-import { ZXNotification } from '@/components'
+import { ZXNotification } from '@/services/ui'
 import type { PluginDetailConfig, PluginDetail } from '@/types/plugin.types'
 
 interface Props {

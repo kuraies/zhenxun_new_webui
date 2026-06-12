@@ -30,7 +30,7 @@ import {
     Users,
 } from "lucide-vue-next";
 import { analyticsApi, mainApi } from "@/utils/api-next";
-import { ZXNotification } from "@/components";
+import { ZXNotification } from "@/services/ui";
 import type { ActiveGroup, HotPlugin } from "@/types/main.types";
 import type {
     FavorabilityRank,
@@ -45,6 +45,16 @@ import type {
 import { useGlobalStore } from "@/store/global.ts";
 import { useAnalyticsStore } from "@/store/analytics.ts";
 import { storeToRefs } from "pinia";
+import {
+    createBarDatasetStyle,
+    createBarOptions,
+    createLineOptions,
+    createLineDatasetStyle,
+    createPieDatasetStyle,
+    createPieOptions,
+    pieBorderColors,
+    themeChartTextColor,
+} from "@/utils/chart-theme";
 
 // 注册 ChartJS 组件
 ChartJS.register(
@@ -123,31 +133,7 @@ const activeGroupData = ref({
     datasets: [
         {
             data: [] as number[],
-            backgroundColor: [
-                "rgba(59, 130, 246, 0.8)",
-                "rgba(16, 185, 129, 0.8)",
-                "rgba(245, 158, 11, 0.8)",
-                "rgba(239, 68, 68, 0.8)",
-                "rgba(139, 92, 246, 0.8)",
-                "rgba(236, 72, 153, 0.8)",
-                "rgba(239, 103, 56, 0.8)",
-                "rgba(34, 197, 94, 0.8)",
-                "rgba(99, 102, 241, 0.8)",
-                "rgba(244, 114, 182, 0.8)",
-            ],
-            borderColor: [
-                "rgba(59, 130, 246, 1)",
-                "rgba(16, 185, 129, 1)",
-                "rgba(245, 158, 11, 1)",
-                "rgba(239, 68, 68, 1)",
-                "rgba(139, 92, 246, 1)",
-                "rgba(236, 72, 153, 1)",
-                "rgba(239, 103, 56, 1)",
-                "rgba(34, 197, 94, 1)",
-                "rgba(99, 102, 241, 1)",
-                "rgba(244, 114, 182, 1)",
-            ],
-            borderWidth: 1,
+            ...createPieDatasetStyle(),
         },
     ],
 });
@@ -158,31 +144,7 @@ const hotPluginData = ref({
     datasets: [
         {
             data: [] as number[],
-            backgroundColor: [
-                "rgba(96, 170, 250, 0.8)",
-                "rgba(244, 114, 182, 0.8)",
-                "rgba(52, 211, 153, 0.8)",
-                "rgba(251, 146, 60, 0.8)",
-                "rgba(167, 139, 250, 0.8)",
-                "rgba(251, 113, 133, 0.8)",
-                "rgba(59, 130, 246, 0.8)",
-                "rgba(34, 197, 94, 0.8)",
-                "rgba(234, 179, 8, 0.8)",
-                "rgba(239, 68, 68, 0.8)",
-            ],
-            borderColor: [
-                "rgba(96, 170, 250, 1)",
-                "rgba(244, 114, 182, 1)",
-                "rgba(52, 211, 153, 1)",
-                "rgba(251, 146, 60, 1)",
-                "rgba(167, 139, 250, 1)",
-                "rgba(251, 113, 133, 1)",
-                "rgba(59, 130, 246, 1)",
-                "rgba(34, 197, 94, 1)",
-                "rgba(234, 179, 8, 1)",
-                "rgba(239, 68, 68, 1)",
-            ],
-            borderWidth: 1,
+            ...createPieDatasetStyle(),
         },
     ],
 });
@@ -204,9 +166,7 @@ const favorabilityData = ref<{
     datasets: [
         {
             data: [],
-            backgroundColor: "rgba(236, 72, 153, 0.8)",
-            borderColor: "rgba(236, 72, 153, 1)",
-            borderWidth: 1,
+            ...createBarDatasetStyle("pink"),
         },
     ],
 });
@@ -227,20 +187,13 @@ const goldData = ref<{
     datasets: [
         {
             data: [],
-            backgroundColor: "rgba(234, 179, 8, 0.8)",
-            borderColor: "rgba(234, 179, 8, 1)",
-            borderWidth: 1,
+            ...createBarDatasetStyle("amber"),
         },
     ],
 });
 
 // 柱状图配置
-const barOptions: ChartOptions<"bar"> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: {
-        duration: 1000,
-    },
+const barOptions: ChartOptions<"bar"> = createBarOptions({
     plugins: {
         legend: {
             display: false,
@@ -256,53 +209,13 @@ const barOptions: ChartOptions<"bar"> = {
             },
         },
     },
-    scales: {
-        x: {
-            grid: {
-                display: false,
-            },
-            ticks: {
-                maxRotation: 45,
-                minRotation: 45,
-                font: {
-                    size: 10,
-                },
-            },
-        },
-        y: {
-            beginAtZero: true,
-            grid: {
-                color: "rgba(0, 0, 0, 0.05)",
-            },
-            ticks: {
-                precision: 0,
-                callback: (value: any) => {
-                    return Number(value);
-                },
-            },
-        },
-    },
-};
+});
 
 // 饼图配置
-const pieOptions: ChartOptions<"pie"> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    animation: {
-        duration: 1000,
-        animateScale: true,
-        animateRotate: true,
-    },
+const pieOptions: ChartOptions<"pie"> = createPieOptions({
     plugins: {
         legend: {
             position: "right" as const,
-            labels: {
-                boxWidth: 12,
-                padding: 10,
-                font: {
-                    size: 11,
-                },
-            },
         },
         tooltip: {
             callbacks: {
@@ -320,7 +233,7 @@ const pieOptions: ChartOptions<"pie"> = {
             },
         },
     },
-};
+});
 
 // ==================== 详细统计数据 ====================
 const groupStats = ref<GroupStatistics[]>([]);
@@ -453,15 +366,13 @@ const calculateGranularity = (start: string, end: string): Granularity => {
 };
 
 // 图表配置
-const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-        legend: {
-            position: "top" as const,
-        },
-    },
+const chartOptions: ChartOptions<"line"> = createLineOptions({
     scales: {
+        x: {
+            grid: {
+                display: false,
+            },
+        },
         y: {
             type: "linear" as const,
             display: true,
@@ -469,7 +380,9 @@ const chartOptions = {
             title: {
                 display: true,
                 text: "消息数量",
+                color: themeChartTextColor,
             },
+            beginAtZero: true,
         },
         y1: {
             type: "linear" as const,
@@ -478,13 +391,15 @@ const chartOptions = {
             title: {
                 display: true,
                 text: "调用次数",
+                color: themeChartTextColor,
             },
             grid: {
                 drawOnChartArea: false,
             },
+            beginAtZero: true,
         },
     },
-};
+});
 
 // ==================== API 调用函数 ====================
 
@@ -581,9 +496,10 @@ const loadPieChartData = async () => {
                         ),
                         backgroundColor:
                             activeGroupData.value.datasets[0].backgroundColor,
-                        borderColor:
-                            activeGroupData.value.datasets[0].borderColor,
-                        borderWidth: 1,
+                        borderColor: "#ffffff",
+                        hoverBorderColor: pieBorderColors,
+                        borderWidth: 2,
+                        hoverOffset: 6,
                     },
                 ],
             };
@@ -609,9 +525,10 @@ const loadPieChartData = async () => {
                         ),
                         backgroundColor:
                             hotPluginData.value.datasets[0].backgroundColor,
-                        borderColor:
-                            hotPluginData.value.datasets[0].borderColor,
-                        borderWidth: 1,
+                        borderColor: "#ffffff",
+                        hoverBorderColor: pieBorderColors,
+                        borderWidth: 2,
+                        hoverOffset: 6,
                     },
                 ],
             };
@@ -649,9 +566,7 @@ const loadBarChartData = async () => {
                             (item: FavorabilityRank) =>
                                 Number(item.favorability),
                         ),
-                        backgroundColor: "rgba(236, 72, 153, 0.8)",
-                        borderColor: "rgba(236, 72, 153, 1)",
-                        borderWidth: 1,
+                        ...createBarDatasetStyle("pink"),
                     },
                 ],
             };
@@ -667,9 +582,7 @@ const loadBarChartData = async () => {
                         data: goldRes.data.map((item: GoldRank) =>
                             Number(item.gold),
                         ),
-                        backgroundColor: "rgba(234, 179, 8, 0.8)",
-                        borderColor: "rgba(234, 179, 8, 1)",
-                        borderWidth: 1,
+                        ...createBarDatasetStyle("amber"),
                     },
                 ],
             };
@@ -764,9 +677,7 @@ const chartData = computed(() => {
         datasets: [
             {
                 label: "消息数量",
-                backgroundColor: "rgba(96, 170, 250, 0.2)",
-                borderColor: "rgba(96, 170, 250, 1)",
-                fill: true,
+                ...createLineDatasetStyle("blue"),
                 data: trendDataApi.value.data_points.map(
                     (p) => p.message_count,
                 ),
@@ -774,9 +685,7 @@ const chartData = computed(() => {
             },
             {
                 label: "调用次数",
-                backgroundColor: "rgba(244, 114, 182, 0.2)",
-                borderColor: "rgba(244, 114, 182, 1)",
-                fill: true,
+                ...createLineDatasetStyle("pink"),
                 data: trendDataApi.value.data_points.map(
                     (p) => p.plugin_call_count,
                 ),
@@ -797,7 +706,7 @@ onMounted(() => {
     <div class="flex h-full w-full flex-col space-y-3 sm:space-y-4">
         <!-- 头部标题 -->
         <div
-            class="flex flex-col space-y-3 rounded-4xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:space-y-0"
+            class="flex flex-col space-y-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:space-y-0"
             v-if="!globalStore.isDesktopMode"
         >
             <div class="flex items-center space-x-3">
@@ -811,7 +720,7 @@ onMounted(() => {
                 <!-- 快捷时间范围选择 -->
                 <div class="flex items-center space-x-1">
                     <div
-                        class="flex items-center space-x-1 rounded-4xl bg-gray-100 p-1"
+                        class="flex items-center space-x-1 rounded-2xl bg-gray-100 p-1"
                     >
                         <button
                             v-for="range in quickTimeRanges"
@@ -823,7 +732,7 @@ onMounted(() => {
                                 loadDetailedStatistics();
                                 loadPieChartData();
                             "
-                            class="btn-touch rounded-4xl px-3 py-1.5 text-xs font-medium transition-all duration-200"
+                            class="btn-touch rounded-2xl px-3 py-1.5 text-xs font-medium transition-all duration-200"
                             :class="[
                                 selectedQuickRange === range.value
                                     ? 'bg-white text-gray-800 shadow-sm'
@@ -838,7 +747,7 @@ onMounted(() => {
                 <!-- 时间粒度选择 -->
                 <div class="flex items-center space-x-1">
                     <div
-                        class="flex items-center space-x-1 rounded-4xl bg-gray-100 p-1"
+                        class="flex items-center space-x-1 rounded-2xl bg-gray-100 p-1"
                     >
                         <button
                             v-for="opt in granularityOptions"
@@ -847,7 +756,7 @@ onMounted(() => {
                                 granularity = opt.value;
                                 loadTrendData();
                             "
-                            class="btn-touch rounded-4xl px-3 py-1.5 text-xs font-medium transition-all duration-200"
+                            class="btn-touch rounded-2xl px-3 py-1.5 text-xs font-medium transition-all duration-200"
                             :class="[
                                 granularity === opt.value
                                     ? 'bg-white text-gray-800 shadow-sm'
@@ -864,7 +773,7 @@ onMounted(() => {
         <!-- 自定义时间范围选择器 -->
         <div
             v-if="selectedQuickRange === 'custom'"
-            class="rounded-4xl border border-slate-200 bg-white p-4 shadow-sm"
+            class="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm"
         >
             <div
                 class="flex flex-col items-start space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4"
@@ -899,7 +808,7 @@ onMounted(() => {
                         loadDetailedStatistics();
                         loadPieChartData();
                     "
-                    class="rounded-4xl bg-blue-500 px-4 py-1.5 text-sm text-white transition-colors hover:bg-blue-600"
+                    class="rounded-2xl bg-blue-500 px-4 py-1.5 text-sm text-white transition-colors hover:bg-blue-600"
                 >
                     应用
                 </button>
@@ -910,7 +819,7 @@ onMounted(() => {
         <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
             <!-- 全部消息 -->
             <div
-                class="rounded-4xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+                class="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
             >
                 <div class="flex items-center space-x-2 sm:space-x-3">
                     <div
@@ -933,7 +842,7 @@ onMounted(() => {
 
             <!-- 一周消息 -->
             <div
-                class="rounded-4xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+                class="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
             >
                 <div class="flex items-center space-x-2 sm:space-x-3">
                     <div
@@ -956,7 +865,7 @@ onMounted(() => {
 
             <!-- 一月消息 -->
             <div
-                class="rounded-4xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+                class="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
             >
                 <div class="flex items-center space-x-2 sm:space-x-3">
                     <div
@@ -979,7 +888,7 @@ onMounted(() => {
 
             <!-- 一年消息 -->
             <div
-                class="rounded-4xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+                class="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
             >
                 <div class="flex items-center space-x-2 sm:space-x-3">
                     <div
@@ -1002,7 +911,7 @@ onMounted(() => {
 
             <!-- 全部调用 -->
             <div
-                class="rounded-4xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+                class="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
             >
                 <div class="flex items-center space-x-2 sm:space-x-3">
                     <div
@@ -1025,7 +934,7 @@ onMounted(() => {
 
             <!-- 一周调用 -->
             <div
-                class="rounded-4xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+                class="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
             >
                 <div class="flex items-center space-x-2 sm:space-x-3">
                     <div
@@ -1048,7 +957,7 @@ onMounted(() => {
 
             <!-- 一月调用 -->
             <div
-                class="rounded-4xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+                class="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
             >
                 <div class="flex items-center space-x-2 sm:space-x-3">
                     <div
@@ -1071,7 +980,7 @@ onMounted(() => {
 
             <!-- 一年调用 -->
             <div
-                class="rounded-4xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+                class="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
             >
                 <div class="flex items-center space-x-2 sm:space-x-3">
                     <div
@@ -1097,7 +1006,7 @@ onMounted(() => {
         <div class="flex flex-col space-y-3 sm:space-y-4">
             <!-- 合并趋势图（全宽） -->
             <div
-                class="rounded-4xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+                class="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
             >
                 <div class="mb-3 flex items-center justify-between p-2 sm:mb-4">
                     <h3
@@ -1151,7 +1060,7 @@ onMounted(() => {
             <div class="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">
                 <!-- 活跃群组饼图 -->
                 <div
-                    class="rounded-4xl border border-slate-200 bg-white p-6 shadow-sm"
+                    class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
                 >
                     <h3
                         class="mb-3 text-sm font-semibold text-gray-800 sm:mb-4 sm:text-base"
@@ -1192,7 +1101,7 @@ onMounted(() => {
 
                 <!-- 热门插件饼图 -->
                 <div
-                    class="rounded-4xl border border-slate-200 bg-white p-6 shadow-sm"
+                    class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
                 >
                     <h3
                         class="mb-3 text-sm font-semibold text-gray-800 sm:mb-4 sm:text-base"
@@ -1239,7 +1148,7 @@ onMounted(() => {
         <div class="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">
             <!-- 好感度 Top10 -->
             <div
-                class="rounded-4xl border border-slate-200 bg-white p-6 shadow-sm"
+                class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
             >
                 <h3
                     class="mb-3 flex items-center text-sm font-semibold text-gray-800 sm:mb-4 sm:text-base"
@@ -1265,7 +1174,7 @@ onMounted(() => {
 
             <!-- 金币 Top10 -->
             <div
-                class="rounded-4xl border border-slate-200 bg-white p-6 shadow-sm"
+                class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
             >
                 <h3
                     class="mb-3 flex items-center text-sm font-semibold text-gray-800 sm:mb-4 sm:text-base"
@@ -1291,7 +1200,7 @@ onMounted(() => {
         </div>
 
         <!-- 详细统计数据 - 群组/好友消息和调用情况 -->
-        <div class="rounded-4xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div class="flex items-center justify-between">
                 <h3
                     class="flex items-center space-x-2 text-base font-bold text-gray-800 sm:text-lg"
@@ -1302,7 +1211,7 @@ onMounted(() => {
                 <button
                     @click="loadDetailedStatistics"
                     :disabled="isLoadingStats"
-                    class="btn-touch flex-shrink-0 rounded-4xl bg-gray-100 p-2 transition-colors hover:bg-gray-200"
+                    class="btn-touch flex-shrink-0 rounded-2xl bg-gray-100 p-2 transition-colors hover:bg-gray-200"
                     title="刷新统计数据"
                 >
                     <RefreshCw
@@ -1439,7 +1348,7 @@ onMounted(() => {
                             </td>
                             <td class="px-2 py-3 text-center">
                                 <span
-                                    class="inline-flex items-center rounded-4xl bg-blue-50 px-2 py-1 font-medium text-blue-600"
+                                    class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 font-medium text-blue-600"
                                 >
                                     <MessageSquare class="mr-1 h-3 w-3" />
                                     {{ group.message_count }}
@@ -1447,7 +1356,7 @@ onMounted(() => {
                             </td>
                             <td class="px-2 py-3 text-center">
                                 <span
-                                    class="inline-flex items-center rounded-4xl bg-purple-50 px-2 py-1 font-medium text-purple-600"
+                                    class="inline-flex items-center rounded-full bg-purple-50 px-2 py-1 font-medium text-purple-600"
                                 >
                                     <Plug class="mr-1 h-3 w-3" />
                                     {{ group.plugin_call_count }}
@@ -1493,14 +1402,14 @@ onMounted(() => {
                         <button
                             @click="currentPage = 1"
                             :disabled="currentPage === 1"
-                            class="rounded-4xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="rounded-2xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             首页
                         </button>
                         <button
                             @click="currentPage = Math.max(1, currentPage - 1)"
                             :disabled="currentPage === 1"
-                            class="rounded-4xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="rounded-2xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             上一页
                         </button>
@@ -1515,14 +1424,14 @@ onMounted(() => {
                                 )
                             "
                             :disabled="currentPage === groupTotalPages"
-                            class="rounded-4xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="rounded-2xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             下一页
                         </button>
                         <button
                             @click="currentPage = groupTotalPages"
                             :disabled="currentPage === groupTotalPages"
-                            class="rounded-4xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="rounded-2xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             末页
                         </button>
@@ -1610,7 +1519,7 @@ onMounted(() => {
                             </td>
                             <td class="px-2 py-3 text-center">
                                 <span
-                                    class="inline-flex items-center rounded-4xl bg-green-50 px-2 py-1 font-medium text-green-600"
+                                    class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 font-medium text-green-600"
                                 >
                                     <MessageSquare class="mr-1 h-3 w-3" />
                                     {{ friend.message_count }}
@@ -1618,7 +1527,7 @@ onMounted(() => {
                             </td>
                             <td class="px-2 py-3 text-center">
                                 <span
-                                    class="inline-flex items-center rounded-4xl bg-pink-50 px-2 py-1 font-medium text-pink-600"
+                                    class="inline-flex items-center rounded-full bg-pink-50 px-2 py-1 font-medium text-pink-600"
                                 >
                                     <Plug class="mr-1 h-3 w-3" />
                                     {{ friend.plugin_call_count }}
@@ -1664,14 +1573,14 @@ onMounted(() => {
                         <button
                             @click="currentPage = 1"
                             :disabled="currentPage === 1"
-                            class="rounded-4xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="rounded-2xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             首页
                         </button>
                         <button
                             @click="currentPage = Math.max(1, currentPage - 1)"
                             :disabled="currentPage === 1"
-                            class="rounded-4xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="rounded-2xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             上一页
                         </button>
@@ -1686,14 +1595,14 @@ onMounted(() => {
                                 )
                             "
                             :disabled="currentPage === friendTotalPages"
-                            class="rounded-4xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="rounded-2xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             下一页
                         </button>
                         <button
                             @click="currentPage = friendTotalPages"
                             :disabled="currentPage === friendTotalPages"
-                            class="rounded-4xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="rounded-2xl border border-gray-300 px-3 py-1 text-sm transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             末页
                         </button>

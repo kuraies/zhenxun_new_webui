@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./theme.css";
 @import "./custom.css";
 
 @font-face {
@@ -10,7 +11,8 @@
 
 body {
     font-family: "Harmony", sans-serif;
-    color: #212121;
+    color: var(--zx-color-text);
+    background: var(--zx-color-bg);
 }
 
 .custom-center-notification {
@@ -50,21 +52,21 @@ body {
 .el-dropdown__popper .el-dropdown-menu::-webkit-scrollbar-track,
 .el-select-dropdown::-webkit-scrollbar-track,
 .el-cascader-menu::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: var(--zx-color-border-soft);
     border-radius: 3px;
 }
 
 .el-dropdown__popper .el-dropdown-menu::-webkit-scrollbar-thumb,
 .el-select-dropdown::-webkit-scrollbar-thumb,
 .el-cascader-menu::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
+    background: var(--zx-color-border);
     border-radius: 3px;
 }
 
 .el-dropdown__popper .el-dropdown-menu::-webkit-scrollbar-thumb:hover,
 .el-select-dropdown::-webkit-scrollbar-thumb:hover,
 .el-cascader-menu::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
+    background: var(--zx-color-text-subtle);
 }
 
 ::-webkit-scrollbar {
@@ -74,10 +76,10 @@ body {
 
 ::-webkit-scrollbar-thumb {
     border-radius: 10px;
-    background: #e2e8f0;
+    background: var(--zx-color-border);
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #cbd5e1;
+    background: var(--zx-slate-300);
 }
 
 ::-webkit-scrollbar-thumb,

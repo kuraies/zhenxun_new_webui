@@ -2,25 +2,19 @@
 import { ArrowLeft, ImageIcon, MessageSquare, Send } from "lucide-vue-next";
 import { storeToRefs } from "pinia";
 import { useChatStore } from "@/store/chat.ts";
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { ZXNotification } from "@/components";
+import { computed, onMounted, ref, watch } from "vue";
+import { ZXNotification } from "@/services/ui";
 import { sendMessage as sendWsMessage } from "@/utils/api-next/websocket-chat";
-
-import {
-    addMessageCallback,
-    removeMessageCallback,
-} from "@/utils/api-next/websocket-chat.ts";
 import { useBotStore } from "@/store/bot.ts";
-import { ChatMessage, MessageType } from "@/types";
+import type { ChatMessage } from "@/types";
 
 const chatStore = useChatStore();
 const botStore = useBotStore();
 
 const { selectedContact, friends, groups, selectedId, messages } =
     storeToRefs(chatStore);
-
-// 当前 bot 信息
-const currentBot = ref<{ self_id: string; name?: string } | null>(null);
+const { appendCurrentMessage, removeCurrentMessage, createMessageId } =
+    chatStore;
 
 const inputMessage = ref("");
 
@@ -118,6 +112,8 @@ const handleImageSelect = async (event: Event) => {
         return;
     }
 
+    const newMessageId = createMessageId();
+
     try {
         // 转换为 base64
         const base64Data = await fileToBase64(file);
@@ -126,7 +122,7 @@ const handleImageSelect = async (event: Event) => {
 
         // 添加到消息列表（立即显示）
         const newMessage: ChatMessage = {
-            id: Date.now(),
+            id: newMessageId,
             user_id: bot.self_id,
             user_name: "小真寻",
             avatar: botAvatar,
@@ -139,7 +135,7 @@ const handleImageSelect = async (event: Event) => {
                     ? selectedId.value
                     : undefined,
         };
-        messages.value.push(newMessage);
+        await appendCurrentMessage(newMessage);
 
         // 发送图片消息 (使用 base64:// 前缀)
         const imageMessage = `base64://${base64Data.split(",")[1]}`;
@@ -161,7 +157,7 @@ const handleImageSelect = async (event: Event) => {
     } catch (error: any) {
         console.error("发送图片失败:", error);
         // 发送失败，移除刚添加的消息
-        messages.value.pop();
+        await removeCurrentMessage(newMessageId);
         ZXNotification({
             title: "发送失败",
             message: "图片发送失败了 (´；ω；`)",
@@ -177,62 +173,6 @@ const handleImageSelect = async (event: Event) => {
 // 获取当前可用的 bot（使用全局选中的 Bot）
 const getCurrentBot = () => {
     return botStore.selectedBot || null;
-};
-
-// 消息回调处理
-const handleWebSocketMessage = (data: any) => {
-    console.log("收到 WebSocket 消息:", data);
-
-    // 检查是否在选中的聊天中
-    const objectId = data.group_id || data.user_id;
-    if (selectedId.value !== objectId) {
-        // 不在选中的聊天中，忽略
-        return;
-    }
-
-    // 解析消息内容
-    let messageText = "";
-    let messageType: MessageType = "text";
-    let imageUrl = "";
-
-    if (Array.isArray(data.message)) {
-        // 查找是否有图片消息
-        const imageItem = data.message.find(
-            (item: any) => item.type === "img" || item.type === "image",
-        );
-        if (imageItem) {
-            messageType = "image";
-            // 图片消息的 url 可能在 data 字段中
-            imageUrl = imageItem.url || imageItem.data || imageItem.msg || "";
-        }
-        // 拼接文本消息
-        messageText = data.message
-            .filter((item: any) => item.type === "text")
-            .map((item: any) => item.msg)
-            .join("");
-    } else {
-        messageText = (data as any).msg || "";
-    }
-
-    // 是否是自己的消息
-    const isSelfMessage = currentBot.value
-        ? data.user_id === currentBot.value.self_id
-        : false;
-
-    const newMessage: ChatMessage = {
-        id: Date.now() + Math.random(),
-        user_id: data.user_id,
-        user_name: data.name || "未知用户",
-        avatar: data.ava_url,
-        message: messageType === "image" ? imageUrl : messageText,
-        message_type: messageType,
-        timestamp: new Date().toISOString(),
-        is_self: isSelfMessage,
-        group_id: data.group_id,
-    };
-
-    messages.value.push(newMessage);
-    scrollToBottom();
 };
 
 // 发送消息（采用旧项目的 `/manage/send_message` 接口）
@@ -268,6 +208,8 @@ const handleSendMessage = async () => {
         return;
     }
 
+    const newMessageId = createMessageId();
+
     try {
         // 获取 bot 头像 URL
         const botAvatar =
@@ -275,7 +217,7 @@ const handleSendMessage = async () => {
 
         // 添加到消息列表（立即显示）
         const newMessage: ChatMessage = {
-            id: Date.now(),
+            id: newMessageId,
             user_id: bot.self_id,
             user_name: "小真寻",
             avatar: botAvatar,
@@ -288,7 +230,7 @@ const handleSendMessage = async () => {
                     ? selectedId.value
                     : undefined,
         };
-        messages.value.push(newMessage);
+        await appendCurrentMessage(newMessage);
 
         // 使用旧项目的 WebSocket 模块发送消息（调用 /manage/send_message 接口）
         await sendWsMessage(
@@ -310,7 +252,7 @@ const handleSendMessage = async () => {
     } catch (error: any) {
         console.error("发送消息失败:", error);
         // 发送失败，移除刚添加的消息
-        messages.value.pop();
+        await removeCurrentMessage(newMessageId);
         // ZXNotification({
         //     title: "发送失败",
         //     message: "消息发送失败了 (´；ω；`)",
@@ -353,26 +295,14 @@ watch(
 );
 
 onMounted(async () => {
-    const bot = getCurrentBot();
-    currentBot.value = bot
-        ? { self_id: bot.self_id || "", name: <string>bot.nickname }
-        : null;
-
-    addMessageCallback(handleWebSocketMessage);
     scrollToBottom();
-});
-onBeforeUnmount(() => {
-    // 移除消息回调
-    removeMessageCallback(handleWebSocketMessage);
-    // 停止连接状态轮询
-    // 注意：不断开 WebSocket 连接，因为其他组件可能还在使用
 });
 </script>
 
 <template>
     <div
         :class="[
-            'flex min-w-0 flex-1 flex-col overflow-hidden rounded-4xl border border-slate-200 bg-white shadow-sm',
+            'flex min-w-0 flex-1 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm',
             selectedContact ? 'flex' : 'hidden sm:flex',
         ]"
     >
@@ -387,7 +317,7 @@ onBeforeUnmount(() => {
                     selectedContact = null;
                     selectedId = '';
                 "
-                class="flex-shrink-0 rounded-3xl p-1.5 text-gray-500 transition-colors hover:bg-gray-100 sm:hidden"
+                class="flex-shrink-0 rounded-2xl p-1.5 text-gray-500 transition-colors hover:bg-gray-100 sm:hidden"
             >
                 <ArrowLeft class="h-5 w-5" />
             </button>
@@ -556,15 +486,21 @@ onBeforeUnmount(() => {
         </div>
 
         <!-- 输入框区域 -->
-        <div class="border-t border-gray-100 p-4 pt-1" v-if="selectedContact">
-            <!-- 工具栏 -->
-            <div class="mb-1 flex items-center space-x-1 sm:space-x-2">
+        <div
+            class="border-t border-gray-100 bg-white p-3"
+            v-if="selectedContact"
+        >
+            <!-- 输入框和发送按钮 -->
+            <div
+                class="flex min-h-11 items-end gap-1 rounded-2xl border border-slate-200 bg-slate-50 px-2 py-1.5 transition-all focus-within:border-blue-300 focus-within:bg-white focus-within:shadow-sm focus-within:shadow-blue-100"
+            >
                 <button
+                    type="button"
                     @click="triggerImageUpload"
-                    class="btn-touch rounded-3xl p-2 text-gray-500 transition-colors hover:bg-gray-100"
+                    class="btn-touch mb-0.5 flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-blue-500"
                     title="发送图片"
                 >
-                    <ImageIcon class="h-4 w-4 sm:h-5 sm:w-5" />
+                    <ImageIcon class="h-4 w-4" />
                 </button>
                 <!-- 隐藏的图片输入 -->
                 <input
@@ -574,25 +510,28 @@ onBeforeUnmount(() => {
                     class="hidden"
                     @change="handleImageSelect"
                 />
-            </div>
 
-            <!-- 输入框和发送按钮 -->
-            <div class="flex items-end space-x-2 sm:space-x-3">
                 <textarea
                     v-model="inputMessage"
                     rows="1"
                     @input="autoResize"
                     @keydown.enter.exact.prevent="handleSendMessage"
-                    placeholder="输入消息，按 Enter 发送..."
-                    class="max-h-30 min-h-8 flex-1 resize-none overflow-y-auto rounded-3xl border border-gray-200 px-6 py-2 pr-0 text-sm text-gray-600 focus:ring-0 focus:outline-none sm:px-4"
+                    placeholder="输入消息，按 Enter 发送"
+                    class="max-h-28 min-h-8 flex-1 resize-none overflow-y-auto bg-transparent px-1 py-1.5 text-sm leading-5 text-slate-700 placeholder:text-slate-400 focus:ring-0 focus:outline-none"
                 />
 
                 <button
+                    type="button"
                     @click="handleSendMessage"
-                    class="btn-touch flex flex-shrink-0 cursor-pointer items-center space-x-1 rounded-3xl bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600 sm:space-x-2 sm:px-6"
+                    :class="[
+                        'btn-touch mb-0.5 flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-full transition-all',
+                        inputMessage.trim()
+                            ? 'bg-blue-500 text-white shadow-sm hover:bg-blue-600'
+                            : 'bg-slate-200 text-slate-400',
+                    ]"
+                    title="发送"
                 >
                     <Send class="h-4 w-4" />
-                    <span class="hidden sm:inline">发送</span>
                 </button>
             </div>
         </div>

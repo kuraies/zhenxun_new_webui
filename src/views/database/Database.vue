@@ -13,7 +13,7 @@ import {
     XCircle,
 } from "lucide-vue-next";
 import { databaseApi } from "@/utils/api-next";
-import { ZXNotification } from "@/components";
+import { ZXNotification } from "@/services/ui";
 import { useGlobalStore } from "@/store/global.ts";
 import { useDatabaseStore } from "@/store/database.ts";
 import { storeToRefs } from "pinia";
@@ -25,19 +25,23 @@ const { showSqlLog, sqlLogList, sqlLogLoading } = storeToRefs(databaseStore);
 
 const { openSqlLog } = databaseStore;
 
+type TableColumn = {
+    name: string;
+    type: string;
+    nullable: boolean;
+    default?: string | null;
+    primary_key?: boolean;
+};
+
+type TableRow = Record<string, any> & {
+    data?: Record<string, any>;
+};
+
 // 选中的表
 const selectedTable = ref<string>("");
 const tableList = ref<string[]>([]);
-const tableColumns = ref<
-    Array<{
-        name: string;
-        type: string;
-        nullable: boolean;
-        default?: string | null;
-        primary_key?: boolean;
-    }>
->([]);
-const tableData = ref<any[]>([]);
+const tableColumns = ref<TableColumn[]>([]);
+const tableData = ref<TableRow[]>([]);
 const dataLoading = ref(false);
 
 // 分页
@@ -55,6 +59,78 @@ const commonSqlList = ref<{ name: string; sql: string }[]>([]);
 
 // 表详情显示模式
 const tableDetailView = ref<"data" | "structure" | "sql_result">("data");
+
+const toArray = <T,>(value: any, keys: string[] = []): T[] => {
+    if (Array.isArray(value)) return value;
+
+    for (const key of keys) {
+        if (Array.isArray(value?.[key])) return value[key];
+    }
+
+    return [];
+};
+
+const normalizeColumn = (column: any): TableColumn => {
+    const isNullable = column?.nullable ?? column?.is_nullable;
+    const primaryKey =
+        column?.primary_key ?? column?.is_primary_key ?? column?.pk;
+
+    return {
+        name:
+            column?.name ??
+            column?.column_name ??
+            column?.field ??
+            column?.column ??
+            "",
+        type:
+            column?.type ??
+            column?.data_type ??
+            column?.column_type ??
+            column?.db_type ??
+            "",
+        nullable:
+            typeof isNullable === "boolean"
+                ? isNullable
+                : String(isNullable).toUpperCase() === "YES" ||
+                  column?.notnull === 0,
+        default:
+            column?.default ??
+            column?.default_value ??
+            column?.dflt_value ??
+            null,
+        primary_key:
+            typeof primaryKey === "boolean"
+                ? primaryKey
+                : Number(primaryKey || 0) > 0,
+    };
+};
+
+const getRowData = (row: TableRow) =>
+    row?.data && typeof row.data === "object" ? row.data : row;
+
+const getCellValue = (row: TableRow, columnName: string) => {
+    const value = getRowData(row)?.[columnName];
+    if (value === null) return "NULL";
+    if (value === undefined) return "";
+    if (typeof value === "object") return JSON.stringify(value);
+    return value;
+};
+
+const inferColumnsFromRows = (rows: TableRow[]) => {
+    const names = new Set<string>();
+
+    rows.forEach((row) => {
+        Object.keys(getRowData(row) || {}).forEach((key) => names.add(key));
+    });
+
+    return Array.from(names).map((name) => ({
+        name,
+        type: "",
+        nullable: true,
+        default: null,
+        primary_key: false,
+    }));
+};
 
 // 加载表列表
 const loadTableList = async () => {
@@ -84,8 +160,10 @@ const loadTableColumns = async () => {
     try {
         const res = await databaseApi.getTableColumns(selectedTable.value);
         if (res?.success && res.data) {
-            // 后端返回：{name, type, nullable, default, primary_key}[]
-            tableColumns.value = res.data;
+            const columns = toArray<any>(res.data, ["columns", "items"]);
+            tableColumns.value = columns
+                .map(normalizeColumn)
+                .filter((column) => column.name);
         }
     } catch (error) {
         // 静默失败
@@ -103,9 +181,21 @@ const loadTableData = async (page: number = 1) => {
             pageSize.value,
         );
         if (res?.success && res.data) {
-            tableData.value = res.data.items || [];
-            totalRows.value = res.data.total || 0;
+            const payload = res.data as any;
+            const rows = toArray<TableRow>(payload, [
+                "items",
+                "rows",
+                "data",
+                "records",
+            ]);
+            tableData.value = rows;
+            totalRows.value =
+                payload.total ?? payload.count ?? payload.total_count ?? rows.length;
             currentPage.value = page;
+
+            if (tableColumns.value.length === 0 && rows.length > 0) {
+                tableColumns.value = inferColumnsFromRows(rows);
+            }
         }
     } catch (error) {
         ZXNotification({
@@ -270,167 +360,153 @@ onMounted(() => {
 </script>
 
 <template>
-    <div
-        class="flex h-full w-full flex-col space-y-4"
-        style="max-width: 100vw; width: 100%"
-    >
-        <!-- 头部标题 -->
+    <div class="database-page flex h-full w-full flex-col gap-3 overflow-hidden sm:gap-4">
         <div
-            class="flex flex-shrink-0 items-center justify-between rounded-4xl border-1 border-slate-200 bg-white p-4 shadow-sm"
+            class="flex flex-shrink-0 items-center justify-between rounded-3xl border-1 border-slate-200 bg-white p-4 shadow-sm"
             v-if="!globalStore.isDesktopMode"
         >
-            <div class="flex items-center space-x-3">
+            <div class="flex min-w-0 items-center space-x-3">
                 <Database class="h-6 w-6 flex-shrink-0 text-blue-500" />
-                <h2 class="text-lg font-semibold text-gray-800">数据库管理</h2>
+                <div class="min-w-0">
+                    <h2 class="truncate text-lg font-semibold text-gray-800">
+                        数据库管理
+                    </h2>
+                    <p class="text-xs text-gray-400">
+                        {{ tableList.length }} 张表
+                    </p>
+                </div>
             </div>
-            <div class="flex items-center space-x-2">
-                <button
-                    @click="openSqlLog"
-                    class="btn-touch flex cursor-pointer items-center space-x-2 rounded-2xl bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 sm:px-4"
-                >
-                    <Clock class="h-4 w-4" />
-                    <span class="hidden sm:inline">SQL 日志</span>
-                </button>
-            </div>
+            <button
+                @click="openSqlLog"
+                class="btn-touch flex cursor-pointer items-center space-x-2 rounded-2xl bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 sm:px-4"
+            >
+                <Clock class="h-4 w-4" />
+                <span class="hidden sm:inline">SQL 日志</span>
+            </button>
         </div>
 
-        <!-- SQL 执行区域 - 顶部 -->
         <div
-            class="flex flex-shrink-0 flex-col rounded-4xl border-1 border-slate-200 bg-white p-4 pb-1 shadow-sm"
+            class="flex flex-shrink-0 flex-col overflow-hidden rounded-3xl border-1 border-slate-200 bg-white shadow-sm"
         >
-            <div class="border-b border-gray-100 p-3">
-                <div
-                    class="flex items-center space-x-2 text-sm font-semibold text-gray-700"
-                >
+            <div
+                class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-3"
+            >
+                <div class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
                     <FileText class="h-4 w-4" />
                     <span>SQL 执行</span>
                 </div>
+                <span
+                    v-if="sqlResult"
+                    class="flex items-center text-xs text-green-600"
+                >
+                    <CheckCircle class="mr-1 h-3.5 w-3.5" />
+                    已执行 {{ sqlResult.rows.length }} 条结果
+                </span>
             </div>
 
-            <div class="flex flex-col gap-3 p-3 sm:flex-row">
-                <!-- 常用 SQL 列表 - 移动端隐藏，桌面端显示 -->
-                <!--                <div class="hidden sm:block sm:w-48 flex-shrink-0">-->
-                <!--                    <div class="text-xs font-medium text-gray-500 mb-2">常用 SQL</div>-->
-                <!--                    <div class="max-h-24 overflow-y-auto space-y-1">-->
-                <!--                        <div-->
-                <!--                            v-for="(item, index) in commonSqlList"-->
-                <!--                            :key="index"-->
-                <!--                            @click="loadCommonSqlToEditor(item.sql)"-->
-                <!--                            class="p-2 rounded-2xl hover:bg-gray-50 cursor-pointer transition-colors"-->
-                <!--                        >-->
-                <!--                            <span class="text-sm text-gray-700 truncate block">{{ item.name }}</span>-->
-                <!--                        </div>-->
-                <!--                        <div v-if="commonSqlList.length === 0" class="text-center text-gray-400 py-4 text-xs">-->
-                <!--                            暂无常用 SQL-->
-                <!--                        </div>-->
-                <!--                    </div>-->
-                <!--                </div>-->
-
-                <!-- SQL 编辑器 -->
-                <div class="min-w-0 flex-1">
-                    <textarea
-                        v-model="sqlEditor"
-                        placeholder="输入 SQL 语句..."
-                        class="w-full resize-none rounded-2xl border border-gray-200 px-3 py-2 font-mono text-sm focus:outline-none"
-                        rows="3"
-                    ></textarea>
-                    <div
-                        class="mt-2 flex flex-wrap items-center justify-between gap-2"
+            <div class="grid gap-3 p-3 sm:p-4 lg:grid-cols-[minmax(0,1fr)_auto]">
+                <textarea
+                    v-model="sqlEditor"
+                    placeholder="输入 SQL 语句..."
+                    class="min-h-20 w-full resize-y rounded-2xl border border-gray-200 bg-slate-50/60 px-3 py-2 font-mono text-sm leading-6 text-gray-700 outline-none transition-colors focus:border-blue-200 focus:bg-white"
+                    rows="3"
+                ></textarea>
+                <div
+                    class="flex flex-wrap items-center gap-2 lg:flex-col lg:items-stretch lg:justify-end"
+                >
+                    <button
+                        @click="executeSql"
+                        :disabled="sqlExecuting || !sqlEditor.trim()"
+                        class="btn-touch flex cursor-pointer items-center justify-center space-x-2 rounded-2xl bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
                     >
-                        <button
-                            @click="executeSql"
-                            :disabled="sqlExecuting || !sqlEditor.trim()"
-                            class="btn-touch flex cursor-pointer items-center space-x-2 rounded-2xl bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
-                        >
-                            <Play class="h-4 w-4" />
-                            <span>{{
-                                sqlExecuting ? "执行中..." : "执行 SQL"
-                            }}</span>
-                        </button>
-                        <span
-                            v-if="sqlResult"
-                            class="flex items-center text-xs text-green-600"
-                        >
-                            <CheckCircle class="mr-1 h-3.5 w-3.5" />
-                            已执行 {{ sqlResult.rows.length }} 条结果
-                        </span>
-                    </div>
+                        <Play class="h-4 w-4" />
+                        <span>{{ sqlExecuting ? "执行中..." : "执行 SQL" }}</span>
+                    </button>
+                    <button
+                        @click="openSqlLog"
+                        class="btn-touch hidden cursor-pointer items-center justify-center space-x-2 rounded-2xl bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 sm:flex"
+                    >
+                        <Clock class="h-4 w-4" />
+                        <span>日志</span>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- 主内容区域 - 移动端可滚动，桌面端固定布局 -->
-        <div class="flex min-h-0 flex-1 flex-col gap-3 sm:flex-row">
-            <!-- 左侧表列表 - 移动端紧凑显示 -->
-            <div
-                class="flex w-full flex-shrink-0 flex-col rounded-4xl border-1 border-slate-200 bg-white pb-4 shadow-sm sm:max-h-full sm:w-64"
+        <div class="grid min-h-0 flex-1 gap-3 lg:grid-cols-[17rem_minmax(0,1fr)]">
+            <aside
+                class="flex min-h-0 flex-col overflow-hidden rounded-3xl border-1 border-slate-200 bg-white shadow-sm"
             >
                 <div
-                    class="flex-shrink-0 border-b border-gray-100 p-3 px-4 pt-4"
+                    class="flex flex-shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3"
                 >
-                    <div
-                        class="flex items-center space-x-2 text-sm font-semibold text-gray-700"
-                    >
+                    <div class="flex items-center space-x-2 text-sm font-semibold text-gray-700">
                         <Table class="h-4 w-4" />
                         <span>数据表</span>
                     </div>
+                    <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+                        {{ tableList.length }}
+                    </span>
                 </div>
-                <!-- 移动端水平滚动列表，桌面端垂直列表 -->
-                <div
-                    class="flex-1 overflow-x-auto p-2 pb-1 sm:space-y-1 sm:overflow-x-visible sm:overflow-y-auto"
-                >
-                    <!-- 移动端水平布局 -->
-                    <div
-                        class="flex min-w-max gap-1 sm:min-w-0 sm:flex-col sm:gap-0"
-                    >
-                        <div
+
+                <div class="min-h-0 flex-1 overflow-x-auto p-2 lg:overflow-x-hidden lg:overflow-y-auto">
+                    <div class="flex min-w-max gap-1 lg:min-w-0 lg:flex-col">
+                        <button
                             v-for="table in tableList"
                             :key="table"
                             @click="selectTable(table)"
                             :class="
                                 selectedTable === table
-                                    ? 'bg-blue-50'
-                                    : 'hover:bg-gray-50'
+                                    ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-100'
+                                    : 'text-gray-700 hover:bg-gray-50'
                             "
-                            class="flex-shrink-0 cursor-pointer rounded-2xl p-2 transition-colors sm:flex-shrink"
+                            class="btn-touch flex max-w-56 flex-shrink-0 cursor-pointer items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition-colors lg:max-w-none lg:flex-shrink"
                         >
-                            <span class="truncate text-sm text-gray-700">{{
-                                table
-                            }}</span>
-                        </div>
+                            <span class="truncate">{{ table }}</span>
+                        </button>
                     </div>
                     <div
                         v-if="tableList.length === 0"
-                        class="hidden py-8 text-center text-gray-400 sm:block"
+                        class="py-8 text-center text-gray-400"
                     >
                         <Table class="mx-auto mb-2 h-8 w-8 opacity-50" />
                         <p class="text-sm">暂无数据表</p>
                     </div>
                 </div>
-            </div>
+            </aside>
 
-            <!-- 右侧表数据/结构 + SQL 结果 -->
-            <div
-                class="flex min-w-0 flex-1 flex-col overflow-hidden rounded-4xl border-1 border-slate-200 bg-white shadow-sm"
+            <section
+                class="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-3xl border-1 border-slate-200 bg-white shadow-sm"
             >
-                <!-- 表头部 -->
                 <div
-                    class="flex flex-shrink-0 items-center justify-between border-b border-gray-100 p-5 pt-4 pb-2"
+                    class="flex flex-shrink-0 flex-col gap-3 border-b border-gray-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 >
-                    <!-- 左侧：表名 -->
-                    <span class="truncate font-semibold text-gray-700">{{
-                        selectedTable || "请选择表"
-                    }}</span>
-                    <!-- 右侧：视图切换按钮 -->
-                    <div class="flex flex-shrink-0 space-x-1">
+                    <div class="min-w-0">
+                        <div class="flex min-w-0 items-center gap-2">
+                            <span class="truncate font-semibold text-gray-700">
+                                {{ selectedTable || "请选择表" }}
+                            </span>
+                            <span
+                                v-if="selectedTable"
+                                class="hidden rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500 sm:inline-flex"
+                            >
+                                {{ totalRows }} 行 / {{ tableColumns.length }} 字段
+                            </span>
+                        </div>
+                        <p class="mt-0.5 text-xs text-gray-400 sm:hidden" v-if="selectedTable">
+                            {{ totalRows }} 行 / {{ tableColumns.length }} 字段
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-1 rounded-2xl bg-gray-100 p-1 sm:flex sm:flex-shrink-0">
                         <button
                             @click="tableDetailView = 'data'"
                             :class="
                                 tableDetailView === 'data'
-                                    ? 'bg-blue-100 text-blue-700'
-                                    : 'bg-gray-100 text-gray-600'
+                                    ? 'bg-white text-blue-700 shadow-sm'
+                                    : 'text-gray-600 hover:text-gray-800'
                             "
-                            class="cursor-pointer rounded-2xl px-4 py-1 text-xs font-medium transition-colors"
+                            class="cursor-pointer rounded-xl px-3 py-1.5 text-xs font-medium transition-colors"
                         >
                             数据
                         </button>
@@ -438,10 +514,10 @@ onMounted(() => {
                             @click="tableDetailView = 'structure'"
                             :class="
                                 tableDetailView === 'structure'
-                                    ? 'bg-blue-100 text-blue-700'
-                                    : 'bg-gray-100 text-gray-600'
+                                    ? 'bg-white text-blue-700 shadow-sm'
+                                    : 'text-gray-600 hover:text-gray-800'
                             "
-                            class="cursor-pointer rounded-2xl px-4 py-1 text-xs font-medium transition-colors"
+                            class="cursor-pointer rounded-xl px-3 py-1.5 text-xs font-medium transition-colors"
                         >
                             结构
                         </button>
@@ -449,121 +525,89 @@ onMounted(() => {
                             @click="tableDetailView = 'sql_result'"
                             :class="
                                 tableDetailView === 'sql_result'
-                                    ? 'bg-blue-100 text-blue-700'
-                                    : 'bg-gray-100 text-gray-600'
+                                    ? 'bg-white text-blue-700 shadow-sm'
+                                    : 'text-gray-600 hover:text-gray-800'
                             "
-                            class="cursor-pointer rounded-2xl px-4 py-1 text-xs font-medium transition-colors"
+                            class="cursor-pointer rounded-xl px-3 py-1.5 text-xs font-medium transition-colors"
                         >
                             SQL 结果
                         </button>
                     </div>
                 </div>
 
-                <!-- 表内容 -->
-                <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
+                <div class="min-h-0 flex-1 overflow-hidden">
                     <div
                         v-if="!selectedTable && !sqlResult"
                         class="flex h-full items-center justify-center text-gray-400"
                     >
                         <div class="text-center">
-                            <Database
-                                class="mx-auto mb-4 h-16 w-16 opacity-50"
-                            />
+                            <Database class="mx-auto mb-4 h-16 w-16 opacity-50" />
                             <p>请选择一个数据表或执行 SQL</p>
                         </div>
                     </div>
 
-                    <!-- SQL 结果视图 - 始终显示 -->
                     <div
                         v-if="tableDetailView === 'sql_result'"
-                        class="flex-1 overflow-auto"
+                        class="h-full overflow-auto"
                     >
                         <div
                             v-if="!sqlResult"
                             class="flex h-full items-center justify-center"
                         >
                             <div class="text-center text-gray-400">
-                                <FileText
-                                    class="mx-auto mb-4 h-16 w-16 opacity-50"
-                                />
+                                <FileText class="mx-auto mb-4 h-16 w-16 opacity-50" />
                                 <p>暂无 SQL 结果</p>
-                                <p class="mt-2 text-sm">
-                                    请执行 SQL 查询后查看结果
-                                </p>
+                                <p class="mt-2 text-sm">请执行 SQL 查询后查看结果</p>
                             </div>
                         </div>
-                        <div
-                            v-else-if="sqlResult.rows.length > 0"
-                            class="h-full"
-                        >
-                            <div
-                                class="overflow-auto"
-                                style="min-width: max-content"
-                            >
-                                <table class="w-full border-collapse">
-                                    <thead class="sticky top-0 z-10 bg-gray-50">
-                                        <tr>
-                                            <th
-                                                v-for="col in sqlResult.columns"
-                                                :key="col"
-                                                class="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap text-gray-500 uppercase"
-                                            >
-                                                <span :title="col">{{
-                                                    col
-                                                }}</span>
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody
-                                        class="divide-y divide-gray-100 bg-white"
-                                    >
-                                        <tr
-                                            v-for="(
-                                                row, index
-                                            ) in sqlResult.rows"
-                                            :key="index"
-                                            class="hover:bg-gray-50"
+                        <div v-else-if="sqlResult.rows.length > 0" class="min-w-full">
+                            <table class="min-w-full border-collapse">
+                                <thead class="sticky top-0 z-10 bg-gray-50">
+                                    <tr>
+                                        <th
+                                            v-for="col in sqlResult.columns"
+                                            :key="col"
+                                            class="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap text-gray-500 uppercase"
                                         >
-                                            <td
-                                                v-for="col in sqlResult.columns"
-                                                :key="col"
-                                                class="max-w-xs overflow-hidden px-4 py-3 text-sm break-words overflow-ellipsis text-gray-700"
-                                            >
-                                                <span :title="row[col]">{{
-                                                    row[col]
-                                                }}</span>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                                            <span :title="col">{{ col }}</span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100 bg-white">
+                                    <tr
+                                        v-for="(row, index) in sqlResult.rows"
+                                        :key="index"
+                                        class="hover:bg-gray-50"
+                                    >
+                                        <td
+                                            v-for="col in sqlResult.columns"
+                                            :key="col"
+                                            class="max-w-sm overflow-hidden px-4 py-3 text-sm break-words overflow-ellipsis text-gray-700"
+                                        >
+                                            <span :title="row[col]">{{ row[col] }}</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        <div
-                            v-else
-                            class="flex h-full items-center justify-center"
-                        >
+                        <div v-else class="flex h-full items-center justify-center">
                             <div class="text-center text-gray-400">
-                                <CheckCircle
-                                    class="mx-auto mb-4 h-16 w-16 opacity-50"
-                                />
+                                <CheckCircle class="mx-auto mb-4 h-16 w-16 opacity-50" />
                                 <p>执行成功，无返回数据</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 数据视图 -->
                     <div
                         v-else-if="tableDetailView === 'data' && selectedTable"
-                        class="flex flex-1 flex-col overflow-hidden"
+                        class="flex h-full flex-col overflow-hidden"
                     >
                         <div
                             v-if="dataLoading"
                             class="flex h-full items-center justify-center"
                         >
                             <div class="text-center text-gray-400">
-                                <Table
-                                    class="mx-auto mb-4 h-16 w-16 animate-pulse"
-                                />
+                                <Table class="mx-auto mb-4 h-16 w-16 animate-pulse" />
                                 <p>加载中...</p>
                             </div>
                         </div>
@@ -572,99 +616,59 @@ onMounted(() => {
                             class="flex h-full items-center justify-center"
                         >
                             <div class="text-center text-gray-400">
-                                <Table
-                                    class="mx-auto mb-4 h-16 w-16 opacity-50"
-                                />
+                                <Table class="mx-auto mb-4 h-16 w-16 opacity-50" />
                                 <p>此表为空</p>
                             </div>
                         </div>
-                        <div
-                            v-else
-                            class="flex flex-1 flex-col overflow-hidden"
-                        >
-                            <div class="flex-1 overflow-auto overflow-x-scroll">
-                                <div
-                                    class="overflow-auto overflow-x-scroll"
-                                    style="min-width: max-content"
-                                >
-                                    <table class="w-full border-collapse">
-                                        <thead
-                                            class="sticky top-0 z-10 bg-gray-50"
-                                        >
-                                            <tr>
-                                                <th
-                                                    v-for="(
-                                                        col, index
-                                                    ) in tableColumns"
-                                                    :key="index"
-                                                    class="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap text-gray-500 uppercase"
-                                                >
-                                                    <div
-                                                        class="flex items-center"
-                                                    >
-                                                        <span
-                                                            :title="col.name"
-                                                            >{{
-                                                                col.name
-                                                            }}</span
-                                                        >
-                                                    </div>
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody
-                                            class="divide-y divide-gray-100 bg-white"
-                                        >
-                                            <tr
-                                                v-for="(
-                                                    row, rowIndex
-                                                ) in tableData"
-                                                :key="rowIndex"
-                                                class="hover:bg-gray-50"
+                        <div v-else class="flex min-h-0 flex-1 flex-col overflow-hidden">
+                            <div class="min-h-0 flex-1 overflow-auto">
+                                <table class="min-w-full border-collapse">
+                                    <thead class="sticky top-0 z-10 bg-gray-50">
+                                        <tr>
+                                            <th
+                                                v-for="(col, index) in tableColumns"
+                                                :key="index"
+                                                class="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap text-gray-500 uppercase"
                                             >
-                                                <td
-                                                    v-for="(
-                                                        col, colIndex
-                                                    ) in tableColumns"
-                                                    :key="colIndex"
-                                                    class="max-w-xs overflow-hidden px-4 py-3 text-sm break-words overflow-ellipsis text-gray-700"
-                                                >
-                                                    <span
-                                                        :title="
-                                                            row.data[col.name]
-                                                        "
-                                                        >{{
-                                                            row.data[col.name]
-                                                        }}</span
-                                                    >
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                                <span :title="col.name">{{ col.name }}</span>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 bg-white">
+                                        <tr
+                                            v-for="(row, rowIndex) in tableData"
+                                            :key="rowIndex"
+                                            class="hover:bg-gray-50"
+                                        >
+                                            <td
+                                                v-for="(col, colIndex) in tableColumns"
+                                                :key="colIndex"
+                                                class="max-w-sm overflow-hidden px-4 py-3 text-sm break-words overflow-ellipsis text-gray-700"
+                                            >
+                                                <span :title="getCellValue(row, col.name)">
+                                                    {{ getCellValue(row, col.name) }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
-                            <!-- 分页 -->
                             <div
-                                class="flex flex-shrink-0 items-center justify-between border-t border-gray-100 p-3"
+                                class="flex flex-shrink-0 flex-col gap-2 border-t border-gray-100 p-3 sm:flex-row sm:items-center sm:justify-between"
                             >
-                                <span class="text-sm text-gray-500">{{
-                                    pageInfo
-                                }}</span>
+                                <span class="text-sm text-gray-500">{{ pageInfo }}</span>
                                 <div class="flex space-x-2">
                                     <button
                                         @click="changePage(-1)"
                                         :disabled="currentPage === 1"
-                                        class="rounded-2xl p-1.5 transition-colors hover:bg-gray-100 disabled:opacity-30"
+                                        class="btn-touch rounded-2xl p-1.5 transition-colors hover:bg-gray-100 disabled:opacity-30"
                                     >
                                         <ChevronLeft class="h-4 w-4" />
                                     </button>
                                     <button
                                         @click="changePage(1)"
-                                        :disabled="
-                                            currentPage >=
-                                            Math.ceil(totalRows / pageSize)
-                                        "
-                                        class="rounded-2xl p-1.5 transition-colors hover:bg-gray-100 disabled:opacity-30"
+                                        :disabled="currentPage >= Math.ceil(totalRows / pageSize)"
+                                        class="btn-touch rounded-2xl p-1.5 transition-colors hover:bg-gray-100 disabled:opacity-30"
                                     >
                                         <ChevronRight class="h-4 w-4" />
                                     </button>
@@ -673,109 +677,46 @@ onMounted(() => {
                         </div>
                     </div>
 
-                    <!-- 结构视图 -->
                     <div
-                        v-else-if="
-                            tableDetailView === 'structure' && selectedTable
-                        "
-                        class="flex-1 overflow-auto"
+                        v-else-if="tableDetailView === 'structure' && selectedTable"
+                        class="h-full overflow-auto"
                     >
-                        <div class="h-full">
-                            <div
-                                class="overflow-auto"
-                                style="min-width: max-content"
-                            >
-                                <table class="w-full border-collapse">
-                                    <thead class="sticky top-0 z-10 bg-gray-50">
-                                        <tr>
-                                            <th
-                                                class="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap text-gray-500 uppercase"
-                                            >
-                                                列名
-                                            </th>
-                                            <th
-                                                class="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap text-gray-500 uppercase"
-                                            >
-                                                类型
-                                            </th>
-                                            <th
-                                                class="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap text-gray-500 uppercase"
-                                            >
-                                                可空
-                                            </th>
-                                            <th
-                                                class="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap text-gray-500 uppercase"
-                                            >
-                                                默认值
-                                            </th>
-                                            <th
-                                                class="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap text-gray-500 uppercase"
-                                            >
-                                                主键
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody
-                                        class="divide-y divide-gray-100 bg-white"
-                                    >
-                                        <tr
-                                            v-for="col in tableColumns"
-                                            :key="col.name"
-                                            class="hover:bg-gray-50"
-                                        >
-                                            <td
-                                                class="px-4 py-3 text-sm font-medium text-gray-700"
-                                            >
-                                                {{ col.name }}
-                                            </td>
-                                            <td
-                                                class="px-4 py-3 font-mono text-sm text-gray-500"
-                                            >
-                                                {{ col.type }}
-                                            </td>
-                                            <td class="px-4 py-3 text-sm">
-                                                <span
-                                                    :class="
-                                                        col.nullable
-                                                            ? 'text-green-600'
-                                                            : 'text-gray-400'
-                                                    "
-                                                >
-                                                    {{
-                                                        col.nullable
-                                                            ? "是"
-                                                            : "否"
-                                                    }}
-                                                </span>
-                                            </td>
-                                            <td
-                                                class="px-4 py-3 font-mono text-sm text-gray-500"
-                                            >
-                                                {{ col.default ?? "NULL" }}
-                                            </td>
-                                            <td class="px-4 py-3 text-sm">
-                                                <span
-                                                    v-if="col.primary_key"
-                                                    class="text-yellow-600"
-                                                    >🔑 是</span
-                                                >
-                                                <span
-                                                    v-else
-                                                    class="text-gray-400"
-                                                    >否</span
-                                                >
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                        <table class="min-w-full border-collapse">
+                            <thead class="sticky top-0 z-10 bg-gray-50">
+                                <tr>
+                                    <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap text-gray-500 uppercase">列名</th>
+                                    <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap text-gray-500 uppercase">类型</th>
+                                    <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap text-gray-500 uppercase">可空</th>
+                                    <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap text-gray-500 uppercase">默认值</th>
+                                    <th class="border-b border-gray-200 px-4 py-3 text-left text-xs font-medium tracking-wider whitespace-nowrap text-gray-500 uppercase">主键</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 bg-white">
+                                <tr
+                                    v-for="col in tableColumns"
+                                    :key="col.name"
+                                    class="hover:bg-gray-50"
+                                >
+                                    <td class="px-4 py-3 text-sm font-medium text-gray-700">{{ col.name }}</td>
+                                    <td class="px-4 py-3 font-mono text-sm text-gray-500">{{ col.type || "-" }}</td>
+                                    <td class="px-4 py-3 text-sm">
+                                        <span :class="col.nullable ? 'text-green-600' : 'text-gray-400'">
+                                            {{ col.nullable ? "是" : "否" }}
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-3 font-mono text-sm text-gray-500">{{ col.default ?? "NULL" }}</td>
+                                    <td class="px-4 py-3 text-sm">
+                                        <span v-if="col.primary_key" class="text-yellow-600">🔑 是</span>
+                                        <span v-else class="text-gray-400">否</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
-            </div>
+            </section>
         </div>
 
-        <!-- SQL 日志对话框 -->
         <Transition name="modal-jelly" :duration="{ enter: 500, leave: 250 }">
             <div
                 v-if="showSqlLog"
@@ -787,9 +728,7 @@ onMounted(() => {
                     @click.stop
                 >
                     <div class="mb-4 flex items-center justify-between">
-                        <h3
-                            class="flex items-center space-x-2 text-base font-semibold text-gray-800 sm:text-lg"
-                        >
+                        <h3 class="flex items-center space-x-2 text-base font-semibold text-gray-800 sm:text-lg">
                             <Clock class="h-5 w-5" />
                             <span>SQL 执行日志</span>
                         </h3>
@@ -802,17 +741,11 @@ onMounted(() => {
                     </div>
 
                     <div class="min-h-0 flex-1 overflow-y-auto">
-                        <div
-                            v-if="sqlLogLoading"
-                            class="py-8 text-center text-gray-400"
-                        >
+                        <div v-if="sqlLogLoading" class="py-8 text-center text-gray-400">
                             <Clock class="mx-auto mb-2 h-8 w-8 animate-pulse" />
                             <p>加载中...</p>
                         </div>
-                        <div
-                            v-else-if="sqlLogList.length === 0"
-                            class="py-8 text-center text-gray-400"
-                        >
+                        <div v-else-if="sqlLogList.length === 0" class="py-8 text-center text-gray-400">
                             <Clock class="mx-auto mb-2 h-8 w-8 opacity-50" />
                             <p>暂无日志记录</p>
                         </div>
@@ -820,43 +753,23 @@ onMounted(() => {
                             <div
                                 v-for="log in sqlLogList"
                                 :key="log.id"
-                                :class="
-                                    log.is_success ? 'bg-green-50' : 'bg-red-50'
-                                "
+                                :class="log.is_success ? 'bg-green-50' : 'bg-red-50'"
                                 class="rounded-2xl p-3"
                             >
-                                <div
-                                    class="mb-2 flex items-center justify-between"
-                                >
+                                <div class="mb-2 flex items-center justify-between">
                                     <div class="flex items-center space-x-2">
-                                        <span
-                                            v-if="log.is_success"
-                                            class="text-green-600"
-                                        >
-                                            <CheckCircle
-                                                class="inline h-4 w-4"
-                                            />
+                                        <span v-if="log.is_success" class="text-green-600">
+                                            <CheckCircle class="inline h-4 w-4" />
                                         </span>
                                         <span v-else class="text-red-600">
                                             <XCircle class="inline h-4 w-4" />
                                         </span>
-                                        <span
-                                            class="text-sm font-medium text-gray-700"
-                                        >
-                                            {{
-                                                log.created_at
-                                                    ? new Date(
-                                                          log.created_at,
-                                                      ).toLocaleString()
-                                                    : ""
-                                            }}
+                                        <span class="text-sm font-medium text-gray-700">
+                                            {{ log.created_at ? new Date(log.created_at).toLocaleString() : "" }}
                                         </span>
                                     </div>
                                 </div>
-                                <pre
-                                    class="font-mono text-xs break-all whitespace-pre-wrap text-gray-600"
-                                    >{{ log.sql }}</pre
-                                >
+                                <pre class="font-mono text-xs break-all whitespace-pre-wrap text-gray-600">{{ log.sql }}</pre>
                             </div>
                         </div>
                     </div>
@@ -872,16 +785,16 @@ onMounted(() => {
 }
 
 .overflow-y-auto::-webkit-scrollbar-track {
-    background: #f1f5f9;
+    background: var(--zx-color-border-soft);
     border-radius: 4px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
+    background: var(--zx-slate-300);
     border-radius: 4px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: var(--zx-color-text-subtle);
 }
 </style>

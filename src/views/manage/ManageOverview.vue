@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { Line } from "vue-chartjs";
 import {
     CategoryScale,
@@ -14,7 +14,6 @@ import {
     Tooltip,
 } from "chart.js";
 import {
-    Bell,
     Blocks,
     ChevronDown,
     ChevronLeft,
@@ -28,23 +27,37 @@ import {
     Users,
     Zap,
 } from "lucide-vue-next";
-import { ZXMessageBox, ZXNotification } from "@/components";
+import { ZXMessageBox, ZXNotification } from "@/services/ui";
 import { manageApi } from "@/utils/api-next";
 import type {
     Friend,
     FriendDetail,
-    FriendRequestResult,
     FriendTrend,
     Group as GroupType,
     GroupDetailNew,
     GroupPlugin,
-    GroupRequestResult,
     MemberDetail,
 } from "@/types/manage.types";
-import { useManageStore } from "@/store/manage.ts";
 import { storeToRefs } from "pinia";
 import { useBotStore } from "@/store/bot.ts";
-import { useGlobalStore } from "@/store/global.ts";
+import {
+    createLineOptions,
+    createLineDatasetStyle,
+    themeChartTextColor,
+} from "@/utils/chart-theme";
+
+const props = withDefaults(
+    defineProps<{
+        embedded?: boolean;
+        targetType?: "group" | "friend" | null;
+        targetId?: string | null;
+    }>(),
+    {
+        embedded: false,
+        targetType: null,
+        targetId: null,
+    },
+);
 
 // 注册 ChartJS 组件
 ChartJS.register(
@@ -58,15 +71,8 @@ ChartJS.register(
     Filler,
 );
 
-const manageStore = useManageStore();
 const botStore = useBotStore();
-const globalStore = useGlobalStore();
 const { selectedBotId } = storeToRefs(botStore);
-
-// 请求列表
-const { requestDialogOpen, friendRequests, groupRequests, requestsLoading } =
-    storeToRefs(manageStore);
-const { loadRequestList } = manageStore;
 
 const isInitLoaded = ref(false);
 // 选项卡类型
@@ -131,8 +137,6 @@ const friendEditSaving = ref(false);
 // 插件列表筛选
 const showPassivePlugins = ref(true); // true=被动插件，false=普通插件
 
-const activeRequestTab = ref<"friend" | "group">("friend");
-
 // 分页相关 - 群成员列表
 const memberCurrentPage = ref(1);
 const memberPageSize = ref(15);
@@ -153,77 +157,6 @@ const memberTotalPages = computed(() =>
 const changeMemberPage = (page: number) => {
     if (page < 1 || page > memberTotalPages.value) return;
     memberCurrentPage.value = page;
-};
-
-// 打开请求列表对话框
-const openRequestDialog = async () => {
-    requestDialogOpen.value = true;
-    await loadRequestList();
-};
-
-// 处理请求
-const handleRequest = async (
-    request: FriendRequestResult | GroupRequestResult,
-    action: "approve" | "refused" | "ignore",
-) => {
-    try {
-        const res = await manageApi.handleRequest({
-            bot_id: request.bot_id,
-            id: request.oid,
-            action,
-        });
-        if (res.success) {
-            ZXNotification({
-                title: "成功啦~",
-                message:
-                    action === "approve"
-                        ? "已同意请求 ♪(´▽｀)"
-                        : action === "refused"
-                          ? "已拒绝请求"
-                          : "已忽略请求",
-                type: "🥳",
-                position: "top-right",
-            });
-            // 重新加载请求列表
-            await loadRequestList();
-            await loadData();
-        }
-    } catch (error) {
-        console.error("处理请求失败:", error);
-        ZXNotification({
-            title: "对不起",
-            message: "处理请求失败了 (´；ω；`)",
-            type: "😭",
-            position: "top-right",
-        });
-    }
-};
-
-// 清空请求
-const clearRequests = async (requestType: "friend" | "group") => {
-    try {
-        await ZXMessageBox({
-            title: "清空请求确认",
-            message: `确定要清空所有${requestType === "friend" ? "好友" : "群组"}请求吗？此操作不可恢复。`,
-            cancelButtonText: "取消",
-            confirmButtonText: "确定",
-            type: "warning",
-            onConfirm: async () => {
-                const res = await manageApi.clearRequest(requestType);
-                if (res.success) {
-                    ZXNotification({
-                        title: "成功~",
-                        message: "已清空过期请求",
-                        type: "🥳",
-                        position: "top-right",
-                    });
-                    await loadRequestList();
-                }
-            },
-        });
-    } catch {
-        return;
-    }
 };
 
 // 加载数据
@@ -263,6 +196,7 @@ const loadData = async () => {
             }
 
             isInitLoaded.value = true;
+            await syncSelectedTarget();
             return;
         }
 
@@ -278,6 +212,7 @@ const loadData = async () => {
                 friends.value = res.data;
             }
         }
+        await syncSelectedTarget();
     } catch (error) {
         console.error("加载数据失败:", error);
 
@@ -289,6 +224,32 @@ const loadData = async () => {
         });
     } finally {
         loading.value = false;
+    }
+};
+
+const syncSelectedTarget = async () => {
+    if (!props.embedded || !props.targetType || !props.targetId) return;
+
+    if (props.targetType === "group") {
+        activeTab.value = "groups";
+        const group = groups.value.find(
+            (item) => item.group_id === props.targetId,
+        );
+
+        if (group && selectedGroupId.value !== group.group_id) {
+            await selectGroup(group);
+        }
+
+        return;
+    }
+
+    activeTab.value = "friends";
+    const friend = friends.value.find(
+        (item) => item.user_id === props.targetId,
+    );
+
+    if (friend && selectedUserId.value !== friend.user_id) {
+        await selectFriend(friend);
     }
 };
 
@@ -322,7 +283,7 @@ const selectGroup = async (group: GroupType) => {
     groupPlugins.value = []; // 重置插件列表
     memberCurrentPage.value = 1; // 重置分页
     // 移动端选中后隐藏侧边栏
-    if (window.innerWidth < 640) {
+    if (!props.embedded && window.innerWidth < 640) {
         showSidebar.value = false;
     }
     try {
@@ -509,7 +470,7 @@ const selectFriend = async (friend: Friend) => {
     selectedUserId.value = friend.user_id;
     selectedGroupId.value = null;
     // 移动端选中后隐藏侧边栏
-    if (window.innerWidth < 640) {
+    if (!props.embedded && window.innerWidth < 640) {
         showSidebar.value = false;
     }
     // 设置基础信息
@@ -708,19 +669,13 @@ const friendTrendChartData = computed(() => {
         datasets: [
             {
                 label: "聊天次数",
-                backgroundColor: "rgba(96, 170, 250, 0.2)",
-                borderColor: "rgba(96, 170, 250, 1)",
-                fill: true,
-                tension: 0.4,
+                ...createLineDatasetStyle("blue"),
                 data: friendTrend.value.data.map((p) => p.chat_count),
                 yAxisID: "y",
             },
             {
                 label: "调用次数",
-                backgroundColor: "rgba(244, 114, 182, 0.2)",
-                borderColor: "rgba(244, 114, 182, 1)",
-                fill: true,
-                tension: 0.4,
+                ...createLineDatasetStyle("pink"),
                 data: friendTrend.value.data.map((p) => p.call_count),
                 yAxisID: "y1",
             },
@@ -729,51 +684,28 @@ const friendTrendChartData = computed(() => {
 });
 
 // 图表配置
-const friendTrendChartOptions: ChartOptions<"line"> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: {
-        mode: "index",
-        intersect: false,
-    },
-    plugins: {
-        legend: {
-            position: "top",
-            labels: {
-                usePointStyle: true,
-                padding: 10,
-                font: { size: 11 },
-            },
-        },
-        tooltip: {
-            backgroundColor: "rgba(0, 0, 0, 0.8)",
-            padding: 10,
-            cornerRadius: 6,
-        },
-    },
+const friendTrendChartOptions: ChartOptions<"line"> = createLineOptions({
     scales: {
         x: {
             grid: { display: false },
-            ticks: { font: { size: 10 } },
         },
         y: {
             type: "linear",
             display: true,
             position: "left",
-            title: { display: true, text: "聊天", font: { size: 10 } },
-            grid: { color: "rgba(0, 0, 0, 0.05)" },
+            title: { display: true, text: "聊天", color: themeChartTextColor },
             beginAtZero: true,
         },
         y1: {
             type: "linear",
             display: true,
             position: "right",
-            title: { display: true, text: "调用", font: { size: 10 } },
+            title: { display: true, text: "调用", color: themeChartTextColor },
             grid: { drawOnChartArea: false },
             beginAtZero: true,
         },
     },
-};
+});
 
 // 群组操作
 const toggleGroupStatus = async (group: GroupType) => {
@@ -939,19 +871,38 @@ const chooseLevel = async (level: number, group: GroupType) => {
     open.value = false;
 };
 
-onMounted(() => {
-    loadData();
+watch(
+    () => [props.targetType, props.targetId] as const,
+    async () => {
+        await nextTick();
+        await syncSelectedTarget();
+    },
+);
+
+onMounted(async () => {
+    await loadData();
 });
 </script>
 
 <template>
-    <div class="flex h-full w-full flex-col">
+    <div
+        :class="[
+            'flex h-full w-full min-w-0 flex-col',
+            embedded ? 'manage-embedded' : '',
+        ]"
+    >
         <!-- 左右双栏布局 -->
-        <div class="relative flex min-h-0 flex-1 gap-4">
+        <div
+            :class="[
+                'relative flex min-h-0 flex-1',
+                embedded ? 'gap-0' : 'gap-4',
+            ]"
+        >
             <!-- 左侧边栏 - 移动端可隐藏，响应式宽度 -->
             <div
+                v-if="!embedded"
                 :class="[
-                    'flex w-full min-w-0 flex-shrink-0 flex-col overflow-hidden rounded-4xl border-1 border-slate-200 bg-white p-4 pt-4 shadow-sm transition-all duration-300 sm:w-56 md:w-64 lg:w-72',
+                    'flex w-full min-w-0 flex-shrink-0 flex-col overflow-hidden rounded-3xl border-1 border-slate-200 bg-white p-4 pt-4 shadow-sm transition-all duration-300 sm:w-56 md:w-64 lg:w-72',
                     // 移动端：固定定位，覆盖在右侧内容上
                     showSidebar
                         ? 'absolute inset-0 z-20 sm:relative sm:inset-auto sm:z-auto'
@@ -1119,36 +1070,29 @@ onMounted(() => {
                         </div>
                     </template>
                 </div>
-
-                <!-- 底部操作栏 -->
-                <div
-                    class="flex-shrink-0 border-t border-gray-100 p-1.5 sm:p-2"
-                    v-if="!globalStore.isDesktopMode"
-                >
-                    <button
-                        @click="openRequestDialog"
-                        class="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl bg-orange-50 px-2.5 py-1.5 text-xs font-medium text-orange-600 transition-all hover:bg-orange-100 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm"
-                    >
-                        <Bell class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                        <span>请求处理</span>
-                        <span
-                            v-if="
-                                friendRequests.length + groupRequests.length > 0
-                            "
-                            class="ml-1 rounded-full bg-orange-500 px-1.5 py-0.5 text-[10px] text-white"
-                        >
-                            {{ friendRequests.length + groupRequests.length }}
-                        </span>
-                    </button>
-                </div>
             </div>
 
             <!-- 右侧详情区域 -->
             <div
-                class="flex min-w-0 flex-1 flex-col overflow-hidden rounded-4xl border-1 border-slate-200 bg-white shadow-sm"
+                :class="[
+                    'flex min-w-0 flex-1 flex-col overflow-hidden rounded-3xl border-1 border-slate-200 bg-white shadow-sm',
+                    embedded ? 'rounded-3xl border-0 shadow-none' : '',
+                ]"
             >
+                <div
+                    v-if="embedded && !targetId"
+                    class="flex h-full items-center justify-center p-6 text-center text-gray-400"
+                >
+                    <div>
+                        <Group class="mx-auto mb-4 h-14 w-14 opacity-20" />
+                        <p class="text-sm text-gray-500">
+                            请选择聊天对象查看管理信息
+                        </p>
+                    </div>
+                </div>
+
                 <!-- 群组详情 -->
-                <template v-if="activeTab === 'groups'">
+                <template v-else-if="activeTab === 'groups'">
                     <div
                         v-if="!selectedGroupId"
                         class="flex h-full items-center justify-center"
@@ -1180,6 +1124,7 @@ onMounted(() => {
                             <div class="flex items-center gap-2 sm:gap-4">
                                 <!-- 移动端返回按钮 -->
                                 <button
+                                    v-if="!embedded"
                                     @click="showSidebar = true"
                                     class="flex-shrink-0 rounded-2xl p-2 transition-colors hover:bg-white/50 sm:hidden"
                                 >
@@ -1771,6 +1716,7 @@ onMounted(() => {
                             <div class="flex items-center gap-2 sm:gap-4">
                                 <!-- 移动端返回按钮 -->
                                 <button
+                                    v-if="!embedded"
                                     @click="showSidebar = true"
                                     class="flex-shrink-0 rounded-2xl p-2 transition-colors hover:bg-white/50 sm:hidden"
                                 >
@@ -2124,7 +2070,7 @@ onMounted(() => {
                         @click="memberEditDialogOpen = false"
                     ></div>
                     <div
-                        class="modal-content relative flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-4xl bg-white shadow-2xl"
+                        class="modal-content relative flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"
                     >
                         <div
                             class="flex items-center justify-between border-b border-blue-100 px-6 py-6 pb-4"
@@ -2341,262 +2287,6 @@ onMounted(() => {
                     </div>
                 </div>
             </Transition>
-
-            <!-- 请求处理对话框 -->
-            <Transition
-                name="modal-jelly"
-                :duration="{ enter: 500, leave: 250 }"
-            >
-                <div
-                    v-if="requestDialogOpen"
-                    class="fixed inset-0 z-50 flex items-center justify-center p-4"
-                >
-                    <div
-                        class="glass-overlay fixed inset-0"
-                        @click="requestDialogOpen = false"
-                    ></div>
-                    <div
-                        class="modal-content relative flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-4xl bg-white pt-3 shadow-2xl"
-                    >
-                        <div
-                            class="flex items-center justify-between px-6 py-4"
-                        >
-                            <div class="flex items-center gap-3">
-                                <Bell class="h-6 w-6 text-orange-600" />
-                                <h3 class="text-lg font-semibold text-gray-800">
-                                    请求处理
-                                </h3>
-                            </div>
-                            <button
-                                @click="requestDialogOpen = false"
-                                class="cursor-pointer rounded-2xl p-1 transition-colors hover:bg-white/50"
-                            >
-                                <svg
-                                    class="h-5 w-5 text-gray-500"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <!-- 请求类型选项卡 -->
-                        <div class="flex border-b border-gray-100">
-                            <button
-                                @click="activeRequestTab = 'friend'"
-                                :class="[
-                                    'flex-1 cursor-pointer px-4 py-3 text-sm font-medium transition-all',
-                                    activeRequestTab === 'friend'
-                                        ? 'border-blue-600 bg-blue-50 text-blue-600'
-                                        : 'text-gray-500 hover:bg-gray-50',
-                                ]"
-                            >
-                                好友请求 ({{ friendRequests.length }})
-                            </button>
-                            <button
-                                @click="activeRequestTab = 'group'"
-                                :class="[
-                                    'flex-1 cursor-pointer px-4 py-3 text-sm font-medium transition-all',
-                                    activeRequestTab === 'group'
-                                        ? 'border-purple-600 bg-purple-50 text-purple-600'
-                                        : 'text-gray-500 hover:bg-gray-50',
-                                ]"
-                            >
-                                群组请求 ({{ groupRequests.length }})
-                            </button>
-                        </div>
-
-                        <!-- 请求列表 -->
-                        <div class="flex-1 overflow-y-auto p-4">
-                            <div
-                                v-if="requestsLoading"
-                                class="flex items-center justify-center py-12"
-                            >
-                                <div class="text-center text-gray-400">
-                                    <div
-                                        class="mx-auto mb-2 h-8 w-8 animate-pulse rounded-full border-2 border-blue-500 border-t-transparent"
-                                    />
-                                    <p class="text-sm">加载中...</p>
-                                </div>
-                            </div>
-
-                            <!-- 好友请求 -->
-                            <div
-                                v-else-if="activeRequestTab === 'friend'"
-                                class="space-y-3"
-                            >
-                                <div
-                                    v-if="friendRequests.length === 0"
-                                    class="py-12 text-center text-gray-400"
-                                >
-                                    <Bell
-                                        class="mx-auto mb-2 h-12 w-12 opacity-20"
-                                    />
-                                    <p class="text-sm">暂无好友请求</p>
-                                </div>
-                                <div
-                                    v-for="req in friendRequests"
-                                    :key="req.oid"
-                                    class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-3"
-                                >
-                                    <img
-                                        :src="req.ava_url"
-                                        class="h-12 w-12 rounded-full"
-                                    />
-                                    <div class="min-w-0 flex-1">
-                                        <div class="font-medium text-gray-800">
-                                            {{ req.nickname || "未知" }}
-                                        </div>
-                                        <div class="text-xs text-gray-500">
-                                            ID: {{ req.id }}
-                                        </div>
-                                        <div
-                                            v-if="req.comment"
-                                            class="mt-1 text-xs text-gray-400"
-                                        >
-                                            备注：{{ req.comment }}
-                                        </div>
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <button
-                                            @click="
-                                                handleRequest(req, 'approve')
-                                            "
-                                            class="rounded-2xl bg-green-50 px-3 py-1.5 text-xs font-medium text-green-600 hover:bg-green-100"
-                                        >
-                                            同意
-                                        </button>
-                                        <button
-                                            @click="
-                                                handleRequest(req, 'refused')
-                                            "
-                                            class="rounded-2xl bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100"
-                                        >
-                                            拒绝
-                                        </button>
-                                        <button
-                                            @click="
-                                                handleRequest(req, 'ignore')
-                                            "
-                                            class="rounded-2xl bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200"
-                                        >
-                                            忽略
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 群组请求 -->
-                            <div
-                                v-else-if="activeRequestTab === 'group'"
-                                class="space-y-3"
-                            >
-                                <div
-                                    v-if="groupRequests.length === 0"
-                                    class="py-12 text-center text-gray-400"
-                                >
-                                    <Bell
-                                        class="mx-auto mb-2 h-12 w-12 opacity-20"
-                                    />
-                                    <p class="text-sm">暂无群组请求</p>
-                                </div>
-                                <div
-                                    v-for="req in groupRequests"
-                                    :key="req.oid"
-                                    class="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-3"
-                                >
-                                    <img
-                                        :src="req.ava_url"
-                                        class="h-12 w-12 rounded-full"
-                                    />
-                                    <div class="min-w-0 flex-1">
-                                        <div class="font-medium text-gray-800">
-                                            {{ req.nickname || "未知" }}
-                                        </div>
-                                        <div class="text-xs text-gray-500">
-                                            ID: {{ req.id }}
-                                        </div>
-                                        <div class="mt-1 text-xs text-gray-400">
-                                            邀请群：{{ req.invite_group }}
-                                        </div>
-                                        <div
-                                            v-if="req.comment"
-                                            class="mt-1 text-xs text-gray-400"
-                                        >
-                                            备注：{{ req.comment }}
-                                        </div>
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <button
-                                            @click="
-                                                handleRequest(req, 'approve')
-                                            "
-                                            class="rounded-2xl bg-green-50 px-3 py-1.5 text-xs font-medium text-green-600 hover:bg-green-100"
-                                        >
-                                            同意
-                                        </button>
-                                        <button
-                                            @click="
-                                                handleRequest(req, 'refused')
-                                            "
-                                            class="rounded-2xl bg-red-50 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100"
-                                        >
-                                            拒绝
-                                        </button>
-                                        <button
-                                            @click="
-                                                handleRequest(req, 'ignore')
-                                            "
-                                            class="rounded-2xl bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-200"
-                                        >
-                                            忽略
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 底部操作 -->
-                        <div
-                            class="flex items-center justify-between border-t border-gray-100 px-6 py-4"
-                        >
-                            <div class="space-x-4 text-xs text-gray-500">
-                                <span
-                                    >好友请求：{{ friendRequests.length }}</span
-                                >
-                                <span
-                                    >群组请求：{{ groupRequests.length }}</span
-                                >
-                            </div>
-                            <div class="flex gap-2">
-                                <el-button
-                                    @click="clearRequests('friend')"
-                                    size="small"
-                                    round
-                                    :disabled="friendRequests.length === 0"
-                                >
-                                    清空好友请求
-                                </el-button>
-                                <el-button
-                                    @click="clearRequests('group')"
-                                    size="small"
-                                    round
-                                    :disabled="groupRequests.length === 0"
-                                >
-                                    清空群组请求
-                                </el-button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </Transition>
         </Teleport>
     </div>
 </template>
@@ -2607,7 +2297,11 @@ onMounted(() => {
     align-items: center;
     gap: 12px;
     padding: 12px;
-    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    background: linear-gradient(
+        135deg,
+        var(--zx-color-primary-tint) 0%,
+        var(--zx-color-primary-soft) 100%
+    );
     border-radius: 12px;
     margin-bottom: 16px;
 }
@@ -2616,7 +2310,7 @@ onMounted(() => {
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--zx-color-primary) 22%, transparent);
 }
 
 .message-target-name {
@@ -2637,8 +2331,8 @@ onMounted(() => {
 }
 
 .message-input :deep(.el-textarea__inner:focus) {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: var(--zx-color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--zx-color-primary) 16%, transparent);
 }
 
 .dialog-actions {
@@ -2652,7 +2346,7 @@ onMounted(() => {
 .manage-tabs :deep(.el-tabs__header) {
     margin: 0;
     padding: 0 8px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--zx-color-border-soft);
 }
 
 @media (min-width: 640px) {
@@ -2672,7 +2366,7 @@ onMounted(() => {
     padding: 10px 6px !important;
     font-size: 12px;
     font-weight: 500;
-    color: #64748b;
+    color: var(--zx-color-text-muted);
     transition: all 0.2s;
 }
 
@@ -2684,16 +2378,16 @@ onMounted(() => {
 }
 
 .manage-tabs :deep(.el-tabs__item:hover) {
-    color: #3b82f6;
+    color: var(--zx-color-primary);
 }
 
 .manage-tabs :deep(.el-tabs__item.is-active) {
-    color: #3b82f6;
+    color: var(--zx-color-primary);
     font-weight: 600;
 }
 
 .manage-tabs :deep(.el-tabs__active-bar) {
-    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+    background: linear-gradient(90deg, var(--zx-color-primary), var(--zx-blue-400));
     height: 3px;
     border-radius: 3px 3px 0 0;
 }
@@ -2713,8 +2407,8 @@ onMounted(() => {
 
 .tab-count {
     font-size: 9px;
-    color: #94a3b8;
-    background: #f1f5f9;
+    color: var(--zx-color-text-subtle);
+    background: var(--zx-color-border-soft);
     padding: 1px 4px;
     border-radius: 8px;
     font-weight: 500;
@@ -2729,7 +2423,7 @@ onMounted(() => {
 }
 
 .is-active .tab-count {
-    background: #dbeafe;
-    color: #3b82f6;
+    background: var(--zx-color-primary-soft);
+    color: var(--zx-color-primary);
 }
 </style>

@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { Users, MoreVertical, Eye, ToggleLeft, ToggleRight, LogOut } from 'lucide-vue-next'
 import type { Group } from '@/types/manage.types'
-import { ZXNotification } from '@/components'
+import { ZXNotification } from '@/services/ui'
 
 const props = defineProps<{
     group: Group
@@ -38,7 +38,7 @@ const handleLeaveGroup = () => {
 
 <template>
     <div
-        class="group bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+        class="group bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
         :class="{ 'opacity-75': !group.status }"
     >
         <div class="p-4 flex flex-col gap-3">

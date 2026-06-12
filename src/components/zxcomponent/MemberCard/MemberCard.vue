@@ -18,7 +18,7 @@ const handleEdit = () => {
 
 <template>
     <div
-        class="member bg-white rounded-2xl shadow-sm outline-1 outline-slate-200 overflow-hidden transition-all duration-300 hover:shadow-md"
+        class="member bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 overflow-hidden transition-all duration-300 hover:shadow-md"
     >
         <div class="p-4 flex items-center gap-3">
             <!-- 头像 -->

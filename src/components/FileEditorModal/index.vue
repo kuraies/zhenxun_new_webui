@@ -26,7 +26,7 @@
 
             <!-- 编辑器主体 -->
             <div class="flex-1 min-h-0 p-3">
-                <ZXMonacoEditor
+                <ZXTextEditor
                     ref="editorRef"
                     v-model="editorContent"
                     :language="currentLanguage"
@@ -43,8 +43,8 @@
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import { FileText, X } from 'lucide-vue-next'
 import { fileApi } from '@/utils/api-next'
-import { ZXNotification } from '@/components'
-import ZXMonacoEditor from '@/components/ZXMonacoEditor'
+import { ZXNotification } from '@/services/ui'
+import ZXTextEditor from '@/components/ZXTextEditor'
 
 // Props
 interface Props {
@@ -61,7 +61,7 @@ const emit = defineEmits<{
 }>()
 
 // 状态
-const editorRef = ref<InstanceType<typeof ZXMonacoEditor> | null>(null)
+const editorRef = ref<InstanceType<typeof ZXTextEditor> | null>(null)
 const editorContent = ref('')
 const loading = ref(false)
 const currentLanguage = ref('auto')
@@ -132,7 +132,7 @@ watch(() => props.initialFile, async (file) => {
                 const res = await fileApi.readFile(file.path, { skipInterceptor: true })
                 if (res?.success && res.data) {
                     const content = res.data.content || ''
-                    // 更新 v-model，让 ZXMonacoEditor 的 watch 处理
+                    // 更新 v-model，让编辑器的 watch 处理
                     editorContent.value = content
                 } else {
                     // 读取失败，静默失败，设置空内容

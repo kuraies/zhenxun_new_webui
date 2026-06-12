@@ -4,8 +4,9 @@ import { useChatStore } from "@/store/chat.ts";
 import { storeToRefs } from "pinia";
 import { onMounted } from "vue";
 import { useBotStore } from "@/store/bot.ts";
-import { ZXNotification } from "@/components";
+import { ZXNotification } from "@/services/ui";
 import { chatApi } from "@/utils/api-next";
+import ChatRequestHandler from "./ChatRequestHandler.vue";
 
 const chatStore = useChatStore();
 
@@ -72,32 +73,78 @@ onMounted(async () => {
 <template>
     <div
         :class="[
-            'flex h-full min-w-0 flex-col overflow-hidden rounded-4xl border border-slate-200 bg-white px-2 pt-4 shadow-sm transition-all duration-300',
+            'flex h-full min-w-0 flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white px-2 pt-4 shadow-sm transition-all duration-300',
             selectedContact ? 'hidden sm:flex' : 'flex',
             'w-full flex-shrink-0 sm:w-[calc(var(--spacing)*50)] md:w-64 lg:w-72',
         ]"
     >
         <!-- 标签页切换 -->
-        <el-tabs v-model="activeTab" class="contact-tabs">
-            <el-tab-pane name="friend">
-                <template #label>
-                    <span class="tab-label">
-                        <Users class="h-4 w-4" />
-                        <span class="text-sm">好友</span>
-                        <span class="tab-count">{{ friends.length }}</span>
+        <div class="px-2 pb-3">
+            <div
+                class="grid h-11 grid-cols-2 rounded-2xl bg-slate-100 p-1 shadow-inner shadow-slate-200/60"
+            >
+                <button
+                    type="button"
+                    :class="[
+                        'group flex min-w-0 cursor-pointer items-center justify-center gap-1.5 rounded-2xl px-2 text-sm font-medium transition-all',
+                        activeTab === 'friend'
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-slate-500 hover:text-slate-700',
+                    ]"
+                    @click="activeTab = 'friend'"
+                >
+                    <Users
+                        :class="[
+                            'h-4 w-4 transition-colors',
+                            activeTab === 'friend'
+                                ? 'text-blue-500'
+                                : 'text-slate-400 group-hover:text-slate-500',
+                        ]"
+                    />
+                    <span class="truncate">好友</span>
+                    <span
+                        :class="[
+                            'min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] leading-none transition-colors',
+                            activeTab === 'friend'
+                                ? 'bg-blue-50 text-blue-500'
+                                : 'bg-white/70 text-slate-400',
+                        ]"
+                    >
+                        {{ friends.length }}
                     </span>
-                </template>
-            </el-tab-pane>
-            <el-tab-pane name="group">
-                <template #label>
-                    <span class="tab-label">
-                        <GroupIcon class="h-4 w-4" />
-                        <span class="text-sm">群组</span>
-                        <span class="tab-count">{{ groups.length }}</span>
+                </button>
+                <button
+                    type="button"
+                    :class="[
+                        'group flex min-w-0 cursor-pointer items-center justify-center gap-1.5 rounded-2xl px-2 text-sm font-medium transition-all',
+                        activeTab === 'group'
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-slate-500 hover:text-slate-700',
+                    ]"
+                    @click="activeTab = 'group'"
+                >
+                    <GroupIcon
+                        :class="[
+                            'h-4 w-4 transition-colors',
+                            activeTab === 'group'
+                                ? 'text-blue-500'
+                                : 'text-slate-400 group-hover:text-slate-500',
+                        ]"
+                    />
+                    <span class="truncate">群聊</span>
+                    <span
+                        :class="[
+                            'min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] leading-none transition-colors',
+                            activeTab === 'group'
+                                ? 'bg-blue-50 text-blue-500'
+                                : 'bg-white/70 text-slate-400',
+                        ]"
+                    >
+                        {{ groups.length }}
                     </span>
-                </template>
-            </el-tab-pane>
-        </el-tabs>
+                </button>
+            </div>
+        </div>
 
         <!-- 好友列表 -->
         <div
@@ -120,7 +167,7 @@ onMounted(async () => {
                         ? 'bg-blue-50'
                         : 'hover:bg-gray-100'
                 "
-                class="btn-touch flex cursor-pointer items-center gap-3 rounded-3xl p-2 transition-colors"
+                class="btn-touch flex cursor-pointer items-center gap-3 rounded-2xl p-2 transition-colors"
             >
                 <img
                     v-if="friend.ava_url"
@@ -172,7 +219,7 @@ onMounted(async () => {
                         ? 'bg-blue-50'
                         : 'hover:bg-gray-100'
                 "
-                class="btn-touch flex cursor-pointer items-center gap-3 rounded-3xl p-2 transition-colors"
+                class="btn-touch flex cursor-pointer items-center gap-3 rounded-2xl p-2 transition-colors"
             >
                 <img
                     v-if="group.ava_url"
@@ -207,92 +254,9 @@ onMounted(async () => {
                 暂无群组
             </div>
         </div>
+
+        <ChatRequestHandler />
     </div>
 </template>
 
-<style scoped>
-/* 标签页样式 */
-.contact-tabs :deep(.el-tabs__header) {
-    margin: 0;
-    padding: 0 8px;
-    border-bottom: 1px solid #f1f5f9;
-}
-
-@media (min-width: 640px) {
-    .contact-tabs :deep(.el-tabs__header) {
-        padding: 0 12px;
-    }
-}
-
-.contact-tabs :deep(.el-tabs__nav) {
-    display: flex;
-    width: 100%;
-}
-
-.contact-tabs :deep(.el-tabs__item) {
-    flex: 1;
-    text-align: center;
-    padding: 10px 6px !important;
-    font-size: 12px;
-    font-weight: 500;
-    color: #64748b;
-    transition: all 0.2s;
-}
-
-@media (min-width: 640px) {
-    .contact-tabs :deep(.el-tabs__item) {
-        padding: 12px 8px !important;
-        font-size: 13px;
-    }
-}
-
-.contact-tabs :deep(.el-tabs__item:hover) {
-    color: #3b82f6;
-}
-
-.contact-tabs :deep(.el-tabs__item.is-active) {
-    color: #3b82f6;
-    font-weight: 600;
-}
-
-.contact-tabs :deep(.el-tabs__active-bar) {
-    background: linear-gradient(90deg, #3b82f6, #60a5fa);
-    height: 3px;
-    border-radius: 3px 3px 0 0;
-}
-
-.tab-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-}
-
-@media (min-width: 640px) {
-    .tab-label {
-        gap: 6px;
-    }
-}
-
-.tab-count {
-    font-size: 9px;
-    color: #94a3b8;
-    background: #f1f5f9;
-    padding: 1px 4px;
-    border-radius: 8px;
-    font-weight: 500;
-}
-
-@media (min-width: 640px) {
-    .tab-count {
-        font-size: 10px;
-        padding: 1px 6px;
-        border-radius: 10px;
-    }
-}
-
-.is-active .tab-count {
-    background: #dbeafe;
-    color: #3b82f6;
-}
-</style>
+<style scoped></style>

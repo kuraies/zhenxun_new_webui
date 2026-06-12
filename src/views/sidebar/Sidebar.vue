@@ -7,7 +7,6 @@ import { mainMenus } from "@/config/menu";
 // 引入刚刚提取的组件 (根据你的实际路径调整)
 import SidebarLogo from "./SidebarLogo.vue";
 import SidebarMenuItem from "./SidebarMenuItem.vue";
-import SidebarLogout from "./SidebarLogout.vue";
 
 const route = useRoute();
 const globalStore = useGlobalStore();
@@ -25,15 +24,20 @@ watch(
 </script>
 
 <template>
-    <div class="flex h-full w-full flex-col items-center sm:space-y-4">
+    <div class="flex h-full w-full flex-col items-center">
         <div
-            class="top relative flex w-full flex-1 flex-col items-center overflow-y-auto border border-slate-200 bg-white py-3 shadow-sm transition-all duration-300 sm:space-y-4 sm:rounded-4xl sm:py-8"
+            v-tile-glow="120"
+            class="top relative flex w-full flex-1 flex-col items-center overflow-hidden border border-slate-200 bg-white py-3 shadow-sm transition-all duration-[400ms] ease-in-out sm:rounded-3xl sm:py-8"
         >
             <SidebarLogo />
 
             <div
-                class="menus gutter relative w-full snap-y snap-mandatory scroll-py-4 space-y-4 overflow-hidden scroll-smooth p-4 text-sm hover:overflow-y-auto @max-3xs:px-1"
-                :class="{ 'no-scrollbar px-1': globalStore.navMini }"
+                class="menus gutter relative w-full flex-1 snap-y snap-mandatory scroll-py-4 space-y-4 overflow-hidden scroll-smooth text-sm transition-[padding] duration-[400ms] ease-in-out hover:overflow-y-auto"
+                :class="
+                    globalStore.navMini
+                        ? 'no-scrollbar px-2 py-4'
+                        : 'p-4'
+                "
             >
                 <SidebarMenuItem
                     v-for="item in mainMenus"
@@ -41,9 +45,8 @@ watch(
                     :item="item"
                 />
             </div>
-        </div>
 
-        <SidebarLogout />
+        </div>
     </div>
 </template>
 

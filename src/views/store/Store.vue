@@ -4,7 +4,7 @@ import { Package, Search, X } from "lucide-vue-next";
 import { storeApi } from "@/utils/api-next";
 import type { StorePlugin } from "@/types/store.types";
 import StoreCard from "@/components/zxcomponent/StoreCard/StoreCard.vue";
-import { ZXMessageBox, ZXNotification } from "@/components";
+import { ZXMessageBox, ZXNotification } from "@/services/ui";
 import { useStoreStore } from "@/store/store.ts";
 import { storeToRefs } from "pinia";
 import { useGlobalStore } from "@/store/global.ts";
@@ -129,7 +129,7 @@ onMounted(() => {
     <div class="flex h-full w-full flex-col space-y-3 sm:space-y-4">
         <!-- 头部标题和统计 -->
         <div
-            class="flex flex-col items-start justify-between gap-3 rounded-2xl bg-white p-4 shadow-sm outline-1 outline-slate-200 sm:flex-row sm:items-center sm:gap-0"
+            class="flex flex-col items-start justify-between gap-3 rounded-3xl bg-white p-4 shadow-sm outline-1 outline-slate-200 sm:flex-row sm:items-center sm:gap-0"
             v-if="globalStore.isMobileMode"
         >
             <div class="flex items-center space-x-3">
@@ -170,7 +170,7 @@ onMounted(() => {
             v-if="globalStore.isMobileMode"
         >
             <div
-                class="rounded-2xl bg-white p-3 text-center shadow-sm outline-1 outline-slate-200"
+                class="rounded-3xl bg-white p-3 text-center shadow-sm outline-1 outline-slate-200"
             >
                 <div class="text-lg font-bold text-blue-600 sm:text-xl">
                     {{ stats.total }}
@@ -178,7 +178,7 @@ onMounted(() => {
                 <div class="mt-0.5 text-xs text-gray-500">总插件数</div>
             </div>
             <div
-                class="rounded-2xl bg-white p-3 text-center shadow-sm outline-1 outline-slate-200"
+                class="rounded-3xl bg-white p-3 text-center shadow-sm outline-1 outline-slate-200"
             >
                 <div class="text-lg font-bold text-green-600 sm:text-xl">
                     {{ stats.installed }}
@@ -186,7 +186,7 @@ onMounted(() => {
                 <div class="mt-0.5 text-xs text-gray-500">已安装</div>
             </div>
             <div
-                class="rounded-2xl bg-white p-3 text-center shadow-sm outline-1 outline-slate-200"
+                class="rounded-3xl bg-white p-3 text-center shadow-sm outline-1 outline-slate-200"
             >
                 <div class="text-lg font-bold text-pink-600 sm:text-xl">
                     {{ stats.available }}
