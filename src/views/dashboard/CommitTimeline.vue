@@ -53,7 +53,8 @@ function formatTime(dateStr: string) {
 
 <template>
     <div
-        class="flex h-full min-h-0 flex-col rounded-4xl border border-slate-200 bg-white p-5 pr-0.5 shadow-sm"
+        v-tile-glow
+        class="flex h-full min-h-0 flex-col rounded-3xl border border-slate-200 bg-white p-5 pr-0.5 shadow-sm"
     >
         <div
             class="mb-2 flex shrink-0 items-center gap-2 border-b border-slate-100 pb-4"
@@ -168,11 +169,11 @@ function formatTime(dateStr: string) {
     width: 4px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #e2e8f0;
+    background: var(--zx-color-border);
     border-radius: 10px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #cbd5e1;
+    background: var(--zx-slate-300);
 }
 .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;

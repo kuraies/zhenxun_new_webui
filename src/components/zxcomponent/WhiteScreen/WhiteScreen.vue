@@ -63,6 +63,7 @@ const show = (
 
         // 🔴 ERROR：中心扩散
         else if (m === "error") {
+            resolve();
         }
     });
 };

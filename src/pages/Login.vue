@@ -7,8 +7,11 @@ import {
     useTemplateRef,
     watch,
 } from "vue";
-import { ZXMessageBox, ZXNotification } from "components/index.js";
-import { showLocationAddress } from "components/zxcomponent/LocationAddress";
+import {
+    showLocationAddress,
+    ZXMessageBox,
+    ZXNotification,
+} from "@/services/ui";
 import { throttle } from "@/utils/util";
 import { auth } from "@/utils/auth.js";
 import { useComponentStore } from "@/store/component.js";
@@ -442,7 +445,7 @@ function handleHoverShowLocation(): gsap.core.Timeline {
 
 <template>
     <div
-        class="flex h-screen items-center justify-center bg-[#fefefe] select-none"
+        class="flex h-screen items-center justify-center bg-zx-bg select-none"
     >
         <div
             v-show="img_loaded"

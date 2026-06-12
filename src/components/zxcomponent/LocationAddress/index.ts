@@ -20,6 +20,7 @@ export function showLocationAddress(props: Record<string, any> = {}) {
     componentStore.LocationAddress = visible.value
 
     const close = async (): Promise<void> => {
+        observer.disconnect()
         // 调用组件暴露的离开动画方法
         if (modalRef.value?.leaveAnimation) {
             await modalRef.value.leaveAnimation()
@@ -46,6 +47,18 @@ export function showLocationAddress(props: Record<string, any> = {}) {
     })
 
     app.mount(container)
+
+    const observer = new MutationObserver(() => {
+        const el = document.body.querySelector('.modal-content')
+        if (el) {
+            observer.disconnect()
+            el.classList.add('jelly-in')
+            el.addEventListener('animationend', () => {
+                el.classList.remove('jelly-in')
+            }, { once: true })
+        }
+    })
+    observer.observe(document.body, { childList: true, subtree: true })
 
     // 返回关闭方法以便外部调用
     return {

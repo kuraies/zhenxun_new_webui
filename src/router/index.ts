@@ -5,9 +5,10 @@ import {
     type RouteLocationNormalized,
     type Router,
 } from "vue-router";
-import { ZXNotification } from "components/index.js";
+import { ZXNotification } from "@/services/ui";
 import { auth } from "@/utils/auth";
 import { eventBus } from "@/events/eventBus.ts";
+import { useThemeStore } from "@/store/theme";
 
 const routes = [
     {
@@ -35,21 +36,20 @@ const routes = [
             },
             {
                 path: "/chat",
-                name: "聊天",
+                name: "联系人",
                 component: () => import("@/views/chat/Chat.vue"),
                 meta: { menuKey: "chat" },
             },
             {
                 path: "/plugin",
-                name: "插件列表",
+                name: "插件",
                 component: () => import("@/views/plugin/Plugin.vue"),
                 meta: { menuKey: "plugin" },
             },
             {
                 path: "/store",
                 name: "插件商店",
-                component: () => import("@/views/store/Store.vue"),
-                meta: { menuKey: "store" },
+                redirect: { path: "/plugin", query: { tab: "market" } },
             },
             {
                 path: "/files",
@@ -65,9 +65,7 @@ const routes = [
             },
             {
                 path: "/logs",
-                name: "实时日志",
-                component: () => import("@/views/logs/Logs.vue"),
-                meta: { menuKey: "logs" },
+                redirect: "/dashboard",
             },
             // {
             //     path: '/settings',
@@ -84,7 +82,7 @@ const routes = [
             {
                 path: "/manage",
                 name: "管理",
-                component: () => import("@/views/manage/ManageOverview.vue"),
+                redirect: "/chat",
                 meta: { menuKey: "manage" },
             },
         ],
@@ -98,9 +96,7 @@ const routes = [
 ];
 
 export const router: Router = createRouter({
-    history: createWebHistory(
-        import.meta.env.PROD ? "/next/" : "/"
-    ),
+    history: createWebHistory(import.meta.env.PROD ? "/next/" : "/"),
     routes,
 });
 
@@ -111,6 +107,7 @@ router.beforeEach(
         next: NavigationGuardNext,
     ) => {
         const isAuthenticated = auth.getAuthState();
+        const themeStore = useThemeStore();
 
         // 如果访问的是配置页，直接放行
         if (to.name === "Configure") {
@@ -131,6 +128,13 @@ router.beforeEach(
             } else {
                 return next("/dashboard");
             }
+        }
+
+        // 登录页强制亮色主题
+        if (to.name === "Login") {
+            themeStore.forceApplyLight();
+        } else if (from.name === "Login") {
+            themeStore.restoreSavedTheme();
         }
 
         // 如果用户未认证且尝试访问非登录页面，则重定向到登录页

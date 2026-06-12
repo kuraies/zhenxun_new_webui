@@ -22,8 +22,8 @@ const stats = computed(() => {
 </script>
 
 <template>
-    <div class="flex w-full items-center justify-between">
-        <div class="flex space-x-4 whitespace-nowrap">
+    <div class="flex w-full items-center justify-between space-x-2">
+        <div class="flex space-x-2 whitespace-nowrap">
             <div
                 class="group flex w-fit items-center space-x-3 rounded-full border border-white/10 bg-white px-4 py-2 shadow-sm transition-all hover:scale-105"
             >

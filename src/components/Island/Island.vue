@@ -28,11 +28,16 @@ const islandMap: Record<string, any> = {
     "/logs": LogIsland,
 };
 
-const currentIsland = computed(() => islandMap[route.path] || DashboardIsland);
+const currentIsland = computed(() => {
+    if (route.path === "/plugin" && route.query.tab === "market") {
+        return StoreIsland;
+    }
+    return islandMap[route.path] || DashboardIsland;
+});
 </script>
 
 <template>
-    <div class="flex flex-1 space-x-4" v-if="globalStore.isDesktopMode">
+    <div class="flex space-x-4" v-if="globalStore.isDesktopMode">
         <keep-alive>
             <component :is="currentIsland" />
         </keep-alive>
