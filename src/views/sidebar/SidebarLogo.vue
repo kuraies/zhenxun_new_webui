@@ -7,12 +7,12 @@ const globalStore = useGlobalStore();
 
 <template>
     <div
-        class="logo flex w-full flex-shrink-0 items-center justify-center overflow-hidden px-2 transition-all duration-[400ms] ease-in-out sm:px-4"
+        class="logo flex w-full flex-shrink-0 items-center justify-center overflow-hidden px-2 transition-[padding] duration-[400ms] ease-in-out sm:px-4"
     >
         <img
             :src="logo"
             alt="Logo"
-            class="sidebar-logo-image max-w-full object-contain transition-all duration-[400ms] ease-in-out sm:h-25"
+            class="sidebar-logo-image max-w-full object-contain transition-[transform,opacity] duration-[400ms] ease-in-out sm:h-25"
             :class="
                 globalStore.navMini
                     ? 'scale-95 opacity-0'

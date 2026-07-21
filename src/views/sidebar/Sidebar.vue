@@ -27,7 +27,7 @@ watch(
     <div class="flex h-full w-full flex-col items-center">
         <div
             v-tile-glow="120"
-            class="top relative flex w-full flex-1 flex-col items-center overflow-hidden border border-slate-200 bg-white py-3 shadow-sm transition-all duration-[400ms] ease-in-out sm:rounded-3xl sm:py-8"
+            class="top relative flex w-full flex-1 flex-col items-center overflow-hidden border border-slate-200 bg-white py-3 shadow-sm transition-[padding,border-radius] duration-[400ms] ease-in-out sm:rounded-3xl sm:py-8"
         >
             <SidebarLogo />
 

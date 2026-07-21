@@ -17,6 +17,7 @@ export const applyTheme = (theme: AppTheme = defaultTheme) => {
     }
 
     const root = document.documentElement;
+
     Object.values(themePresets).forEach((preset) => {
         root.classList.remove(preset.className);
     });

@@ -108,7 +108,7 @@ onUnmounted(() => stopAnim());
 
 <template>
     <div
-        class="menus-item group flex cursor-pointer snap-start items-center rounded-full border transition-all duration-[400ms] ease-in-out"
+        class="menus-item group flex cursor-pointer snap-start items-center rounded-full border transition-[transform,border-color,box-shadow,height,width,padding] duration-[400ms] ease-in-out"
         :class="{
             'h-12 w-12 justify-center p-0':
                 globalStore.navMini,
@@ -142,7 +142,7 @@ onUnmounted(() => stopAnim());
         </div>
 
         <div
-            class="right flex min-w-0 flex-1 items-center overflow-hidden transition-all duration-[400ms] ease-in-out"
+            class="right flex min-w-0 flex-1 items-center overflow-hidden transition-[max-width,opacity,padding] duration-[400ms] ease-in-out"
             :class="
                 globalStore.navMini
                     ? 'max-w-0 pl-0 opacity-0'
