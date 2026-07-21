@@ -27,6 +27,7 @@
     --color-zx-nav-icon-hover: var(--zx-nav-icon-hover-bg);
     --color-zx-user-card-chip: var(--zx-user-card-chip-bg);
     --color-zx-user-card-chip-text: var(--zx-user-card-chip-text);
+    --color-zx-user-card-text: var(--zx-user-card-text);
     --color-zx-tile-glow: var(--zx-tile-glow-color);
 
     --radius-zx-card: var(--zx-radius-card);
@@ -249,6 +250,7 @@
     --zx-user-card-overlay: rgba(0, 0, 0, 0.45);
     --zx-user-card-chip-bg: rgba(255, 255, 255, 0.86);
     --zx-user-card-chip-text: #1f2937;
+    --zx-user-card-text: #ffffff;
     --zx-radius-card: 1.5rem;
     --zx-radius-control: 1rem;
     --zx-radius-pill: 9999px;
@@ -471,6 +473,7 @@
     --zx-user-card-overlay: rgba(0, 0, 0, 0.54);
     --zx-user-card-chip-bg: rgba(18, 18, 18, 0.74);
     --zx-user-card-chip-text: #f8fafc;
+    --zx-user-card-text: #ffffff;
     --zx-tile-glow-color: rgba(255, 255, 255, 0.42);
     --zx-shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.28);
     --zx-shadow-popover:

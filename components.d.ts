@@ -10,6 +10,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     AnalyticsIsland: typeof import('./src/components/Island/AnalyticsIsland.vue')['default']
     ChatIsland: typeof import('./src/components/Island/ChatIsland.vue')['default']
+    ColorPicker: typeof import('./src/components/home/ColorPicker.vue')['default']
     Confetti: typeof import('./src/components/zxcomponent/Confetti/Confetti.vue')['default']
     DashboardIsland: typeof import('./src/components/Island/DashboardIsland.vue')['default']
     DatabaseIsland: typeof import('./src/components/Island/DatabaseIsland.vue')['default']
@@ -48,6 +49,7 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     StoreCard: typeof import('./src/components/zxcomponent/StoreCard/StoreCard.vue')['default']
     StoreIsland: typeof import('./src/components/Island/StoreIsland.vue')['default']
+    ThemeCustomizer: typeof import('./src/components/home/ThemeCustomizer.vue')['default']
     User: typeof import('./src/components/User.vue')['default']
     WhiteScreen: typeof import('./src/components/zxcomponent/WhiteScreen/WhiteScreen.vue')['default']
     ZXInput: typeof import('./src/components/zxcomponent/ZXInput.vue')['default']

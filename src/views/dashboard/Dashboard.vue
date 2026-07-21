@@ -32,7 +32,7 @@ onBeforeUnmount(() => {
         data-dashboard-root
     >
         <div
-            class="grid flex-1 grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2 2xl:min-h-0 2xl:grid-cols-[30rem_1fr_24rem] 2xl:grid-rows-[16rem_auto_minmax(0,1fr)]"
+            class="grid flex-1 grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2 2xl:min-h-0 2xl:grid-cols-[0.6fr_1fr_24rem] 2xl:grid-rows-[16rem_auto_minmax(0,1fr)]"
         >
             <!-- 顶部状态栏 -->
             <UserCard />

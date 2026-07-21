@@ -21,7 +21,7 @@ export interface AppTheme {
     charts: Record<ThemeColorName, ThemeColorToken>;
 }
 
-const colorScaleVars = {
+export const colorScaleVars = {
     "--zx-color-white": "#ffffff",
     "--zx-color-black": "#000000",
     "--zx-color-active": "#000000",
@@ -196,7 +196,7 @@ const colorScaleVars = {
     "--zx-teal-900": "#134e4a",
 } as const;
 
-const darkColorScaleVars = {
+export const darkColorScaleVars = {
     "--zx-color-white": "#121212",
     "--zx-color-black": "#f8fafc",
     "--zx-color-active": "#050505",
@@ -557,9 +557,102 @@ export const darkTheme: AppTheme = {
     },
 };
 
+export const pinkTheme: AppTheme = {
+    name: "zhenxun-pink",
+    className: "theme-zhenxun-pink",
+    cssVars: {
+        ...colorScaleVars,
+        "--zx-color-bg": "#fef7f9",
+        "--zx-color-surface": "#ffffff",
+        "--zx-color-surface-muted": "#fef7f9",
+        "--zx-color-border": "#f8bbd0",
+        "--zx-color-border-soft": "#fce4ec",
+        "--zx-color-text": "#4a1942",
+        "--zx-color-text-strong": "#2d0a2e",
+        "--zx-color-text-muted": "#8e4585",
+        "--zx-color-text-subtle": "#c77dba",
+        "--zx-color-primary": "#e91e63",
+        "--zx-color-primary-hover": "#c2185b",
+        "--zx-color-primary-soft": "#fce4ec",
+        "--zx-color-primary-tint": "#fce4ec",
+        "--zx-color-success": "#66bb6a",
+        "--zx-color-success-soft": "#e8f5e9",
+        "--zx-color-warning": "#ffa726",
+        "--zx-color-warning-soft": "#fff3e0",
+        "--zx-color-danger": "#ef5350",
+        "--zx-color-danger-soft": "#ffebee",
+        "--zx-color-info": "#26c6da",
+        "--zx-color-info-soft": "#e0f7fa",
+        "--zx-color-active": "#ad1457",
+        "--zx-color-on-accent": "#ffffff",
+        "--zx-nav-icon-bg": "#f8bbd0",
+        "--zx-nav-icon-hover-bg": "#ad1457",
+        "--zx-nav-icon-hover-text": "#ffffff",
+        "--zx-sidebar-logo-filter": "hue-rotate(-30deg) saturate(1.4) brightness(1.05)",
+        "--zx-user-card-image-filter": "brightness(0.88) saturate(1.2) hue-rotate(-15deg)",
+        "--zx-user-card-overlay": "rgba(173, 20, 87, 0.5)",
+        "--zx-user-card-chip-bg": "rgba(255, 240, 245, 0.9)",
+        "--zx-user-card-chip-text": "#880e4f",
+        "--zx-radius-card": "1.5rem",
+        "--zx-radius-control": "1rem",
+        "--zx-radius-pill": "9999px",
+        "--zx-shadow-card": "0 1px 3px 0 rgb(233 30 99 / 0.1)",
+        "--zx-shadow-popover":
+            "0 10px 30px -12px rgb(233 30 99 / 0.3), 0 4px 12px -8px rgb(233 30 99 / 0.2)",
+        "--zx-overlay": "rgba(173, 20, 87, 0.45)",
+        "--zx-overlay-light": "rgba(173, 20, 87, 0.28)",
+        "--zx-overlay-dark": "rgba(173, 20, 87, 0.6)",
+        "--zx-chart-grid": "rgba(248, 187, 208, 0.72)",
+        "--zx-chart-tooltip": "rgba(255, 240, 245, 0.96)",
+    },
+    charts: {
+        blue: {
+            solid: "rgb(59, 130, 246)",
+            soft: "rgba(59, 130, 246, 0.16)",
+            fill: "rgba(59, 130, 246, 0.10)",
+        },
+        green: {
+            solid: "rgb(16, 185, 129)",
+            soft: "rgba(16, 185, 129, 0.16)",
+            fill: "rgba(16, 185, 129, 0.10)",
+        },
+        pink: {
+            solid: "rgb(236, 72, 153)",
+            soft: "rgba(236, 72, 153, 0.16)",
+            fill: "rgba(236, 72, 153, 0.10)",
+        },
+        amber: {
+            solid: "rgb(245, 158, 11)",
+            soft: "rgba(245, 158, 11, 0.18)",
+            fill: "rgba(245, 158, 11, 0.12)",
+        },
+        violet: {
+            solid: "rgb(139, 92, 246)",
+            soft: "rgba(139, 92, 246, 0.16)",
+            fill: "rgba(139, 92, 246, 0.10)",
+        },
+        rose: {
+            solid: "rgb(244, 63, 94)",
+            soft: "rgba(244, 63, 94, 0.16)",
+            fill: "rgba(244, 63, 94, 0.10)",
+        },
+        cyan: {
+            solid: "rgb(6, 182, 212)",
+            soft: "rgba(6, 182, 212, 0.16)",
+            fill: "rgba(6, 182, 212, 0.10)",
+        },
+        slate: {
+            solid: "rgb(100, 116, 139)",
+            soft: "rgba(100, 116, 139, 0.14)",
+            fill: "rgba(100, 116, 139, 0.08)",
+        },
+    },
+};
+
 export const themePresets = {
     [defaultTheme.name]: defaultTheme,
     [darkTheme.name]: darkTheme,
+    [pinkTheme.name]: pinkTheme,
 } as const;
 
 export type ThemePresetName = Extract<keyof typeof themePresets, string>;
