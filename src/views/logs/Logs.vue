@@ -137,7 +137,7 @@ onBeforeUnmount(() => {
             v-if="!globalStore.isDesktopMode"
         >
             <div class="flex items-center space-x-3">
-                <FileText class="h-6 w-6 flex-shrink-0 text-blue-500" />
+                <FileText class="h-6 w-6 flex-shrink-0 text-zx-primary" />
                 <h2 class="text-lg font-semibold text-gray-800">实时日志</h2>
                 <span class="text-sm text-gray-500"
                     >({{ filteredLogs.length }} 条)</span
@@ -148,7 +148,7 @@ onBeforeUnmount(() => {
                     @click="autoScroll = !autoScroll"
                     :class="
                         autoScroll
-                            ? 'bg-blue-100 text-blue-700'
+                            ? 'bg-zx-primary text-white'
                             : 'bg-gray-100 text-gray-600'
                     "
                     class="btn-touch flex-shrink-0 rounded-2xl px-3 py-1.5 text-sm font-medium transition-colors"
@@ -177,7 +177,7 @@ onBeforeUnmount(() => {
                     v-model="searchKeyword"
                     type="text"
                     placeholder="搜索日志内容或模块..."
-                    class="w-full rounded-2xl border border-gray-200 py-2 pr-10 pl-10 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    class="w-full rounded-2xl border border-gray-200 py-2 pr-10 pl-10 text-sm focus:border-transparent focus:ring-2 focus:ring-zx-primary focus:outline-none"
                 />
                 <button
                     v-if="searchKeyword"
@@ -254,7 +254,7 @@ onBeforeUnmount(() => {
                                 <!-- 模块名（如果有） -->
                                 <div
                                     v-if="log.module"
-                                    class="max-w-24 flex-shrink-0 truncate rounded-2xl bg-purple-100 px-1.5 py-0.5 text-[10px] font-medium text-purple-700"
+                                    class="max-w-24 flex-shrink-0 truncate rounded-2xl bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600"
                                 >
                                     {{ log.module }}
                                 </div>
@@ -295,7 +295,7 @@ onBeforeUnmount(() => {
                             <!-- 模块名（如果有） -->
                             <div
                                 v-if="log.module"
-                                class="flex max-w-32 flex-shrink-0 items-center justify-center truncate rounded-2xl bg-purple-100 px-3 py-0.5 text-xs font-medium text-purple-700"
+                                class="flex max-w-32 flex-shrink-0 items-center justify-center truncate rounded-2xl bg-slate-100 px-3 py-0.5 text-xs font-medium text-slate-600"
                             >
                                 {{ log.module }}
                             </div>

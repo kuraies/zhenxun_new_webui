@@ -9,6 +9,8 @@ import { whiteScreen } from "components/zxcomponent/WhiteScreen";
 import { ZXMessageBox } from "@/services/ui";
 import { router } from "@/router/index.js";
 
+defineOptions({ inheritAttrs: false });
+
 const globalStore = useGlobalStore();
 const botStore = useBotStore();
 
@@ -52,24 +54,25 @@ const handleClickOutside = (event: MouseEvent) => {
 };
 
 onMounted(async () => {
-    // 1. 获取列表
-    await botStore.getBotList();
-    console.log(botStore.botList);
-
-    if (botStore.botList[0].self_id == null) {
-        auth.logout();
-        await whiteScreen.error();
-    }
-
-    // 2. 如果当前没有选中任何 Bot，且列表不为空，则默认选中第一个
-    if (!botStore.selectedBotId && botStore.botList.length > 0) {
-        const firstBotId = botStore.botList[0].self_id;
-        if (firstBotId) {
-            botStore.setSelectedBot(firstBotId);
-        }
-    }
-
     document.addEventListener("click", handleClickOutside);
+
+    try {
+        // 1. 获取列表
+        await botStore.getBotList();
+
+        if (!botStore.botList[0]?.self_id) {
+            auth.logout();
+            await whiteScreen.error();
+            return;
+        }
+
+        // 2. 如果当前没有选中任何 Bot，且列表不为空，则默认选中第一个
+        if (!botStore.selectedBotId) {
+            botStore.setSelectedBot(<string>botStore.botList[0].self_id);
+        }
+    } catch (error) {
+        console.error("初始化 Bot 列表失败:", error);
+    }
 });
 
 onBeforeUnmount(() => {
@@ -81,6 +84,7 @@ onBeforeUnmount(() => {
     <div
         v-tile-glow="110"
         ref="dropdownRef"
+        v-bind="$attrs"
         class="relative flex h-15 w-full min-w-0 items-center gap-2 rounded-full border border-slate-200 bg-white p-1 pr-1.5 shadow-sm sm:w-72 sm:gap-2 sm:pr-2"
     >
         <div class="avatar h-full flex-shrink-0 cursor-pointer rounded-full">
@@ -145,7 +149,7 @@ onBeforeUnmount(() => {
                             : 'auto',
                     }"
                     :class="{
-                        'bg-sky-50 text-sky-700':
+                        'bg-zx-primary-tint text-zx-primary':
                             botStore.selectedBotId === bot.self_id,
                     }"
                     @click="selectBot(<string>bot.self_id)"
@@ -167,7 +171,7 @@ onBeforeUnmount(() => {
                     </div>
                     <Check
                         v-if="botStore.selectedBotId === bot.self_id"
-                        class="size-4 flex-shrink-0 text-sky-500"
+                        class="size-4 flex-shrink-0 text-zx-primary"
                     />
                 </div>
 

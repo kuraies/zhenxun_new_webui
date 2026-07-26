@@ -11,7 +11,7 @@ const { openSqlLog } = databaseStore;
         <div
             class="group flex w-fit items-center space-x-3 rounded-full border border-white/10 bg-white px-4 py-2 shadow-sm transition-all hover:scale-105"
         >
-            <Database class="h-5 w-5 text-blue-500" />
+            <Database class="h-5 w-5 text-zx-primary" />
             <span class="text-sm font-medium text-slate-700">文件管理</span>
         </div>
         <div class="flex items-center space-x-2">

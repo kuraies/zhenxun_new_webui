@@ -15,8 +15,8 @@ const resourceCards = computed(() => [
         title: "CPU",
         value: props.cpu,
         icon: Cpu,
-        iconColor: "text-blue-500",
-        normalBarClass: "bg-green-500",
+        iconColor: "text-zx-primary",
+        normalBarClass: "bg-zx-primary",
         class: "h-22",
     },
     {
@@ -24,8 +24,8 @@ const resourceCards = computed(() => [
         title: "内存",
         value: props.memory,
         icon: MemoryStick,
-        iconColor: "text-purple-500",
-        normalBarClass: "bg-purple-500",
+        iconColor: "text-zx-primary",
+        normalBarClass: "bg-zx-primary",
         class: "h-22",
     },
     {
@@ -33,8 +33,8 @@ const resourceCards = computed(() => [
         title: "磁盘",
         value: props.disk,
         icon: HardDrive,
-        iconColor: "text-orange-500",
-        normalBarClass: "bg-orange-500",
+        iconColor: "text-zx-primary",
+        normalBarClass: "bg-zx-primary",
         class: "h-22 sm:col-span-2 lg:col-span-1",
     },
 ]);

@@ -43,7 +43,16 @@ apiClient.interceptors.request.use(config => {
 })
 
 apiClient.interceptors.response.use(
-    response => response.data,
+    response => {
+        // 后端不可用时请求可能落到前端自身的 index.html（返回 HTML），
+        // 统一按失败处理，避免把 HTML 字符串当业务数据传给调用方
+        const contentType = String(response.headers?.['content-type'] ?? '')
+        if (!contentType.includes('application/json')) {
+            console.warn(`API 返回非 JSON 响应，已按失败处理: ${response.status} ${response.config?.url}`)
+            return Promise.reject(new Error(`Unexpected non-JSON response: ${response.config?.url}`))
+        }
+        return response.data
+    },
     async error => {
         if (error.config?.skipInterceptor) {
             return Promise.reject(error)

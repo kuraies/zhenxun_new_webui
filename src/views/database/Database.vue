@@ -243,7 +243,6 @@ const executeSql = async () => {
     sqlExecuting.value = true;
     try {
         const res: any = await databaseApi.execSql(sqlEditor.value);
-        console.log("SQL 执行响应:", JSON.stringify(res, null, 2));
         // execSql 返回 Result.ok(data) 或 Result.ok(info)，SELECT 返回查询结果，其他返回成功信息
         // 检查响应中的 success 字段
         if (res?.success === false) {
@@ -260,7 +259,6 @@ const executeSql = async () => {
         if (res?.success) {
             // res.data 是 SqlExecuteResult，包含 {success, message, data, rows_affected}
             const sqlResultData = res.data?.data;
-            console.log("SQL 结果数据:", sqlResultData);
             // 如果是 SELECT 语句，返回查询结果
             if (
                 sqlEditor.value.trim().toLowerCase().startsWith("select") &&
@@ -275,7 +273,6 @@ const executeSql = async () => {
                 };
                 // 自动切换到 SQL 结果视图
                 tableDetailView.value = "sql_result";
-                console.log("SQL 结果视图已设置:", sqlResult.value);
                 ZXNotification({
                     title: "执行成功～",
                     message: `SQL 执行成功，返回 ${sqlResultData.length} 条记录 ✨`,
@@ -366,7 +363,7 @@ onMounted(() => {
             v-if="!globalStore.isDesktopMode"
         >
             <div class="flex min-w-0 items-center space-x-3">
-                <Database class="h-6 w-6 flex-shrink-0 text-blue-500" />
+                <Database class="h-6 w-6 flex-shrink-0 text-zx-primary" />
                 <div class="min-w-0">
                     <h2 class="truncate text-lg font-semibold text-gray-800">
                         数据库管理
@@ -408,7 +405,7 @@ onMounted(() => {
                 <textarea
                     v-model="sqlEditor"
                     placeholder="输入 SQL 语句..."
-                    class="min-h-20 w-full resize-y rounded-2xl border border-gray-200 bg-slate-50/60 px-3 py-2 font-mono text-sm leading-6 text-gray-700 outline-none transition-colors focus:border-blue-200 focus:bg-white"
+                    class="min-h-20 w-full resize-y rounded-2xl border border-gray-200 bg-slate-50/60 px-3 py-2 font-mono text-sm leading-6 text-gray-700 outline-none transition-colors focus:border-zx-primary focus:bg-white"
                     rows="3"
                 ></textarea>
                 <div
@@ -417,7 +414,7 @@ onMounted(() => {
                     <button
                         @click="executeSql"
                         :disabled="sqlExecuting || !sqlEditor.trim()"
-                        class="btn-touch flex cursor-pointer items-center justify-center space-x-2 rounded-2xl bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
+                        class="btn-touch flex cursor-pointer items-center justify-center space-x-2 rounded-2xl bg-zx-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zx-primary-hover disabled:opacity-50"
                     >
                         <Play class="h-4 w-4" />
                         <span>{{ sqlExecuting ? "执行中..." : "执行 SQL" }}</span>
@@ -457,7 +454,7 @@ onMounted(() => {
                             @click="selectTable(table)"
                             :class="
                                 selectedTable === table
-                                    ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-100'
+                                    ? 'bg-zx-primary-tint text-zx-primary ring-1 ring-zx-primary'
                                     : 'text-gray-700 hover:bg-gray-50'
                             "
                             class="btn-touch flex max-w-56 flex-shrink-0 cursor-pointer items-center justify-between rounded-2xl px-3 py-2 text-left text-sm transition-colors lg:max-w-none lg:flex-shrink"
@@ -503,7 +500,7 @@ onMounted(() => {
                             @click="tableDetailView = 'data'"
                             :class="
                                 tableDetailView === 'data'
-                                    ? 'bg-white text-blue-700 shadow-sm'
+                                    ? 'bg-white text-zx-primary shadow-sm'
                                     : 'text-gray-600 hover:text-gray-800'
                             "
                             class="cursor-pointer rounded-xl px-3 py-1.5 text-xs font-medium transition-colors"
@@ -514,7 +511,7 @@ onMounted(() => {
                             @click="tableDetailView = 'structure'"
                             :class="
                                 tableDetailView === 'structure'
-                                    ? 'bg-white text-blue-700 shadow-sm'
+                                    ? 'bg-white text-zx-primary shadow-sm'
                                     : 'text-gray-600 hover:text-gray-800'
                             "
                             class="cursor-pointer rounded-xl px-3 py-1.5 text-xs font-medium transition-colors"
@@ -525,7 +522,7 @@ onMounted(() => {
                             @click="tableDetailView = 'sql_result'"
                             :class="
                                 tableDetailView === 'sql_result'
-                                    ? 'bg-white text-blue-700 shadow-sm'
+                                    ? 'bg-white text-zx-primary shadow-sm'
                                     : 'text-gray-600 hover:text-gray-800'
                             "
                             class="cursor-pointer rounded-xl px-3 py-1.5 text-xs font-medium transition-colors"

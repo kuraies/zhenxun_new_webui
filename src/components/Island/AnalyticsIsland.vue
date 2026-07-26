@@ -46,7 +46,7 @@ const handleGranularityChange = (val: any) => {
         <div
             class="group flex items-center space-x-3 rounded-full border border-white/10 bg-white px-4 py-2 shadow-sm transition-all hover:scale-105"
         >
-            <Activity class="h-5 w-5 text-blue-500" />
+            <Activity class="h-5 w-5 text-zx-primary" />
             <span class="text-sm font-medium whitespace-nowrap text-slate-700"
                 >数据统计</span
             >

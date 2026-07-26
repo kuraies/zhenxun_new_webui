@@ -28,7 +28,7 @@ const emit = defineEmits<{
 
                 <input
                     :value="name"
-                    class="mb-4 w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm focus:border-none focus:ring-2 focus:ring-blue-500"
+                    class="mb-4 w-full rounded-2xl border border-gray-200 px-4 py-2 text-sm focus:border-none focus:ring-2 focus:ring-zx-primary"
                     placeholder="请输入新名称"
                     type="text"
                     @input="
@@ -48,7 +48,7 @@ const emit = defineEmits<{
                         取消
                     </button>
                     <button
-                        class="flex-1 rounded-2xl bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+                        class="flex-1 rounded-2xl bg-zx-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zx-primary-hover"
                         @click="emit('confirm')"
                     >
                         确定

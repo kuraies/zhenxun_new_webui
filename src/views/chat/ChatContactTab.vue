@@ -88,7 +88,7 @@ onMounted(async () => {
                     :class="[
                         'group flex min-w-0 cursor-pointer items-center justify-center gap-1.5 rounded-2xl px-2 text-sm font-medium transition-all',
                         activeTab === 'friend'
-                            ? 'bg-white text-blue-600 shadow-sm'
+                            ? 'bg-white text-zx-primary shadow-sm'
                             : 'text-slate-500 hover:text-slate-700',
                     ]"
                     @click="activeTab = 'friend'"
@@ -97,7 +97,7 @@ onMounted(async () => {
                         :class="[
                             'h-4 w-4 transition-colors',
                             activeTab === 'friend'
-                                ? 'text-blue-500'
+                                ? 'text-slate-700'
                                 : 'text-slate-400 group-hover:text-slate-500',
                         ]"
                     />
@@ -106,7 +106,7 @@ onMounted(async () => {
                         :class="[
                             'min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] leading-none transition-colors',
                             activeTab === 'friend'
-                                ? 'bg-blue-50 text-blue-500'
+                                ? 'bg-zx-primary-soft text-zx-primary'
                                 : 'bg-white/70 text-slate-400',
                         ]"
                     >
@@ -118,7 +118,7 @@ onMounted(async () => {
                     :class="[
                         'group flex min-w-0 cursor-pointer items-center justify-center gap-1.5 rounded-2xl px-2 text-sm font-medium transition-all',
                         activeTab === 'group'
-                            ? 'bg-white text-blue-600 shadow-sm'
+                            ? 'bg-white text-zx-primary shadow-sm'
                             : 'text-slate-500 hover:text-slate-700',
                     ]"
                     @click="activeTab = 'group'"
@@ -127,7 +127,7 @@ onMounted(async () => {
                         :class="[
                             'h-4 w-4 transition-colors',
                             activeTab === 'group'
-                                ? 'text-blue-500'
+                                ? 'text-slate-700'
                                 : 'text-slate-400 group-hover:text-slate-500',
                         ]"
                     />
@@ -136,7 +136,7 @@ onMounted(async () => {
                         :class="[
                             'min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] leading-none transition-colors',
                             activeTab === 'group'
-                                ? 'bg-blue-50 text-blue-500'
+                                ? 'bg-zx-primary-soft text-zx-primary'
                                 : 'bg-white/70 text-slate-400',
                         ]"
                     >
@@ -164,7 +164,7 @@ onMounted(async () => {
                 :class="
                     selectedId === friend.user_id &&
                     selectedContact === 'friend'
-                        ? 'bg-blue-50'
+                        ? 'bg-zx-primary-tint'
                         : 'hover:bg-gray-100'
                 "
                 class="btn-touch flex cursor-pointer items-center gap-3 rounded-2xl p-2 transition-colors"
@@ -178,7 +178,7 @@ onMounted(async () => {
                 />
                 <div
                     v-else
-                    class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-600"
+                    class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zx-primary-soft text-sm font-bold text-zx-primary"
                 >
                     {{ (friend.nickname || friend.remark || "友").charAt(0) }}
                 </div>
@@ -216,7 +216,7 @@ onMounted(async () => {
                 "
                 :class="
                     selectedId === group.group_id && selectedContact === 'group'
-                        ? 'bg-blue-50'
+                        ? 'bg-zx-primary-tint'
                         : 'hover:bg-gray-100'
                 "
                 class="btn-touch flex cursor-pointer items-center gap-3 rounded-2xl p-2 transition-colors"
@@ -230,7 +230,7 @@ onMounted(async () => {
                 />
                 <div
                     v-else
-                    class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-pink-100 text-sm font-bold text-pink-600"
+                    class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-zx-primary-soft text-sm font-bold text-zx-primary"
                 >
                     {{ group.group_name.charAt(0) }}
                 </div>

@@ -196,8 +196,8 @@ export const useDashboardData = () => {
             title: "消息总数",
             value: botStore.selectedBot?.messages_total ?? 0,
             icon: MessageSquare,
-            bgClass: "bg-blue-100",
-            colorClass: "text-blue-600",
+            bgClass: "bg-zx-primary-soft",
+            colorClass: "text-zx-primary",
             trend: statsTrend.value.chat_num,
         },
         {
@@ -205,8 +205,8 @@ export const useDashboardData = () => {
             title: "今日消息",
             value: botStore.selectedBot?.received_messages ?? 0,
             icon: Activity,
-            bgClass: "bg-green-100",
-            colorClass: "text-green-600",
+            bgClass: "bg-zx-primary-soft",
+            colorClass: "text-zx-primary",
             trend: statsTrend.value.chat_day,
         },
         {
@@ -214,8 +214,8 @@ export const useDashboardData = () => {
             title: "调用总数",
             value: botStore.selectedBot?.total_call ?? 0,
             icon: Plug,
-            bgClass: "bg-purple-100",
-            colorClass: "text-purple-600",
+            bgClass: "bg-zx-primary-soft",
+            colorClass: "text-zx-primary",
             trend: statsTrend.value.call_num,
         },
         {
@@ -223,8 +223,8 @@ export const useDashboardData = () => {
             title: "今日调用",
             value: botStore.selectedBot?.day_call ?? 0,
             icon: Activity,
-            bgClass: "bg-pink-100",
-            colorClass: "text-pink-600",
+            bgClass: "bg-zx-primary-soft",
+            colorClass: "text-zx-primary",
             trend: statsTrend.value.call_day,
         },
     ]);

@@ -59,7 +59,7 @@ function formatTime(dateStr: string) {
         <div
             class="mb-2 flex shrink-0 items-center gap-2 border-b border-slate-100 pb-4"
         >
-            <History class="h-5 w-5 text-purple-500" />
+            <History class="h-5 w-5 text-zx-primary" />
             <h3 class="text-sm font-semibold text-gray-700 sm:text-base">
                 历史更新
             </h3>
@@ -102,7 +102,7 @@ function formatTime(dateStr: string) {
                                 <span
                                     :class="
                                         index === 0
-                                            ? 'border-3 border-purple-500'
+                                            ? 'border-3 border-zx-primary'
                                             : 'border-2 border-slate-400'
                                     "
                                     class="z-10 h-3 w-3 shrink-0 rounded-full bg-white"

@@ -136,7 +136,7 @@ onMounted(() => {
         <!-- 头部标题和统计 -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 bg-white rounded-3xl shadow-sm p-4 outline-1 outline-slate-200">
             <div class="flex items-center space-x-3">
-                <Group class="h-6 w-6 text-blue-500 flex-shrink-0" />
+                <Group class="h-6 w-6 text-zx-primary flex-shrink-0" />
                 <h2 class="text-lg font-semibold text-gray-800">群组管理</h2>
                 <span class="text-sm text-gray-500">(共 {{ filteredGroups.length }} 个)</span>
             </div>
@@ -148,7 +148,7 @@ onMounted(() => {
                     v-model="searchQuery"
                     type="text"
                     placeholder="搜索群组名称或 ID..."
-                    class="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    class="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-zx-primary focus:border-transparent"
                 />
             </div>
         </div>
@@ -156,7 +156,7 @@ onMounted(() => {
         <!-- 统计卡片 -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
             <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
-                <div class="text-lg sm:text-xl font-bold text-blue-600">{{ stats.total }}</div>
+                <div class="text-lg sm:text-xl font-bold text-zx-primary">{{ stats.total }}</div>
                 <div class="text-xs text-gray-500 mt-0.5">总群组数</div>
             </div>
             <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
@@ -168,7 +168,7 @@ onMounted(() => {
                 <div class="text-xs text-gray-500 mt-0.5">已禁用</div>
             </div>
             <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
-                <div class="text-lg sm:text-xl font-bold text-purple-600">{{ stats.totalMembers }}</div>
+                <div class="text-lg sm:text-xl font-bold text-zx-primary">{{ stats.totalMembers }}</div>
                 <div class="text-xs text-gray-500 mt-0.5">成员总数</div>
             </div>
         </div>
@@ -216,7 +216,7 @@ onMounted(() => {
                     <!-- 对话框 -->
                     <div class="modal-content relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] sm:max-h-[85vh] flex flex-col overflow-hidden">
                     <!-- 头部 -->
-                    <div class="flex items-center justify-between px-4 sm:px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100 flex-shrink-0">
+                    <div class="flex items-center justify-between px-4 sm:px-6 py-4 bg-white border-b border-slate-200 flex-shrink-0">
                         <h3 class="text-base sm:text-lg font-semibold text-gray-800 truncate">群组详情</h3>
                         <button @click="detailDialogOpen = false" class="p-1 rounded-2xl hover:bg-white/50 transition-colors flex-shrink-0">
                             <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

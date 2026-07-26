@@ -17,7 +17,7 @@ const { selectedName } = storeToRefs(chatStore);
     >
         <div class="flex min-w-0 items-center space-x-2 sm:space-x-3">
             <MessageSquare
-                class="h-5 w-5 flex-shrink-0 text-blue-500 sm:h-6 sm:w-6"
+                class="h-5 w-5 flex-shrink-0 text-zx-primary sm:h-6 sm:w-6"
             />
             <h2
                 class="truncate text-base font-semibold text-gray-800 sm:text-lg"

@@ -19,7 +19,7 @@ const botStore = useBotStore();
         </div>
 
         <div class="flex items-center space-x-2">
-            <Bot class="h-5 w-5 text-sky-400" />
+            <Bot class="h-5 w-5 text-zx-primary" />
             <span
                 class="nowrap text-xs font-medium tracking-wide text-slate-600"
                 >Bot连接</span
@@ -28,7 +28,7 @@ const botStore = useBotStore();
 
         <div class="h-3 w-[1px] bg-black/30"></div>
 
-        <span class="text-sm font-black text-sky-400">{{
+        <span class="text-sm font-black text-zx-primary">{{
             botStore.botList.length
         }}</span>
     </div>

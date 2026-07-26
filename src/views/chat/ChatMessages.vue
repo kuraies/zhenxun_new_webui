@@ -322,7 +322,7 @@ onMounted(async () => {
                 <ArrowLeft class="h-5 w-5" />
             </button>
             <div
-                class="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-100 text-sm font-bold text-blue-600"
+                class="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-zx-primary-soft text-sm font-bold text-zx-primary"
             >
                 <img
                     v-if="currentContactInfo.avatar"
@@ -378,7 +378,7 @@ onMounted(async () => {
                 <!-- 头像 -->
                 <div
                     v-if="!message.is_self"
-                    class="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-blue-100 text-xs font-bold text-blue-600 sm:h-10 sm:w-10 sm:text-sm"
+                    class="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-zx-primary-soft text-xs font-bold text-zx-primary sm:h-10 sm:w-10 sm:text-sm"
                 >
                     <img
                         v-if="message.avatar"
@@ -403,7 +403,7 @@ onMounted(async () => {
                     <div
                         :class="[
                             message.is_self
-                                ? 'bg-blue-500 text-white'
+                                ? 'bg-zx-primary text-white'
                                 : 'bg-gray-200 text-gray-800',
 
                             message.message_type !== 'image' &&
@@ -471,7 +471,7 @@ onMounted(async () => {
                 <!-- 自己的头像 -->
                 <div
                     v-if="message.is_self"
-                    class="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-pink-100 text-xs font-bold text-pink-600 sm:h-10 sm:w-10 sm:text-sm"
+                    class="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-zx-primary-soft text-xs font-bold text-zx-primary sm:h-10 sm:w-10 sm:text-sm"
                 >
                     <img
                         v-if="message.avatar"
@@ -492,12 +492,12 @@ onMounted(async () => {
         >
             <!-- 输入框和发送按钮 -->
             <div
-                class="flex min-h-11 items-end gap-1 rounded-2xl border border-slate-200 bg-slate-50 px-2 py-1.5 transition-all focus-within:border-blue-300 focus-within:bg-white focus-within:shadow-sm focus-within:shadow-blue-100"
+                class="flex min-h-11 items-end gap-1 rounded-2xl border border-slate-200 bg-slate-50 px-2 py-1.5 transition-all focus-within:border-zx-primary focus-within:bg-white focus-within:shadow-sm focus-within:shadow-slate-100"
             >
                 <button
                     type="button"
                     @click="triggerImageUpload"
-                    class="btn-touch mb-0.5 flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-blue-500"
+                    class="btn-touch mb-0.5 flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
                     title="发送图片"
                 >
                     <ImageIcon class="h-4 w-4" />
@@ -526,7 +526,7 @@ onMounted(async () => {
                     :class="[
                         'btn-touch mb-0.5 flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-full transition-all',
                         inputMessage.trim()
-                            ? 'bg-blue-500 text-white shadow-sm hover:bg-blue-600'
+                            ? 'bg-zx-primary text-white shadow-sm hover:bg-zx-primary-hover'
                             : 'bg-slate-200 text-slate-400',
                     ]"
                     title="发送"

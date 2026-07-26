@@ -48,26 +48,26 @@ const formatTime = (timestamp: string | number | undefined) => {
 
 const getFileIconStyle = (file: FileItem) => {
     if (!file.is_file) {
-        return "text-blue-600";
+        return "text-zx-primary";
     }
 
     if (!file.is_image) {
-        return "text-gray-600";
+        return "text-slate-500";
     }
 
     const ext = file.name.split(".").pop()?.toLowerCase();
     const colorMap: Record<string, string> = {
-        jpg: "text-orange-600",
-        jpeg: "text-orange-600",
-        png: "text-pink-600",
-        gif: "text-purple-600",
-        svg: "text-indigo-600",
-        webp: "text-teal-600",
-        bmp: "text-rose-600",
-        ico: "text-amber-600",
+        jpg: "text-slate-500",
+        jpeg: "text-slate-500",
+        png: "text-slate-500",
+        gif: "text-slate-500",
+        svg: "text-slate-500",
+        webp: "text-slate-500",
+        bmp: "text-slate-500",
+        ico: "text-slate-500",
     };
 
-    return colorMap[ext || ""] || "text-pink-600";
+    return colorMap[ext || ""] || "text-slate-500";
 };
 
 const handleOpen = (file: FileItem) => {
@@ -174,7 +174,7 @@ const handleOpen = (file: FileItem) => {
                             >
                                 <button
                                     v-if="file.is_file"
-                                    class="btn-touch cursor-pointer rounded-2xl p-1.5 transition-colors hover:text-blue-600"
+                                    class="btn-touch cursor-pointer rounded-2xl p-1.5 transition-colors hover:text-zx-primary"
                                     title="重命名"
                                     @click.stop="emit('rename', file)"
                                 >
@@ -237,7 +237,7 @@ const handleOpen = (file: FileItem) => {
                         <div class="flex flex-shrink-0 items-center space-x-1">
                             <button
                                 v-if="file.is_file"
-                                class="btn-touch rounded-2xl p-2 text-blue-600 transition-colors hover:bg-blue-50"
+                                class="btn-touch rounded-2xl p-2 text-slate-600 transition-colors hover:bg-slate-100"
                                 title="重命名"
                                 @click.stop="emit('rename', file)"
                             >

@@ -255,30 +255,30 @@ onMounted(() => {
             <!-- 基本信息卡片 -->
             <div>
                 <h3 class="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
-                    <Info class="w-5 h-5 text-blue-600" />
+                    <Info class="w-5 h-5 text-zx-primary" />
                     基本信息
                 </h3>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-3">
+                    <div class="bg-slate-50 rounded-2xl p-3">
                         <p class="text-xs text-gray-500 mb-1">群组名称</p>
                         <p class="font-semibold text-gray-800 truncate text-sm" :title="groupDetail.group_name">
                             {{ groupDetail.group_name }}
                         </p>
                     </div>
-                    <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-3">
+                    <div class="bg-slate-50 rounded-2xl p-3">
                         <p class="text-xs text-gray-500 mb-1">群组 ID</p>
                         <p class="font-semibold text-gray-800 font-mono text-xs">{{ groupDetail.group_id }}</p>
                     </div>
-                    <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-3">
+                    <div class="bg-slate-50 rounded-2xl p-3">
                         <p class="text-xs text-gray-500 mb-1">成员数量</p>
                         <p class="font-semibold text-gray-800 text-sm">
                             {{ groupDetail.member_count }} / {{ groupDetail.max_member_count }}
                         </p>
                     </div>
-                    <div class="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl p-3">
+                    <div class="bg-slate-50 rounded-2xl p-3">
                         <p class="text-xs text-gray-500 mb-1">群权限等级</p>
                         <p class="font-semibold text-gray-800 flex items-center justify-center gap-1 text-sm">
-                            <Shield class="w-4 h-4 text-purple-600" />
+                            <Shield class="w-4 h-4 text-zx-primary" />
                             {{ groupDetail.level }}
                         </p>
                     </div>
@@ -288,7 +288,7 @@ onMounted(() => {
             <!-- 群开关设置 -->
             <div>
                 <h3 class="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
-                    <ToggleRight class="w-5 h-5 text-green-600" />
+                    <ToggleRight class="w-5 h-5 text-zx-primary" />
                     群开关设置
                 </h3>
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -374,13 +374,13 @@ onMounted(() => {
             <div>
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
-                        <Puzzle class="w-5 h-5 text-purple-600" />
+                        <Puzzle class="w-5 h-5 text-zx-primary" />
                         功能开关
                     </h3>
                     <div class="flex items-center gap-2">
-                        <span class="text-xs text-gray-500">插件：<span class="font-medium text-purple-600">{{ pluginCount }}</span></span>
+                        <span class="text-xs text-gray-500">插件：<span class="font-medium text-slate-600">{{ pluginCount }}</span></span>
                         <span class="text-xs text-gray-500">|</span>
-                        <span class="text-xs text-gray-500">被动：<span class="font-medium text-orange-600">{{ taskCount }}</span></span>
+                        <span class="text-xs text-gray-500">被动：<span class="font-medium text-slate-600">{{ taskCount }}</span></span>
                     </div>
                 </div>
                 <div class="plugin-list min-h-[120px] max-h-80 overflow-y-auto rounded-2xl border border-gray-100 bg-gray-50 p-2" v-loading="pluginsLoading">
@@ -396,12 +396,12 @@ onMounted(() => {
                             <div class="flex items-center gap-3 flex-1 min-w-0">
                                 <div
                                     class="w-9 h-9 rounded-2xl flex items-center justify-center flex-shrink-0"
-                                    :class="plugin.is_task ? 'bg-orange-100' : 'bg-blue-100'"
+                                    :class="plugin.is_task ? 'bg-slate-100' : 'bg-slate-100'"
                                 >
                                     <component
                                         :is="plugin.is_task ? Zap : Puzzle"
                                         class="w-4 h-4"
-                                        :class="plugin.is_task ? 'text-orange-600' : 'text-blue-600'"
+                                        :class="plugin.is_task ? 'text-zx-primary' : 'text-zx-primary'"
                                     />
                                 </div>
                                 <div class="min-w-0 flex-1">
@@ -411,7 +411,7 @@ onMounted(() => {
                                         </span>
                                         <span
                                             v-if="plugin.is_task"
-                                            class="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-orange-100 text-orange-700 flex-shrink-0"
+                                            class="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-zx-primary-soft text-zx-primary flex-shrink-0"
                                         >
                                             被动
                                         </span>
@@ -437,7 +437,7 @@ onMounted(() => {
             <div>
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
-                        <Users class="w-5 h-5 text-green-600" />
+                        <Users class="w-5 h-5 text-zx-primary" />
                         群成员管理
                     </h3>
                     <span class="text-xs text-gray-500">共 {{ filteredMembers.length }} 人</span>
@@ -450,7 +450,7 @@ onMounted(() => {
                         v-model="memberSearchQuery"
                         type="text"
                         placeholder="搜索成员..."
-                        class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-zx-primary focus:border-transparent"
                     />
                 </div>
 
@@ -482,7 +482,7 @@ onMounted(() => {
                     <!-- 对话框 -->
                     <div class="modal-content relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] flex flex-col overflow-hidden">
                     <!-- 头部 -->
-                    <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+                    <div class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200">
                         <h3 class="text-lg font-semibold text-gray-800">成员详情</h3>
                         <button @click="memberDetailDialogOpen = false" class="p-1 rounded-2xl hover:bg-white/50 transition-colors">
                             <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -494,7 +494,7 @@ onMounted(() => {
                     <!-- 内容区 -->
                     <div class="flex-1 overflow-y-auto p-6">
                         <div v-if="currentMember" class="member-detail">
-                            <div class="member-detail-header bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 mb-4">
+                            <div class="member-detail-header bg-slate-50 rounded-2xl p-4 mb-4">
                                 <img :src="currentMemberDetail?.ava_url || currentMember.ava_url" class="member-avatar-large" />
                                 <div class="member-detail-info flex-1 min-w-0">
                                     <h4 class="member-detail-name truncate">{{ currentMember.nickname }}</h4>
@@ -505,10 +505,10 @@ onMounted(() => {
 
                             <div class="space-y-3">
                                 <!-- 金币 -->
-                                <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-3 outline-1 outline-amber-200">
+                                <div class="bg-slate-50 rounded-2xl p-3 outline-1 outline-slate-200">
                                     <div class="flex items-center justify-between mb-2">
                                         <div class="flex items-center gap-2">
-                                            <Coins class="w-4 h-4 text-amber-600" />
+                                            <Coins class="w-4 h-4 text-zx-primary" />
                                             <span class="text-xs font-medium text-gray-600">金币数量</span>
                                         </div>
                                         <el-input-number
@@ -522,10 +522,10 @@ onMounted(() => {
                                 </div>
 
                                 <!-- 好感度 -->
-                                <div class="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-3 outline-1 outline-pink-200">
+                                <div class="bg-slate-50 rounded-2xl p-3 outline-1 outline-slate-200">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-2">
-                                            <Heart class="w-4 h-4 text-pink-600" />
+                                            <Heart class="w-4 h-4 text-zx-primary" />
                                             <span class="text-xs font-medium text-gray-600">好感度/权限等级</span>
                                         </div>
                                         <el-input-number

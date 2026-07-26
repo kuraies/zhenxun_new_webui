@@ -116,7 +116,7 @@ onMounted(() => {
         <div
             class="group flex w-fit items-center space-x-3 rounded-full border border-white/10 bg-white px-4 py-2 shadow-sm transition-all hover:scale-105"
         >
-            <Shield class="h-5 w-5 text-blue-500" />
+            <Shield class="h-5 w-5 text-zx-primary" />
             <span class="text-sm font-medium whitespace-nowrap text-slate-700"
                 >管理</span
             >
@@ -126,7 +126,7 @@ onMounted(() => {
             @click="openRequestDialog"
         >
             <div class="flex items-center space-x-2">
-                <Bell ref="bellRef" class="h-5 w-5 text-orange-500" />
+                <Bell ref="bellRef" class="h-5 w-5 text-zx-primary" />
                 <span
                     class="nowrap text-xs font-medium tracking-wide text-slate-600"
                     >请求处理</span
@@ -135,7 +135,7 @@ onMounted(() => {
 
             <div class="h-3 w-[1px] bg-black/30"></div>
 
-            <span class="text-sm font-black text-orange-500">{{
+            <span class="text-sm font-black text-zx-primary">{{
                 requestNum
             }}</span>
         </div>

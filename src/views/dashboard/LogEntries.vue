@@ -65,7 +65,7 @@ const levelClass = (level: LogEntry["level"]) => {
                 >
                     <span
                         :title="log.module"
-                        class="truncate py-0.5 pr-1 text-[12px] font-medium text-violet-600"
+                        class="truncate py-0.5 pr-1 text-[12px] font-medium text-slate-500"
                     >
                         {{ log.module }}
                     </span>

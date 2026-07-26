@@ -87,7 +87,7 @@ watch(() => props.friend, () => {
     <div class="friend-detail-info">
         <div v-if="friend" class="space-y-4">
             <!-- 头部信息 -->
-            <div class="friend-header bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4">
+            <div class="friend-header bg-slate-50 rounded-2xl p-4">
                 <div class="flex items-center gap-4">
                     <img
                         :src="friend.ava_url"
@@ -108,24 +108,24 @@ watch(() => props.friend, () => {
             <!-- 数据信息 -->
             <div class="grid grid-cols-2 gap-3">
                 <!-- 金币 -->
-                <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-4 outline-1 outline-amber-200">
+                <div class="bg-slate-50 rounded-2xl p-4 outline-1 outline-slate-200">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2">
-                            <Coins class="w-4 h-4 text-amber-600" />
+                            <Coins class="w-4 h-4 text-zx-primary" />
                             <span class="text-sm font-medium text-gray-600">金币</span>
                         </div>
                         <button
                             v-if="editingField !== 'gold'"
                             @click="startEdit('gold')"
-                            class="p-1 rounded-lg hover:bg-amber-100 transition-colors"
+                            class="p-1 rounded-lg hover:bg-slate-200 transition-colors"
                         >
-                            <Pencil class="w-3.5 h-3.5 text-amber-600" />
+                            <Pencil class="w-3.5 h-3.5 text-slate-500" />
                         </button>
                     </div>
 
                     <!-- 显示模式 -->
                     <div v-if="editingField !== 'gold'" class="flex items-center">
-                        <span class="text-2xl font-bold text-amber-600">
+                        <span class="text-2xl font-bold text-zx-primary">
                             {{ friend.gold.toLocaleString() }}
                         </span>
                     </div>
@@ -136,7 +136,7 @@ watch(() => props.friend, () => {
                             v-model.number="editValue"
                             type="number"
                             :min="0"
-                            class="w-20 px-2 py-1 text-lg font-bold text-center border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+                            class="w-20 px-2 py-1 text-lg font-bold text-center border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zx-primary"
                             @keyup.enter="confirmSave"
                             @keyup.escape="cancelEdit"
                         />
@@ -144,7 +144,7 @@ watch(() => props.friend, () => {
                             <button
                                 @click="confirmSave"
                                 :disabled="saving"
-                                class="p-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white transition-colors disabled:opacity-50"
+                                class="p-1.5 rounded-lg bg-zx-primary hover:bg-zx-primary-hover text-white transition-colors disabled:opacity-50"
                             >
                                 <Check class="w-3.5 h-3.5" />
                             </button>
@@ -160,24 +160,24 @@ watch(() => props.friend, () => {
                 </div>
 
                 <!-- 好感度 -->
-                <div class="bg-gradient-to-br from-pink-50 to-rose-50 rounded-2xl p-4 outline-1 outline-pink-200">
+                <div class="bg-slate-50 rounded-2xl p-4 outline-1 outline-slate-200">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2">
-                            <Heart class="w-4 h-4 text-pink-600" />
+                            <Heart class="w-4 h-4 text-zx-primary" />
                             <span class="text-sm font-medium text-gray-600">好感度</span>
                         </div>
                         <button
                             v-if="editingField !== 'favorability'"
                             @click="startEdit('favorability')"
-                            class="p-1 rounded-lg hover:bg-pink-100 transition-colors"
+                            class="p-1 rounded-lg hover:bg-slate-200 transition-colors"
                         >
-                            <Pencil class="w-3.5 h-3.5 text-pink-600" />
+                            <Pencil class="w-3.5 h-3.5 text-slate-500" />
                         </button>
                     </div>
 
                     <!-- 显示模式 -->
                     <div v-if="editingField !== 'favorability'" class="flex items-center">
-                        <span class="text-2xl font-bold text-pink-600">
+                        <span class="text-2xl font-bold text-zx-primary">
                             {{ friend.favorability }}
                         </span>
                     </div>
@@ -188,7 +188,7 @@ watch(() => props.friend, () => {
                             v-model.number="editValue"
                             type="number"
                             :min="0"
-                            class="w-20 px-2 py-1 text-lg font-bold text-center border border-pink-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                            class="w-20 px-2 py-1 text-lg font-bold text-center border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-zx-primary"
                             @keyup.enter="confirmSave"
                             @keyup.escape="cancelEdit"
                         />
@@ -196,7 +196,7 @@ watch(() => props.friend, () => {
                             <button
                                 @click="confirmSave"
                                 :disabled="saving"
-                                class="p-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white transition-colors disabled:opacity-50"
+                                class="p-1.5 rounded-lg bg-zx-primary hover:bg-zx-primary-hover text-white transition-colors disabled:opacity-50"
                             >
                                 <Check class="w-3.5 h-3.5" />
                             </button>

@@ -93,14 +93,14 @@ onMounted(() => {
 <template>
     <div class="flex-shrink-0 border-t border-gray-100 p-2">
         <button
-            class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-orange-50 px-3 py-2 text-sm font-medium text-orange-600 transition-all hover:bg-orange-100"
+            class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-medium text-slate-600 transition-all hover:bg-slate-200"
             @click="openRequestDialog"
         >
             <Bell class="h-4 w-4" />
             <span>请求处理</span>
             <span
                 v-if="friendRequests.length + groupRequests.length > 0"
-                class="rounded-full bg-orange-500 px-1.5 py-0.5 text-[10px] text-white"
+                class="rounded-full bg-zx-primary px-1.5 py-0.5 text-[10px] text-white"
             >
                 {{ friendRequests.length + groupRequests.length }}
             </span>
@@ -122,7 +122,7 @@ onMounted(() => {
                 >
                     <div class="flex items-center justify-between px-6 py-4">
                         <div class="flex items-center gap-3">
-                            <Bell class="h-6 w-6 text-orange-600" />
+                            <Bell class="h-6 w-6 text-zx-primary" />
                             <h3 class="text-lg font-semibold text-gray-800">
                                 请求处理
                             </h3>
@@ -140,7 +140,7 @@ onMounted(() => {
                             :class="[
                                 'flex-1 cursor-pointer px-4 py-3 text-sm font-medium transition-all',
                                 activeRequestTab === 'friend'
-                                    ? 'border-blue-600 bg-blue-50 text-blue-600'
+                                    ? 'border-zx-primary bg-zx-primary-tint text-zx-primary'
                                     : 'text-gray-500 hover:bg-gray-50',
                             ]"
                             @click="activeRequestTab = 'friend'"
@@ -151,7 +151,7 @@ onMounted(() => {
                             :class="[
                                 'flex-1 cursor-pointer px-4 py-3 text-sm font-medium transition-all',
                                 activeRequestTab === 'group'
-                                    ? 'border-purple-600 bg-purple-50 text-purple-600'
+                                    ? 'border-zx-primary bg-zx-primary-tint text-zx-primary'
                                     : 'text-gray-500 hover:bg-gray-50',
                             ]"
                             @click="activeRequestTab = 'group'"
@@ -167,7 +167,7 @@ onMounted(() => {
                         >
                             <div class="text-center text-gray-400">
                                 <div
-                                    class="mx-auto mb-2 h-8 w-8 animate-pulse rounded-full border-2 border-blue-500 border-t-transparent"
+                                    class="mx-auto mb-2 h-8 w-8 animate-pulse rounded-full border-2 border-zx-primary border-t-transparent"
                                 />
                                 <p class="text-sm">加载中...</p>
                             </div>

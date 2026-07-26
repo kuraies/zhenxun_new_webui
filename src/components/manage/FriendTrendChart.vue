@@ -141,7 +141,7 @@ const chartOptions: ChartOptions<'line'> = createLineOptions({
         <!-- 标题栏 -->
         <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2">
-                <TrendingUp class="w-4 h-4 text-blue-500" />
+                <TrendingUp class="w-4 h-4 text-zx-primary" />
                 <span class="text-sm font-semibold text-gray-700">互动趋势</span>
             </div>
             <div v-if="trendData" class="text-xs text-gray-500 flex items-center gap-3">
@@ -160,7 +160,7 @@ const chartOptions: ChartOptions<'line'> = createLineOptions({
         <div class="h-48 relative">
             <!-- 加载状态 -->
             <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center">
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-zx-primary"></div>
             </div>
 
             <!-- 图表 -->

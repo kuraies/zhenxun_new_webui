@@ -45,7 +45,7 @@ const infoItems = computed(() => [
         label: "版本",
         value: props.systemInfo.version,
         icon: GitBranch,
-        iconClass: "text-blue-600",
+        iconClass: "text-slate-400",
     },
     {
         key: "system",
@@ -53,7 +53,7 @@ const infoItems = computed(() => [
         value: props.systemInfo.system || "-",
         title: props.systemInfo.system,
         icon: Server,
-        iconClass: "text-purple-600",
+        iconClass: "text-slate-400",
     },
     {
         key: "cpu",
@@ -61,14 +61,14 @@ const infoItems = computed(() => [
         value: props.systemInfo.cpuBrand || "-",
         title: props.systemInfo.cpuBrand,
         icon: Cpu,
-        iconClass: "text-green-600",
+        iconClass: "text-slate-400",
     },
     {
         key: "cores",
         label: "核心",
         value: `${props.systemInfo.cpuCores || "-"} 核心`,
         icon: Hash,
-        iconClass: "text-orange-600",
+        iconClass: "text-slate-400",
     },
     {
         key: "frequency",
@@ -79,7 +79,7 @@ const infoItems = computed(() => [
                 : "-"
         } GHz`,
         icon: Gauge,
-        iconClass: "text-red-600",
+        iconClass: "text-slate-400",
     },
     {
         key: "memory",
@@ -90,7 +90,7 @@ const infoItems = computed(() => [
                 : "-"
         } GB`,
         icon: MemoryStick,
-        iconClass: "text-indigo-600",
+        iconClass: "text-slate-400",
     },
 ]);
 </script>
@@ -104,7 +104,7 @@ const infoItems = computed(() => [
             class="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2"
         >
             <div class="flex items-center space-x-2">
-                <Info class="h-5 w-5 text-cyan-500" />
+                <Info class="h-5 w-5 text-zx-primary" />
                 <h3 class="text-sm font-semibold text-gray-700 sm:text-base">
                     系统信息
                 </h3>

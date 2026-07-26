@@ -275,7 +275,6 @@ const onTabChange = (name: TabType) => {
 
 // 选中群组
 const selectGroup = async (group: GroupType) => {
-    console.log("选中群组:", group.group_id);
     selectedGroupId.value = group.group_id;
     selectedUserId.value = null;
     detailLoading.value = true;
@@ -299,7 +298,6 @@ const selectGroup = async (group: GroupType) => {
         const membersRes = await manageApi.getGroupMembers(group.group_id);
         if (membersRes.success && membersRes.data) {
             groupMembers.value = membersRes.data;
-            console.log("群成员列表:", groupMembers.value.length);
         }
         // 加载群插件列表
         await loadGroupPlugins(group.group_id);
@@ -317,7 +315,6 @@ const loadGroupPlugins = async (groupId: string) => {
         const res = await manageApi.getGroupPlugins(groupId);
         if (res.success && res.data) {
             groupPlugins.value = res.data;
-            console.log("群插件列表:", groupPlugins.value.length);
         }
     } catch (error) {
         console.error("加载群插件列表失败:", error);
@@ -336,7 +333,6 @@ const togglePlugin = async (plugin: GroupPlugin) => {
             action: plugin.is_blocked ? "unblock" : "block",
             is_task: plugin.is_task,
         });
-        console.log(res);
         if (res.success && res.data) {
             // plugin.is_blocked = !plugin.is_blocked;
             ZXNotification({
@@ -466,7 +462,6 @@ const toggleMemberBan = async (member: (typeof groupMembers.value)[number]) => {
 
 // 选中好友
 const selectFriend = async (friend: Friend) => {
-    console.log("选中好友:", friend.user_id);
     selectedUserId.value = friend.user_id;
     selectedGroupId.value = null;
     // 移动端选中后隐藏侧边栏
@@ -503,7 +498,6 @@ const selectFriend = async (friend: Friend) => {
         if (detailRes.success && detailRes.data) {
             friendDetail.value = detailRes.data;
             // 更新 memberDetail
-            console.log(detailRes.data);
             memberDetail.value = {
                 user_id: detailRes.data.user_id,
                 nickname: detailRes.data.nickname,
@@ -968,7 +962,7 @@ onMounted(async () => {
                     >
                         <div class="text-center text-gray-400">
                             <div
-                                class="mx-auto mb-2 h-6 w-6 animate-pulse rounded-full border-2 border-blue-500 border-t-transparent sm:h-8 sm:w-8"
+                                class="mx-auto mb-2 h-6 w-6 animate-pulse rounded-full border-2 border-zx-primary border-t-transparent sm:h-8 sm:w-8"
                             />
                             <p class="text-xs sm:text-sm">加载中...</p>
                         </div>
@@ -1005,7 +999,7 @@ onMounted(async () => {
                             :class="[
                                 'btn-touch flex cursor-pointer items-center gap-2 rounded-2xl p-1.5 transition-colors sm:gap-3 sm:p-2',
                                 selectedGroupId === group.group_id
-                                    ? 'bg-blue-50'
+                                    ? 'bg-slate-100'
                                     : 'hover:bg-gray-50',
                             ]"
                         >
@@ -1018,7 +1012,7 @@ onMounted(async () => {
                             />
                             <div
                                 v-else
-                                class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-xs font-bold text-blue-600 sm:h-10 sm:w-10 sm:text-sm"
+                                class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-2xl bg-zx-primary-soft text-xs font-bold text-zx-primary sm:h-10 sm:w-10 sm:text-sm"
                             >
                                 {{ (group.group_name || "群").charAt(0) }}
                             </div>
@@ -1046,7 +1040,7 @@ onMounted(async () => {
                             :class="[
                                 'btn-touch flex cursor-pointer items-center gap-2 rounded-2xl p-1.5 transition-colors sm:gap-3 sm:p-2',
                                 selectedUserId === friend.user_id
-                                    ? 'bg-blue-50'
+                                    ? 'bg-slate-100'
                                     : 'hover:bg-gray-50',
                             ]"
                         >
@@ -1059,7 +1053,7 @@ onMounted(async () => {
                             />
                             <div
                                 v-else
-                                class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-pink-100 text-xs font-bold text-pink-600 sm:h-8 sm:w-8 sm:text-sm"
+                                class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-zx-primary-soft text-xs font-bold text-zx-primary sm:h-8 sm:w-8 sm:text-sm"
                             >
                                 {{ (friend.nickname || "友").charAt(0) }}
                             </div>
@@ -1109,7 +1103,7 @@ onMounted(async () => {
                     >
                         <div class="text-center text-gray-400">
                             <div
-                                class="mx-auto mb-4 h-10 w-10 animate-pulse rounded-full border-3 border-blue-500 border-t-transparent"
+                                class="mx-auto mb-4 h-10 w-10 animate-pulse rounded-full border-3 border-zx-primary border-t-transparent"
                             />
                             <p>加载中...</p>
                         </div>
@@ -1154,7 +1148,7 @@ onMounted(async () => {
                                             :class="[
                                                 'rounded-full px-3 py-1 text-sm',
                                                 groupDetail.status
-                                                    ? 'bg-blue-100 text-blue-600'
+                                                    ? 'bg-zx-primary-soft text-zx-primary'
                                                     : 'bg-gray-100 text-gray-500',
                                             ]"
                                         >
@@ -1166,7 +1160,7 @@ onMounted(async () => {
                                         </span>
                                         <span
                                             v-if="groupDetail.is_super"
-                                            class="rounded-full bg-purple-100 px-2 py-0.5 text-[10px] text-purple-600 sm:py-1 sm:text-xs"
+                                            class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-600 sm:py-1 sm:text-xs"
                                         >
                                             超级群
                                         </span>
@@ -1189,7 +1183,7 @@ onMounted(async () => {
                                             'cursor-pointer rounded-full px-5 py-1.5 text-xs font-medium transition-all sm:text-sm',
                                             groupDetail.status
                                                 ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                                : 'bg-blue-500 text-white hover:bg-blue-600',
+                                                : 'bg-zx-primary text-white hover:bg-zx-primary-hover',
                                         ]"
                                     >
                                         {{
@@ -1273,7 +1267,7 @@ onMounted(async () => {
                                         ></div>
                                         <div
                                             @click="open = !open"
-                                            class="flex cursor-pointer items-center space-x-1 font-medium text-blue-500"
+                                            class="flex cursor-pointer items-center space-x-1 font-medium text-zx-primary hover:text-zx-primary-hover"
                                         >
                                             <span>{{ selectedLevel }}</span>
 
@@ -1310,7 +1304,7 @@ onMounted(async () => {
                                                     :class="
                                                         selectedLevel ===
                                                             level &&
-                                                        'bg-blue-50 text-blue-500'
+                                                        'bg-zx-primary-tint text-zx-primary'
                                                     "
                                                 >
                                                     <span>{{ level }}</span>
@@ -1345,7 +1339,7 @@ onMounted(async () => {
                                                 :class="[
                                                     'cursor-pointer rounded-2xl px-2 py-0.5 text-[10px] font-medium transition-all sm:px-3 sm:py-1 sm:text-xs',
                                                     showPassivePlugins
-                                                        ? 'bg-white text-blue-600 shadow-sm'
+                                                        ? 'bg-white text-zx-primary shadow-sm'
                                                         : 'text-gray-500 hover:text-gray-700',
                                                 ]"
                                             >
@@ -1362,7 +1356,7 @@ onMounted(async () => {
                                                 :class="[
                                                     'cursor-pointer rounded-2xl px-2 py-0.5 text-[10px] font-medium transition-all sm:px-3 sm:py-1 sm:text-xs',
                                                     !showPassivePlugins
-                                                        ? 'bg-white text-blue-600 shadow-sm'
+                                                        ? 'bg-white text-zx-primary shadow-sm'
                                                         : 'text-gray-500 hover:text-gray-700',
                                                 ]"
                                             >
@@ -1414,7 +1408,7 @@ onMounted(async () => {
                                         <div
                                             v-for="plugin in filteredPlugins"
                                             :key="plugin.module"
-                                            class="flex flex-col justify-center rounded-2xl border border-gray-100 bg-white p-1.5 transition-all hover:border-blue-200 sm:p-2"
+                                            class="flex flex-col justify-center rounded-2xl border border-gray-100 bg-white p-1.5 transition-all hover:border-slate-300 sm:p-2"
                                         >
                                             <div
                                                 class="flex min-w-0 items-center gap-1 sm:gap-2"
@@ -1423,8 +1417,8 @@ onMounted(async () => {
                                                     :class="[
                                                         'h-3 w-3 flex-shrink-0 sm:h-4 sm:w-4',
                                                         plugin.is_task
-                                                            ? 'text-orange-500'
-                                                            : 'text-blue-500',
+                                                            ? 'text-zx-primary'
+                                                            : 'text-zx-primary',
                                                     ]"
                                                 />
                                                 <div class="min-w-0 flex-1">
@@ -1551,7 +1545,7 @@ onMounted(async () => {
                                                                 ? 'bg-red-100 text-red-600'
                                                                 : member.role ===
                                                                     'administrator'
-                                                                  ? 'bg-blue-100 text-blue-600'
+                                                                  ? 'bg-zx-primary-soft text-zx-primary'
                                                                   : 'bg-gray-100 text-gray-500',
                                                         ]"
                                                     >
@@ -1631,7 +1625,7 @@ onMounted(async () => {
                                                                     member,
                                                                 )
                                                             "
-                                                            class="cursor-pointer rounded-2xl bg-blue-50 px-4 py-1 text-xs text-blue-600 hover:bg-blue-100"
+                                                            class="cursor-pointer rounded-2xl bg-slate-100 px-4 py-1 text-xs text-slate-600 hover:bg-slate-200"
                                                         >
                                                             编辑
                                                         </button>
@@ -1790,7 +1784,7 @@ onMounted(async () => {
                                 class="flex items-center justify-center py-12"
                             >
                                 <div
-                                    class="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-500"
+                                    class="h-8 w-8 animate-spin rounded-full border-b-2 border-zx-primary"
                                 ></div>
                             </div>
 
@@ -1886,7 +1880,7 @@ onMounted(async () => {
                                     >
                                         <div class="flex items-center gap-2">
                                             <TrendingUp
-                                                class="h-4 w-4 text-blue-500"
+                                                class="h-4 w-4 text-zx-primary"
                                             />
                                             <span
                                                 class="text-sm font-semibold text-gray-700"
@@ -1920,7 +1914,7 @@ onMounted(async () => {
                                         class="flex h-40 items-center justify-center"
                                     >
                                         <div
-                                            class="h-6 w-6 animate-spin rounded-full border-b-2 border-blue-500"
+                                            class="h-6 w-6 animate-spin rounded-full border-b-2 border-zx-primary"
                                         ></div>
                                     </div>
 
@@ -1989,7 +1983,7 @@ onMounted(async () => {
                         class="modal-content relative flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
                     >
                         <div
-                            class="flex items-center justify-between border-b border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4"
+                            class="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4"
                         >
                             <h3 class="text-lg font-semibold text-gray-800">
                                 发送消息
@@ -2073,7 +2067,7 @@ onMounted(async () => {
                         class="modal-content relative flex max-h-[85vh] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-2xl"
                     >
                         <div
-                            class="flex items-center justify-between border-b border-blue-100 px-6 py-6 pb-4"
+                            class="flex items-center justify-between border-b border-slate-200 px-6 py-6 pb-4"
                         >
                             <h3 class="text-lg font-semibold text-gray-800">
                                 编辑成员信息
@@ -2101,7 +2095,7 @@ onMounted(async () => {
                             <div v-if="currentMember" class="edit-member-form">
                                 <!-- 成员信息 -->
                                 <div
-                                    class="mb-6 flex items-center gap-3 rounded-2xl bg-blue-50 p-3"
+                                    class="mb-6 flex items-center gap-3 rounded-2xl bg-slate-50 p-3"
                                 >
                                     <img
                                         :src="currentMember.ava_url"
@@ -2212,7 +2206,7 @@ onMounted(async () => {
                         class="modal-content relative flex max-h-[85vh] w-full max-w-sm flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
                     >
                         <div
-                            class="flex items-center justify-between border-b border-pink-100 bg-gradient-to-r from-pink-50 to-rose-50 px-6 py-4"
+                            class="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4"
                         >
                             <h3 class="text-lg font-semibold text-gray-800">
                                 编辑{{

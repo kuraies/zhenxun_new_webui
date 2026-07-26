@@ -8,7 +8,6 @@ export async function handleLoginBotCheck() {
     const botStore = useBotStore(getActivePinia());
     await botStore.getBotList();
     const botList = botStore.botList;
-    console.log("Bot list is ", botList);
     await whiteScreen.in();
     if (!botList.length || botList[0].self_id == null) {
         auth.logout();

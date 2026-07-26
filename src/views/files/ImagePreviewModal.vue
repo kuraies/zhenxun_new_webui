@@ -220,7 +220,7 @@ onBeforeUnmount(() => {
                 </div>
 
                 <button
-                    class="flex items-center gap-2 rounded-2xl bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+                    class="flex items-center gap-2 rounded-2xl bg-zx-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zx-primary-hover"
                     @click="downloadImage"
                 >
                     <Download class="h-4 w-4" />

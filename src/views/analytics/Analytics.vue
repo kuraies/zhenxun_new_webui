@@ -602,7 +602,6 @@ const loadStats = async () => {
 
         // 获取聊天统计数据（用于顶部卡片）
         const chatRes = await mainApi.getChatStatistics();
-        console.log(chatRes);
         if (chatRes?.success && chatRes?.data) {
             stats.value = {
                 chat_num: chatRes.data.all ?? 0,
@@ -618,7 +617,6 @@ const loadStats = async () => {
 
         // 获取插件调用统计数据
         const pluginRes = await mainApi.getPluginStatistics();
-        console.log(pluginRes);
         if (pluginRes?.success && pluginRes?.data) {
             stats.value.call_week = pluginRes.data.week ?? 0;
             stats.value.call_month = pluginRes.data.month ?? 0;
@@ -710,7 +708,7 @@ onMounted(() => {
             v-if="!globalStore.isDesktopMode"
         >
             <div class="flex items-center space-x-3">
-                <Activity class="h-6 w-6 flex-shrink-0 text-blue-500" />
+                <Activity class="h-6 w-6 flex-shrink-0 text-zx-primary" />
                 <h2 class="text-lg font-semibold text-gray-800">数据统计</h2>
             </div>
 
@@ -808,7 +806,7 @@ onMounted(() => {
                         loadDetailedStatistics();
                         loadPieChartData();
                     "
-                    class="rounded-2xl bg-blue-500 px-4 py-1.5 text-sm text-white transition-colors hover:bg-blue-600"
+                    class="rounded-2xl bg-zx-primary px-4 py-1.5 text-sm text-white transition-colors hover:bg-zx-primary-hover"
                 >
                     应用
                 </button>
@@ -825,7 +823,7 @@ onMounted(() => {
                     <div
                         class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full"
                     >
-                        <MessageSquare class="h-8 w-8 text-slate-600" />
+                        <MessageSquare class="h-8 w-8 text-zx-primary" />
                     </div>
                     <div class="min-w-0">
                         <div
@@ -848,7 +846,7 @@ onMounted(() => {
                     <div
                         class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full"
                     >
-                        <MessageSquare class="h-8 w-8 text-blue-600" />
+                        <MessageSquare class="h-8 w-8 text-zx-primary" />
                     </div>
                     <div class="min-w-0">
                         <div
@@ -871,7 +869,7 @@ onMounted(() => {
                     <div
                         class="flex h-8 h-10 w-8 w-10 flex-shrink-0 items-center justify-center rounded-full"
                     >
-                        <MessageSquare class="h-8 w-8 text-green-600" />
+                        <MessageSquare class="h-8 w-8 text-zx-primary" />
                     </div>
                     <div class="min-w-0">
                         <div
@@ -894,7 +892,7 @@ onMounted(() => {
                     <div
                         class="flex h-8 h-10 w-8 w-10 flex-shrink-0 items-center justify-center rounded-full"
                     >
-                        <MessageSquare class="h-8 w-8 text-yellow-600" />
+                        <MessageSquare class="h-8 w-8 text-zx-primary" />
                     </div>
                     <div class="min-w-0">
                         <div
@@ -917,7 +915,7 @@ onMounted(() => {
                     <div
                         class="flex h-8 h-10 w-8 w-10 flex-shrink-0 items-center justify-center rounded-full"
                     >
-                        <Activity class="h-8 w-8 text-slate-600" />
+                        <Activity class="h-8 w-8 text-zx-primary" />
                     </div>
                     <div class="min-w-0">
                         <div
@@ -940,7 +938,7 @@ onMounted(() => {
                     <div
                         class="flex h-8 h-10 w-8 w-10 flex-shrink-0 items-center justify-center rounded-full"
                     >
-                        <Activity class="h-8 w-8 text-blue-600" />
+                        <Activity class="h-8 w-8 text-zx-primary" />
                     </div>
                     <div class="min-w-0">
                         <div
@@ -963,7 +961,7 @@ onMounted(() => {
                     <div
                         class="flex h-8 h-10 w-8 w-10 flex-shrink-0 items-center justify-center rounded-full"
                     >
-                        <Activity class="h-8 w-8 text-green-600" />
+                        <Activity class="h-8 w-8 text-zx-primary" />
                     </div>
                     <div class="min-w-0">
                         <div
@@ -986,7 +984,7 @@ onMounted(() => {
                     <div
                         class="flex h-8 h-10 w-8 w-10 flex-shrink-0 items-center justify-center rounded-full"
                     >
-                        <Activity class="h-8 w-8 text-yellow-600" />
+                        <Activity class="h-8 w-8 text-zx-primary" />
                     </div>
                     <div class="min-w-0">
                         <div
@@ -1036,7 +1034,7 @@ onMounted(() => {
                         class="absolute inset-0 flex items-center justify-center"
                     >
                         <div
-                            class="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-500"
+                            class="h-8 w-8 animate-spin rounded-full border-b-2 border-zx-primary"
                         ></div>
                     </div>
                     <Line
@@ -1083,7 +1081,7 @@ onMounted(() => {
                             class="absolute inset-0 flex items-center justify-center"
                         >
                             <div
-                                class="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-500"
+                                class="h-8 w-8 animate-spin rounded-full border-b-2 border-zx-primary"
                             ></div>
                         </div>
                         <div
@@ -1124,7 +1122,7 @@ onMounted(() => {
                             class="absolute inset-0 flex items-center justify-center"
                         >
                             <div
-                                class="h-8 w-8 animate-spin rounded-full border-b-2 border-blue-500"
+                                class="h-8 w-8 animate-spin rounded-full border-b-2 border-zx-primary"
                             ></div>
                         </div>
                         <div
@@ -1153,7 +1151,7 @@ onMounted(() => {
                 <h3
                     class="mb-3 flex items-center text-sm font-semibold text-gray-800 sm:mb-4 sm:text-base"
                 >
-                    <Heart class="mr-2 h-4 w-4 text-pink-500" />
+                    <Heart class="mr-2 h-4 w-4 text-zx-primary" />
                     好感度 Top10
                 </h3>
                 <div class="relative h-64 sm:h-80">
@@ -1179,7 +1177,7 @@ onMounted(() => {
                 <h3
                     class="mb-3 flex items-center text-sm font-semibold text-gray-800 sm:mb-4 sm:text-base"
                 >
-                    <DollarSign class="mr-2 h-4 w-4 text-yellow-600" />
+                    <DollarSign class="mr-2 h-4 w-4 text-zx-primary" />
                     金币 Top10
                 </h3>
                 <div class="relative h-64 sm:h-80">
@@ -1205,7 +1203,7 @@ onMounted(() => {
                 <h3
                     class="flex items-center space-x-2 text-base font-bold text-gray-800 sm:text-lg"
                 >
-                    <Activity class="h-4 w-4 text-blue-500 sm:h-5 sm:w-5" />
+                    <Activity class="h-4 w-4 text-zx-primary sm:h-5 sm:w-5" />
                     <span>详细统计</span>
                 </h3>
                 <button
@@ -1228,7 +1226,7 @@ onMounted(() => {
                         @click="changeTab('groups')"
                         :class="
                             activeTab === 'groups'
-                                ? 'border-blue-500 text-blue-600'
+                                ? 'border-zx-primary text-zx-primary'
                                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                         "
                         class="flex items-center space-x-1 border-b-2 px-1 py-2 text-sm font-medium transition-colors"
@@ -1236,7 +1234,7 @@ onMounted(() => {
                         <Hash class="h-4 w-4" />
                         <span>群组统计</span>
                         <span
-                            class="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-600"
+                            class="ml-1 rounded-full bg-zx-primary-soft px-2 py-0.5 text-xs text-zx-primary"
                             >{{ groupStats.length }}</span
                         >
                     </button>
@@ -1244,7 +1242,7 @@ onMounted(() => {
                         @click="changeTab('friends')"
                         :class="
                             activeTab === 'friends'
-                                ? 'border-green-500 text-green-600'
+                                ? 'border-zx-primary text-zx-primary'
                                 : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
                         "
                         class="flex items-center space-x-1 border-b-2 px-1 py-2 text-sm font-medium transition-colors"
@@ -1252,7 +1250,7 @@ onMounted(() => {
                         <User class="h-4 w-4" />
                         <span>好友统计</span>
                         <span
-                            class="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-600"
+                            class="ml-1 rounded-full bg-zx-primary-soft px-2 py-0.5 text-xs text-zx-primary"
                             >{{ friendStats.length }}</span
                         >
                     </button>
@@ -1348,7 +1346,7 @@ onMounted(() => {
                             </td>
                             <td class="px-2 py-3 text-center">
                                 <span
-                                    class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 font-medium text-blue-600"
+                                    class="inline-flex items-center rounded-full bg-zx-primary-soft px-2 py-1 font-medium text-zx-primary"
                                 >
                                     <MessageSquare class="mr-1 h-3 w-3" />
                                     {{ group.message_count }}
@@ -1356,7 +1354,7 @@ onMounted(() => {
                             </td>
                             <td class="px-2 py-3 text-center">
                                 <span
-                                    class="inline-flex items-center rounded-full bg-purple-50 px-2 py-1 font-medium text-purple-600"
+                                    class="inline-flex items-center rounded-full bg-zx-primary-soft px-2 py-1 font-medium text-zx-primary"
                                 >
                                     <Plug class="mr-1 h-3 w-3" />
                                     {{ group.plugin_call_count }}
@@ -1370,7 +1368,7 @@ onMounted(() => {
                                         class="h-2 w-20 flex-shrink-0 overflow-hidden rounded-full bg-gray-200"
                                     >
                                         <div
-                                            class="h-full rounded-full bg-gradient-to-r from-blue-400 to-blue-500"
+                                            class="h-full rounded-full bg-zx-primary"
                                             :style="{
                                                 width: `${getMessagePercentage(group.message_count)}%`,
                                             }"
@@ -1519,7 +1517,7 @@ onMounted(() => {
                             </td>
                             <td class="px-2 py-3 text-center">
                                 <span
-                                    class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 font-medium text-green-600"
+                                    class="inline-flex items-center rounded-full bg-zx-primary-soft px-2 py-1 font-medium text-zx-primary"
                                 >
                                     <MessageSquare class="mr-1 h-3 w-3" />
                                     {{ friend.message_count }}
@@ -1527,7 +1525,7 @@ onMounted(() => {
                             </td>
                             <td class="px-2 py-3 text-center">
                                 <span
-                                    class="inline-flex items-center rounded-full bg-pink-50 px-2 py-1 font-medium text-pink-600"
+                                    class="inline-flex items-center rounded-full bg-zx-primary-soft px-2 py-1 font-medium text-zx-primary"
                                 >
                                     <Plug class="mr-1 h-3 w-3" />
                                     {{ friend.plugin_call_count }}
@@ -1541,7 +1539,7 @@ onMounted(() => {
                                         class="h-2 w-20 flex-shrink-0 overflow-hidden rounded-full bg-gray-200"
                                     >
                                         <div
-                                            class="h-full rounded-full bg-gradient-to-r from-green-400 to-green-500"
+                                            class="h-full rounded-full bg-zx-primary"
                                             :style="{
                                                 width: `${getMessagePercentage(friend.message_count)}%`,
                                             }"

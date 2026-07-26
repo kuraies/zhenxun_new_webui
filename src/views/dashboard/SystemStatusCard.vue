@@ -12,8 +12,8 @@ const props = withDefaults(
         threshold?: number;
     }>(),
     {
-        iconColor: "text-blue-500",
-        normalBarClass: "bg-green-500",
+        iconColor: "text-zx-primary",
+        normalBarClass: "bg-zx-primary",
         threshold: 70, // 默认超过 70% 标红
     },
 );
@@ -40,7 +40,7 @@ const isAlert = computed(() => props.value > props.threshold);
                 </span>
             </div>
             <span
-                :class="isAlert ? 'text-red-500' : 'text-green-500'"
+                :class="isAlert ? 'text-red-500' : 'text-slate-800'"
                 class="shrink-0 text-sm font-bold sm:text-lg"
             >
                 <span v-odometer="value"></span>%

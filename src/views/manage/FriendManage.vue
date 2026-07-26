@@ -172,7 +172,7 @@ onMounted(() => {
         <!-- 头部标题和统计 -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 bg-white rounded-3xl shadow-sm p-4 outline-1 outline-slate-200">
             <div class="flex items-center space-x-3">
-                <Users class="h-6 w-6 text-blue-500 flex-shrink-0" />
+                <Users class="h-6 w-6 text-zx-primary flex-shrink-0" />
                 <h2 class="text-lg font-semibold text-gray-800">好友管理</h2>
                 <span class="text-sm text-gray-500">(共 {{ filteredFriends.length }} 个)</span>
             </div>
@@ -184,7 +184,7 @@ onMounted(() => {
                     v-model="searchQuery"
                     type="text"
                     placeholder="搜索好友昵称或 ID..."
-                    class="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    class="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-zx-primary focus:border-transparent"
                 />
             </div>
         </div>
@@ -196,7 +196,7 @@ onMounted(() => {
                 <!-- 统计卡片 -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mb-3">
                     <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
-                        <div class="text-lg sm:text-xl font-bold text-blue-600">{{ stats.total }}</div>
+                        <div class="text-lg sm:text-xl font-bold text-zx-primary">{{ stats.total }}</div>
                         <div class="text-xs text-gray-500 mt-0.5">好友总数</div>
                     </div>
                 </div>
@@ -228,8 +228,8 @@ onMounted(() => {
                             :key="friend.user_id"
                             class="cursor-pointer transition-all duration-200 rounded-3xl"
                             :class="{
-                                'ring-2 ring-blue-500 shadow-lg': selectedFriend?.user_id === friend.user_id,
-                                'hover:ring-2 hover:ring-blue-300': selectedFriend?.user_id !== friend.user_id
+                                'ring-2 ring-zx-primary shadow-lg': selectedFriend?.user_id === friend.user_id,
+                                'hover:ring-2 hover:ring-slate-300': selectedFriend?.user_id !== friend.user_id
                             }"
                             @click="selectFriend(friend)"
                         >
@@ -253,7 +253,7 @@ onMounted(() => {
 
                 <!-- 加载状态 -->
                 <div v-else-if="loadingDetail" class="flex-1 flex items-center justify-center">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-zx-primary"></div>
                 </div>
 
                 <!-- 详情内容 -->
@@ -284,7 +284,7 @@ onMounted(() => {
                     <!-- 对话框 -->
                     <div class="modal-content relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
                     <!-- 头部 -->
-                    <div class="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-blue-100">
+                    <div class="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200">
                         <h3 class="text-lg font-semibold text-gray-800">发送消息</h3>
                         <button @click="sendMessageDialogOpen = false" class="p-1 rounded-2xl hover:bg-white/50 transition-colors">
                             <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

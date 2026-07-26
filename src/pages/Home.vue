@@ -91,21 +91,14 @@ const toggleNav = () => {
             <HomeSidebar ref="menuRef" />
 
             <div
-                class="right flex h-full flex-1 flex-col space-y-4 overflow-y-auto pr-4 pb-4"
-                :class="[
-                    globalStore.navHidden
-                        ? globalStore.isMobileMode
-                            ? 'pl-4'
-                            : 'ml-0'
-                        : globalStore.navMini
-                          ? 'pl-4'
-                          : 'pl-4',
-                ]"
+                class="right flex h-full flex-1 flex-col space-y-4 overflow-y-auto pr-4 pb-4 pl-4"
             >
                 <router-view v-slot="{ Component }">
-                    <KeepAlive>
-                        <component :is="Component" :key="$route.path" />
-                    </KeepAlive>
+                    <Transition name="page" mode="out-in">
+                        <KeepAlive :max="8">
+                            <component :is="Component" :key="$route.path" />
+                        </KeepAlive>
+                    </Transition>
                 </router-view>
             </div>
         </div>
@@ -134,4 +127,22 @@ const toggleNav = () => {
     </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+/* 路由切换过渡：轻微上移淡入，避免切页瞬间跳变的卡顿感 */
+.page-enter-active,
+.page-leave-active {
+    transition:
+        opacity 0.16s ease,
+        transform 0.16s ease;
+}
+
+.page-enter-from {
+    opacity: 0;
+    transform: translateY(8px);
+}
+
+.page-leave-to {
+    opacity: 0;
+    transform: translateY(-4px);
+}
+</style>

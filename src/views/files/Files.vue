@@ -307,11 +307,11 @@ onMounted(() => {
             class="flex items-center justify-between rounded-3xl border-1 border-slate-200 bg-white p-4 shadow-sm"
         >
             <div class="flex items-center space-x-3">
-                <Folder class="h-6 w-6 flex-shrink-0 text-blue-500" />
+                <Folder class="h-6 w-6 flex-shrink-0 text-slate-500" />
                 <h2 class="text-lg font-semibold text-gray-800">文件管理</h2>
             </div>
             <button
-                class="btn-touch flex items-center space-x-2 rounded-2xl bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600"
+                class="btn-touch flex items-center space-x-2 rounded-2xl bg-zx-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zx-primary-hover"
                 @click="showNewDialog = true"
             >
                 <Plus class="h-4 w-4" />

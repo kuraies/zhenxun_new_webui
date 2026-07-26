@@ -40,7 +40,7 @@ const emit = defineEmits<{
                 <template v-for="(segment, index) in pathSegments" :key="index">
                     <ChevronRight class="h-4 w-4 flex-shrink-0 text-gray-400" />
                     <button
-                        class="max-w-[120px] flex-shrink-0 truncate rounded-2xl px-2 py-1 text-blue-600 transition-colors hover:bg-gray-100"
+                        class="max-w-[120px] flex-shrink-0 truncate rounded-2xl px-2 py-1 text-zx-primary transition-colors hover:bg-zx-primary-tint"
                         @click="
                             emit(
                                 'navigate',
