@@ -67,6 +67,12 @@ const routes = [
                 path: "/logs",
                 redirect: "/dashboard",
             },
+            {
+                path: "/ext/test",
+                name: "扩展测试",
+                component: () => import("@/views/extension/ExtensionTest.vue"),
+                meta: { menuKey: "ext-test" },
+            },
             // {
             //     path: '/settings',
             //     name: '设置',

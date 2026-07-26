@@ -3,14 +3,17 @@
  * 集中管理侧边栏菜单项配置
  */
 
+import { reactive } from "vue";
 import type { Component } from "vue";
 import {
     Blocks,
     ChartBar,
     Database,
+    FlaskConical,
     Folder,
     LayoutPanelLeft,
     MessageSquareMore,
+    Sparkles,
 } from "lucide-vue-next";
 
 export interface MenuItem {
@@ -30,8 +33,10 @@ export interface MenuItem {
 
 /**
  * 主菜单配置
+ *
+ * 使用 reactive 包裹，便于运行时动态注册菜单（如插件注册二级菜单）
  */
-export const mainMenus: MenuItem[] = [
+export const mainMenus = reactive<MenuItem[]>([
     {
         name: "首页",
         key: "dashboard",
@@ -68,6 +73,19 @@ export const mainMenus: MenuItem[] = [
         icon: ChartBar,
         path: "/analytics",
     },
+    {
+        name: "扩展",
+        key: "extensions",
+        icon: FlaskConical,
+        children: [
+            {
+                name: "测试按钮",
+                key: "ext-test",
+                icon: Sparkles,
+                path: "/ext/test",
+            },
+        ],
+    },
     // {
     //     name: '设置',
     //     key: 'settings',
@@ -80,11 +98,38 @@ export const mainMenus: MenuItem[] = [
     //     icon: Info,
     //     path: '/about'
     // }
-];
+]);
 
 /**
- * 获取菜单项通过 key
+ * 获取菜单项通过 key（含二级菜单）
  */
 export function getMenuByKey(key: string): MenuItem | undefined {
-    return mainMenus.find((menu) => menu.key === key);
+    for (const menu of mainMenus) {
+        if (menu.key === key) return menu;
+        const child = menu.children?.find((item) => item.key === key);
+        if (child) return child;
+    }
+    return undefined;
+}
+
+/**
+ * 运行时注册菜单项（供插件注册二级菜单使用）
+ *
+ * @param item 要注册的菜单项
+ * @param parentKey 传入时挂载为该一级菜单的二级菜单，否则作为一级菜单追加
+ * @returns 是否注册成功（key 重复或找不到父级时失败）
+ */
+export function registerMenuItem(item: MenuItem, parentKey?: string): boolean {
+    if (getMenuByKey(item.key)) return false;
+
+    if (!parentKey) {
+        mainMenus.push(item);
+        return true;
+    }
+
+    const parent = mainMenus.find((menu) => menu.key === parentKey);
+    if (!parent) return false;
+
+    (parent.children ??= []).push(item);
+    return true;
 }
