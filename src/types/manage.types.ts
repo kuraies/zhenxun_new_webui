@@ -55,6 +55,18 @@ export interface DeleteFriend {
     user_id: string
 }
 
+export interface RenameGroup {
+    bot_id: string
+    group_id: string
+    group_name: string
+}
+
+export interface FriendRemark {
+    bot_id: string
+    user_id: string
+    remark: string
+}
+
 export interface GroupDetailNew {
     group_id: string
     group_name: string

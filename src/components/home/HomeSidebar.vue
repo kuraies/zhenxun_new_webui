@@ -63,6 +63,13 @@ const updateMobileMode = () => {
         if (navRef.value) {
             navRef.value.style.transition = "none";
 
+            // 清掉抽屉动画在容器/侧栏上留下的内联宽度：切回 PC 布局后
+            // 容器是普通 flex 子项，残留的 width:0/60px 会让右侧区域
+            // 不给侧边栏留位置，侧边栏被压在内容下面
+            const container = navRef.value.parentElement;
+            if (container) container.style.width = "";
+            navRef.value.style.width = "";
+
             if (globalStore.isMobileMode) {
                 // 手机端隐藏侧栏
                 globalStore.navHidden = true;
@@ -118,8 +125,10 @@ const playNavAnimation = (show: boolean) => {
     });
 
     // 移动端通常不需要动态改 container 宽度，因为它通常是 fixed 0 宽
-    // 但为了严谨，我们重置它
-    gsap.set(container, { width: show ? (globalStore.navMini ? 60 : 288) : 0 });
+    // 但为了严谨，我们重置它（移动端抽屉恒为全宽 288，不受 navMini 影响）
+    gsap.set(container, {
+        width: show ? (globalStore.isMobileMode ? 288 : globalStore.navMini ? 60 : 288) : 0,
+    });
 
     animationTl.to(
         navRef.value,
@@ -260,13 +269,20 @@ onUnmounted(() => {
             globalStore.isMobileMode
                 ? 'fixed top-0 left-0 z-40 h-full'
                 : 'relative',
-            'pb-4', // 必须加 overflow-hidden，否则宽度减小时内容会溢出
+            // 移动端抽屉全高贴边，不保留 PC 的底部留白
+            globalStore.isMobileMode ? '' : 'pb-4',
         ]"
     >
         <div
             ref="navRef"
             class="h-full"
-            :class="[globalStore.navMini ? 'w-16' : 'w-72']"
+            :class="[
+                globalStore.isMobileMode
+                    ? 'w-72'
+                    : globalStore.navMini
+                      ? 'w-16'
+                      : 'w-72',
+            ]"
         >
             <Menu />
         </div>

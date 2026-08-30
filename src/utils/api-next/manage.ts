@@ -8,6 +8,7 @@ import type {
     DeleteFriend,
     Friend,
     FriendDetail,
+    FriendRemark,
     FriendTrend,
     Group,
     GroupDetailNew,
@@ -17,6 +18,7 @@ import type {
     HandleRequest,
     LeaveGroup,
     MemberDetail,
+    RenameGroup,
     ReqResult,
     TogglePluginRequest,
     UpdateFriendRequest,
@@ -63,6 +65,20 @@ export const manageApi = {
      */
     deleteFriend(request: DeleteFriend): Promise<APIResponse<boolean>> {
         return api.post('/manage/delete-friend', request)
+    },
+
+    /**
+     * 修改群名（OneBot set_group_name）
+     */
+    renameGroup(request: RenameGroup): Promise<APIResponse<boolean>> {
+        return api.post('/manage/group/rename', request)
+    },
+
+    /**
+     * 设置好友备注（OneBot 扩展 set_friend_remark）
+     */
+    setFriendRemark(request: FriendRemark): Promise<APIResponse<boolean>> {
+        return api.post('/manage/friend/remark', request)
     },
 
     /**
