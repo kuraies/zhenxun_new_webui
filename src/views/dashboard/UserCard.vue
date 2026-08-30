@@ -5,9 +5,13 @@ import { systemApi } from "@/utils/api-next";
 
 import avatar from "@/assets/img/avatar.jpg";
 import { useBotStore } from "@/store/bot.ts";
-import { Power } from "lucide-vue-next";
+import { openDebugClient } from "@/config/menu";
+import { Bug, Power } from "lucide-vue-next";
 
 const botStore = useBotStore();
+
+// 是否有协议端（OneBot 客户端）接入
+const hasBots = computed(() => botStore.botList.length > 0);
 
 const avatarUrl = computed(() => {
     return botStore.selectedBot?.ava_url || avatar;
@@ -19,7 +23,6 @@ const handleRestart = async () => {
         title: "重启 Bot",
         message: "确定要重启 Bot 吗？重启后需要等待一段时间才能重新连接。",
         confirmButtonText: "重启",
-        confirmButtonHoverText: "确认重启",
         cancelButtonText: "取消",
     });
 
@@ -78,7 +81,7 @@ const handleRestart = async () => {
                         <h2
                             class="truncate text-base font-bold text-zx-user-card-text sm:text-3xl"
                         >
-                            {{ botStore.selectedBot?.nickname }}
+                            {{ botStore.selectedBot?.nickname ?? "暂无协议端接入" }}
                         </h2>
                         <div
                             class="relative flex h-2 w-2 shrink-0 sm:h-2.5 sm:w-2.5"
@@ -103,7 +106,8 @@ const handleRestart = async () => {
                     >
                         <span class="flex items-center space-x-1">
                             <span class="truncate">{{
-                                botStore.selectedBot?.self_id
+                                botStore.selectedBot?.self_id ??
+                                "等待 OneBot 客户端连接"
                             }}</span>
                         </span>
                     </div>
@@ -134,6 +138,15 @@ const handleRestart = async () => {
                 </div>
             </div>
             <div class="flex justify-between space-x-2 font-bold">
+                <button
+                    v-if="!hasBots"
+                    class="btn-touch flex h-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/20 bg-zx-user-card-chip px-4 py-1 pl-3 text-zx-user-card-chip-text shadow-sm backdrop-blur-sm transition-colors hover:bg-zx-primary hover:text-white"
+                    title="打开 OneBot 调试客户端（独立窗口）"
+                    @click="openDebugClient"
+                >
+                    <Bug class="h-5 w-5" />
+                    <span class=""> 打开调试客户端 </span>
+                </button>
                 <div
                     class="flex h-8 items-center justify-center rounded-full border border-white/20 bg-zx-user-card-chip px-4 py-1 pl-3 text-zx-user-card-chip-text shadow-sm backdrop-blur-sm"
                 >

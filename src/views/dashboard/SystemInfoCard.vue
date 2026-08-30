@@ -17,6 +17,8 @@ import type {
 const props = defineProps<{
     systemInfo: DashboardSystemInfo;
     networkStatus: DashboardNetworkStatus;
+    /** 首屏数据加载中：信息值显示骨架 */
+    loading?: boolean;
 }>();
 
 const statusText = (status: boolean | "checking") => {
@@ -148,6 +150,11 @@ const infoItems = computed(() => [
                         >{{ item.label }}：</span
                     >
                     <span
+                        v-if="loading"
+                        class="h-3.5 w-24 animate-pulse rounded-full bg-slate-100"
+                    ></span>
+                    <span
+                        v-else
                         :title="item.title || String(item.value)"
                         class="truncate font-medium text-gray-800"
                     >

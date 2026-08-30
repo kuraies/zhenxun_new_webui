@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { computed, reactive, ref, watch } from "vue";
 import { dashboardApi, mainApi } from "@/utils/api-next";
 import { useWebSocketStore } from "@/store/websocket";
+import { useBotStore } from "@/store/bot";
 import { createPolling } from "@/composables/usePolling";
 import type {
     SystemCount,
@@ -109,18 +110,22 @@ export const useSystemStore = defineStore("system", () => {
      */
     async function fetchPollingData() {
         try {
-            const res = await mainApi.getChatStatistics();
-            if (res?.success && res?.data) {
-                // 只更新存在的字段，避免覆盖其他统计字段
-                Object.assign(count, {
-                    chat_num: res.data.chat_num ?? count.chat_num,
-                    chat_day: res.data.chat_day ?? count.chat_day,
-                    call_num: res.data.call_num ?? count.call_num,
-                    call_day: res.data.call_day ?? count.call_day,
-                });
-                // 可选：将统计数据缓存到本地，防止刷新丢失
-                localStorage.setItem("chat_call_count", JSON.stringify(count));
+            // 按当前选中的 bot 统计；后端字段是 all/day，映射到 store 的口径
+            const botId = useBotStore().getSelectedBotId() ?? undefined;
+            const [chatRes, pluginRes] = await Promise.all([
+                mainApi.getChatStatistics(botId),
+                mainApi.getPluginStatistics(botId),
+            ]);
+            if (chatRes?.success && chatRes?.data) {
+                count.chat_num = chatRes.data.all ?? count.chat_num;
+                count.chat_day = chatRes.data.day ?? count.chat_day;
             }
+            if (pluginRes?.success && pluginRes?.data) {
+                count.call_num = pluginRes.data.all ?? count.call_num;
+                count.call_day = pluginRes.data.day ?? count.call_day;
+            }
+            // 可选：将统计数据缓存到本地，防止刷新丢失
+            localStorage.setItem("chat_call_count", JSON.stringify(count));
         } catch (err) {
             console.error("❌ 轮询获取统计失败:", err);
         }
@@ -161,6 +166,8 @@ export const useSystemStore = defineStore("system", () => {
      * 包括：恢复本地缓存数据、启动轮询定时器
      */
     function startPolling() {
+        // 防重入：KeepAlive 反复激活时不会堆叠出多个轮询定时器
+        if (pollingController) return;
         restoreCount();
         restoreSystemStatus();
         // 创建并启动页面可见性感知的轮询

@@ -1,3 +1,4 @@
+import { ref } from "vue";
 import {
     createRouter,
     createWebHistory,
@@ -34,6 +35,8 @@ const routes = [
                 component: () => import("@/views/analytics/Analytics.vue"),
                 meta: { menuKey: "analytics" },
             },
+            // 调试页已独立为 OneBot 调试客户端 PWA（/debug/，独立构建），
+            // 菜单项跳转新窗口，不再挂主站路由
             {
                 path: "/chat",
                 name: "联系人",
@@ -105,6 +108,39 @@ export const router: Router = createRouter({
     history: createWebHistory(import.meta.env.PROD ? "/next/" : "/"),
     routes,
 });
+
+// ==================== 导航加载状态 ====================
+// 异步路由组件在导航确认前要等 chunk 下载完成，期间旧页面原样停留，
+// 表现为"点了没反应"。这里暴露全局加载标记给布局层画进度条
+export const routeLoading = ref(false);
+
+router.beforeEach(() => {
+    routeLoading.value = true;
+});
+
+router.afterEach(() => {
+    routeLoading.value = false;
+});
+
+router.onError(() => {
+    routeLoading.value = false;
+});
+
+/** 悬停预取：提前加载目标路由的异步组件，点击切换时秒开 */
+export const prefetchRoute = (path: string) => {
+    try {
+        for (const record of router.resolve(path).matched) {
+            const component: any = record.components?.default;
+            if (typeof component === "function") {
+                Promise.resolve(component()).catch(() => {
+                    /* 预取失败静默忽略，点击时自然重试 */
+                });
+            }
+        }
+    } catch {
+        /* 非法路径忽略 */
+    }
+};
 
 router.beforeEach(
     (

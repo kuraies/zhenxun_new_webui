@@ -4,9 +4,14 @@
 
 import type { ChatMessage } from '@/types/api-next.types'
 import { getWsBaseUrl } from './client'
+import { startMockPush, type MockWsHandle } from '@/mocks/ws'
+import { defaultAva } from '@/mocks/fixtures'
+import { MOCK_MODE } from 'virtual:mock-mode'
 
 let ws: WebSocket | null = null
 let reconnectTimer: number | null = null
+let mockHandle: MockWsHandle | null = null
+let mockSeq = 0
 const RECONNECT_DELAY = 3000 // 3 秒重连
 
 export type ChatMessageHandler = (message: ChatMessage) => void
@@ -15,10 +20,59 @@ export type StateChangeHandler = (isOpen: boolean) => void
 let messageHandlers: Set<ChatMessageHandler> = new Set()
 let stateChangeHandlers: Set<StateChangeHandler> = new Set()
 
+// ==================== Mock 数据生成 ====================
+const MOCK_CHATTERS = [
+    { user_id: '10000000', name: '好友_1号' },
+    { user_id: '10000137', name: '好友_2号' },
+    { user_id: '10000274', name: '好友_3号' },
+]
+const MOCK_CHAT_TEXTS = [
+    'zhenxun 今天天气怎么样',
+    '签到',
+    '来看看运势！',
+    '点歌 晴天',
+    '帮助',
+    '呜呜真寻好可爱',
+    'query 金币',
+]
+
+function emitMockChatMessage(): ChatMessage {
+    const who = MOCK_CHATTERS[Math.floor(Math.random() * MOCK_CHATTERS.length)]
+    const isGroup = Math.random() > 0.4
+    const time = new Date().toISOString()
+    return {
+        object_id: `mock_${Date.now()}_${++mockSeq}`,
+        user_id: who.user_id,
+        group_id: isGroup ? '700000000' : undefined,
+        name: who.name,
+        ava_url: defaultAva,
+        time,
+        message: [
+            {
+                type: 'text',
+                msg: MOCK_CHAT_TEXTS[Math.floor(Math.random() * MOCK_CHAT_TEXTS.length)],
+                time,
+            },
+        ],
+    }
+}
+
 /**
  * 连接聊天 WebSocket
  */
 export function connectChatWebSocket(): void {
+    // Mock 模式:定时推送假聊天消息，不建立真实连接
+    if (MOCK_MODE) {
+        if (mockHandle) return
+        mockHandle = startMockPush(
+            open => stateChangeHandlers.forEach(handler => handler(open)),
+            message => messageHandlers.forEach(handler => handler(message)),
+            emitMockChatMessage,
+            3000,
+        )
+        return
+    }
+
     if (ws?.readyState === WebSocket.CONNECTING || ws?.readyState === WebSocket.OPEN) {
         return
     }
@@ -68,6 +122,11 @@ export function disconnectChatWebSocket(): void {
     if (reconnectTimer) {
         clearTimeout(reconnectTimer)
         reconnectTimer = null
+    }
+
+    if (mockHandle) {
+        mockHandle.stop()
+        mockHandle = null
     }
 
     if (ws) {
@@ -153,6 +212,13 @@ export function sendMessage(
     message?: string
 ): Promise<void> {
     return new Promise((resolve, reject) => {
+        // Mock 模式:没有真实连接，发送直接视为成功
+        if (MOCK_MODE) {
+            console.debug('[Mock] sendMessage:', botOrMessage, groupId, userId, message)
+            resolve()
+            return
+        }
+
         if (!ws || ws.readyState !== WebSocket.OPEN) {
             reject(new Error('WebSocket 未连接'))
             return

@@ -3,9 +3,12 @@
  */
 
 import { getWsBaseUrl } from './client'
+import { startMockPush, type MockWsHandle } from '@/mocks/ws'
+import { MOCK_MODE } from 'virtual:mock-mode'
 
 let ws: WebSocket | null = null
 let reconnectTimer: number | null = null
+let mockHandle: MockWsHandle | null = null
 const RECONNECT_DELAY = 3000 // 3 秒重连
 
 export type StatusMessageHandler = (data: any) => void
@@ -14,10 +17,32 @@ export type StateChangeHandler = (isOpen: boolean) => void
 let messageHandlers: Set<StatusMessageHandler> = new Set()
 let stateChangeHandlers: Set<StateChangeHandler> = new Set()
 
+/** Mock 模式的系统状态数据，在 CPU/内存/磁盘上做随机波动 */
+function emitMockStatus() {
+    return {
+        cpu: 8 + Math.random() * 30,
+        memory: 38 + Math.random() * 20,
+        disk: 41 + Math.random() * 5,
+        check_time: new Date().toISOString(),
+    }
+}
+
 /**
  * 连接系统状态 WebSocket
  */
 export function connectStatusWebSocket(): void {
+    // Mock 模式:定时推送假系统状态，不建立真实连接
+    if (MOCK_MODE) {
+        if (mockHandle) return
+        mockHandle = startMockPush(
+            open => stateChangeHandlers.forEach(handler => handler(open)),
+            data => messageHandlers.forEach(handler => handler(data)),
+            emitMockStatus,
+            2000,
+        )
+        return
+    }
+
     if (ws?.readyState === WebSocket.CONNECTING || ws?.readyState === WebSocket.OPEN) {
         return
     }
@@ -71,6 +96,11 @@ export function disconnectStatusWebSocket(): void {
     if (reconnectTimer) {
         clearTimeout(reconnectTimer)
         reconnectTimer = null
+    }
+
+    if (mockHandle) {
+        mockHandle.stop()
+        mockHandle = null
     }
 
     if (ws) {

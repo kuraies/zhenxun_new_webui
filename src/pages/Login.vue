@@ -23,9 +23,8 @@ import { eventBus } from "@/events/eventBus.ts";
 /*
 图片导入区
  */
-import bg_img from "@/assets/img/title.png";
 import logo_img from "@/assets/img/title.png";
-import poster_img from "@/assets/img/img.png";
+import { poster_img } from "@/utils/poster";
 
 /*
 图片导入区结束
@@ -183,8 +182,8 @@ watch(img_loaded, (newVal, oldVal) => {
 
             useSodaBlast(el, el2, el3).then(() => {
                 createParallaxEffect(bgRef.value, {
-                    depth: 0.8,
-                    duration: 0.1,
+                    depth: 0.3,
+                    duration: 1.5,
                 });
                 createParallaxEffect(imgRef.value, {
                     xOffset: 10,
@@ -450,74 +449,27 @@ function handleHoverShowLocation(): gsap.core.Timeline {
         <div
             v-show="img_loaded"
             ref="card"
-            class="login-card roof relative z-1 flex h-160 w-260 rounded-2xl border-8 border-white bg-transparent shadow-[0_0_16px_rgba(30,30,30,0.5)] after:content-[''] max-sm:h-screen max-sm:bg-pink-100 sm:m-10"
+                    class="login-card roof relative z-1 flex h-160 w-260 rounded-3xl border-8 border-white bg-transparent shadow-[0_0_16px_rgba(30,30,30,0.5)] after:content-[''] max-sm:h-screen max-sm:bg-pink-100 sm:m-10"
         >
             <div
+                v-if="poster_img"
                 class="backdrop pointer-events-none h-full overflow-hidden bg-white max-md:hidden max-sm:hidden"
             >
                 <div
                     class="flex h-full w-full flex-col justify-center bg-white"
                 >
-                    <svg
-                        height="100%"
-                        style="position: absolute"
-                        width="100%"
-                        x="0"
-                        y="0"
-                    >
-                        <filter
-                            id="remove-white"
-                            height="100%"
-                            width="100%"
-                            x="0"
-                            y="0"
-                        >
-                            <feColorMatrix
-                                type="matrix"
-                                values="
-                1 0 0 0 0
-                0 1 0 0 0
-                0 0 1 0 0
-                -1 -1 -1 1 1"
-                            />
-                        </filter>
-                    </svg>
                     <img
                         ref="imgRef"
                         :src="poster_img"
                         alt=""
                         @load="img_loaded = true"
                         class="h-full w-100 object-cover object-center"
-                        :class="img_loaded ? 'filter-[url(#remove-white)]' : ''"
                     />
                 </div>
             </div>
             <div
-                class="right-area z-2 flex flex-1 flex-col rounded-r-2xl py-6 backdrop-blur-xl max-sm:pb-0"
+                class="right-area z-2 flex flex-1 flex-col justify-center rounded-r-2xl py-6 backdrop-blur-xl max-sm:pb-0"
             >
-                <div class="location mx-6 ml-auto max-sm:mb-20">
-                    <button
-                        ref="showLocationButton"
-                        class="flex cursor-pointer items-center rounded-xl border border-transparent bg-white px-4 py-2 text-center text-xs text-slate-800 shadow-sm hover:shadow-md focus:outline-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none"
-                        type="button"
-                        @click="showLocation"
-                        @mouseenter="handleHoverShowLocation"
-                    >
-                        <svg
-                            class="mr-1 size-5"
-                            fill="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path
-                                clip-rule="evenodd"
-                                d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 0 0-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 0 0-2.282.819l-.922 1.597a1.875 1.875 0 0 0 .432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 0 0 0 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 0 0-.432 2.385l.922 1.597a1.875 1.875 0 0 0 2.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 0 0 2.28-.819l.923-1.597a1.875 1.875 0 0 0-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 0 0 0-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 0 0-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 0 0-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 0 0-1.85-1.567h-1.843ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"
-                                fill-rule="evenodd"
-                            />
-                        </svg>
-                        地址设置
-                    </button>
-                </div>
                 <div
                     ref="logo"
                     class="title mb-4 flex justify-center text-3xl font-bold text-slate-800"
@@ -530,7 +482,7 @@ function handleHoverShowLocation(): gsap.core.Timeline {
                 </div>
                 <div
                     ref="login_card"
-                    class="login relative mx-30 mb-8 flex-1 space-y-10 rounded-4xl px-8 pt-12 text-sm text-gray-700 shadow-sm before:absolute before:inset-0 before:-z-10 before:rounded-4xl before:bg-white before:bg-cover before:bg-center before:content-[''] max-sm:m-0 max-sm:px-10"
+                    class="login mx-30 flex flex-col space-y-10 rounded-3xl bg-white px-8 pt-12 pb-6 text-sm text-gray-700 shadow-sm max-sm:m-0 max-sm:px-10"
                 >
                     <div class="user space-y-2">
                         <div class="title font-bold">用户名</div>
@@ -564,7 +516,28 @@ function handleHoverShowLocation(): gsap.core.Timeline {
                             登录
                         </button>
                     </div>
-                    <div class="forget text-right">
+                    <div class="forget mt-auto flex items-center justify-between">
+                        <button
+                            ref="showLocationButton"
+                            class="flex cursor-pointer items-center gap-1 text-sm text-blue-500 transition-colors hover:text-blue-400 focus:outline-none"
+                            type="button"
+                            @click="showLocation"
+                            @mouseenter="handleHoverShowLocation"
+                        >
+                            <svg
+                                class="size-4"
+                                fill="currentColor"
+                                viewBox="0 0 24 24"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    clip-rule="evenodd"
+                                    d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 0 0-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 0 0-2.282.819l-.922 1.597a1.875 1.875 0 0 0 .432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 0 0 0 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 0 0-.432 2.385l.922 1.597a1.875 1.875 0 0 0 2.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 0 0 2.28-.819l.923-1.597a1.875 1.875 0 0 0-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 0 0 0-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 0 0-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 0 0-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 0 0-1.85-1.567h-1.843ZM12 15.75a3.75 3.75 0 1 0 0-7.5 3.75 3.75 0 0 0 0 7.5Z"
+                                    fill-rule="evenodd"
+                                />
+                            </svg>
+                            地址设置
+                        </button>
                         <span
                             class="cursor-pointer text-blue-500 hover:text-blue-400"
                             @click="showForgetPassword"
@@ -619,21 +592,150 @@ function handleHoverShowLocation(): gsap.core.Timeline {
             </defs>
         </svg>
         <div
-            class="bg absolute -z-0 flex h-full w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-white/20 via-white/8 to-white/3 [filter:url(#noiseFilter)]"
+            class="bg absolute -z-0 h-full w-full overflow-hidden bg-gradient-to-br from-white/20 via-white/8 to-white/3 [filter:url(#noiseFilter)]"
         >
-            <!--            -->
-            <!--            <div-->
-            <!--                class="bg absolute -z-0 flex h-full w-full flex-col items-center justify-center overflow-hidden"-->
-            <!--            >-->
-            <img
-                ref="bgRef"
-                :src="bg_img"
-                alt=""
-                class="w-full blur-3xl transition-transform duration-1000 ease-linear"
-            />
-            <!--            -->
+            <!-- 粉色烟雾背景 -->
+            <div ref="bgRef" class="absolute inset-[-12%]">
+                <div class="smoke smoke-1"></div>
+                <div class="smoke smoke-2"></div>
+                <div class="smoke smoke-3"></div>
+                <div class="smoke smoke-4"></div>
+                <div class="smoke smoke-5"></div>
+            </div>
         </div>
     </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+/* 粉色烟雾:多个大尺寸模糊径向渐变色块缓慢漂浮 */
+.smoke {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(90px);
+    pointer-events: none;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+.smoke-1 {
+    top: -18vmax;
+    left: -14vmax;
+    width: 55vmax;
+    height: 55vmax;
+    background: radial-gradient(
+        circle,
+        rgb(244 114 182 / 0.75),
+        transparent 71%
+    );
+    animation-name: smoke-drift-1;
+    animation-duration: 24s;
+}
+
+.smoke-2 {
+    top: -12vmax;
+    right: -16vmax;
+    width: 48vmax;
+    height: 48vmax;
+    background: radial-gradient(
+        circle,
+        rgb(249 168 212 / 0.8),
+        transparent 71%
+    );
+    animation-name: smoke-drift-2;
+    animation-duration: 32s;
+}
+
+.smoke-3 {
+    bottom: -30vmax;
+    left: 14vw;
+    width: 62vmax;
+    height: 62vmax;
+    background: radial-gradient(
+        circle,
+        rgb(236 72 153 / 0.5),
+        transparent 73%
+    );
+    animation-name: smoke-drift-3;
+    animation-duration: 28s;
+}
+
+.smoke-4 {
+    right: 4vw;
+    bottom: -18vmax;
+    width: 42vmax;
+    height: 42vmax;
+    background: radial-gradient(
+        circle,
+        rgb(219 39 119 / 0.42),
+        transparent 73%
+    );
+    animation-name: smoke-drift-4;
+    animation-duration: 36s;
+}
+
+.smoke-5 {
+    top: 24vh;
+    left: 36vw;
+    width: 34vmax;
+    height: 34vmax;
+    background: radial-gradient(
+        circle,
+        rgb(251 207 232 / 0.82),
+        transparent 73%
+    );
+    animation-name: smoke-drift-5;
+    animation-duration: 20s;
+}
+
+@keyframes smoke-drift-1 {
+    from {
+        transform: translate(0, 0) scale(1) rotate(0deg);
+    }
+    to {
+        transform: translate(5vw, 4vh) scale(1.18) rotate(12deg);
+    }
+}
+
+@keyframes smoke-drift-2 {
+    from {
+        transform: translate(0, 0) scale(1.1);
+    }
+    to {
+        transform: translate(-6vw, 5vh) scale(0.92);
+    }
+}
+
+@keyframes smoke-drift-3 {
+    from {
+        transform: translate(0, 0) scale(1) rotate(0deg);
+    }
+    to {
+        transform: translate(4vw, -5vh) scale(1.15) rotate(-10deg);
+    }
+}
+
+@keyframes smoke-drift-4 {
+    from {
+        transform: translate(0, 0) scale(0.95);
+    }
+    to {
+        transform: translate(-5vw, -3vh) scale(1.2);
+    }
+}
+
+@keyframes smoke-drift-5 {
+    from {
+        transform: translate(0, 0) scale(1);
+    }
+    to {
+        transform: translate(3vw, -4vh) scale(1.25);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .smoke {
+        animation: none;
+    }
+}
+</style>

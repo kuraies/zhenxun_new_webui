@@ -15,8 +15,11 @@ export const useBotStore = defineStore("bot", () => {
     // 机器人列表
     const botList = ref<BotInfo[]>([]);
 
-    // 当前选中的 Bot ID
-    const selectedBotId = ref<string | null>(null);
+    // 当前选中的 Bot ID（持久化到 localStorage，刷新后恢复）
+    const SELECTED_BOT_KEY = "selectedBotId";
+    const selectedBotId = ref<string | null>(
+        localStorage.getItem(SELECTED_BOT_KEY),
+    );
 
     // 机器人是否在线
     const isOnline = ref(true);
@@ -33,12 +36,13 @@ export const useBotStore = defineStore("bot", () => {
         return botList.value[botList.value.length - 1];
     });
 
-    // 计算属性，获取当前选中的 Bot（优先使用 selectedBotId，否则使用 lastBot）
+    // 计算属性，获取当前选中的 Bot（优先使用 selectedBotId；
+    // 本地恢复的 id 不在列表里时回退到第一个 bot）
     const selectedBot = computed(() => {
-        if (!selectedBotId.value) return lastBot.value;
+        if (!selectedBotId.value) return botList.value[0];
         return (
             botList.value.find((b) => b.self_id === selectedBotId.value) ||
-            lastBot.value
+            botList.value[0]
         );
     });
 
@@ -47,13 +51,28 @@ export const useBotStore = defineStore("bot", () => {
      */
     async function getBotList() {
         try {
-            // const res = await mainApi.getBotStatus()
             const res = await mainApi.getBotList();
-            // console.log(result);
-
             if (res?.success && res?.data) {
-                // 直接存入数组
+                // 刷新前正在展示的 bot（selectedBotId 为空时展示第一个）
+                const prevDisplayed = selectedBot.value?.self_id ?? null;
                 botList.value = res.data;
+
+                // 选中的 id 不在新列表里（从未选择 / 本地恢复的 id 已下线，
+                // 如上次模拟端连接后退出）时归一：优先回到刷新前展示的 bot，
+                // 否则选第一个。否则模拟端一连上就会"自动切换"到它
+                const stillExists = res.data.some(
+                    (b) => b.self_id === selectedBotId.value,
+                );
+                if (!stillExists) {
+                    if (
+                        prevDisplayed &&
+                        res.data.some((b) => b.self_id === prevDisplayed)
+                    ) {
+                        setSelectedBot(prevDisplayed);
+                    } else if (res.data[0]) {
+                        setSelectedBot(res.data[0].self_id);
+                    }
+                }
             } else {
                 console.warn("获取机器人列表失败或返回数据无效：", res);
             }
@@ -88,6 +107,11 @@ export const useBotStore = defineStore("bot", () => {
      */
     function setSelectedBot(botId: string | null) {
         selectedBotId.value = botId;
+        if (botId) {
+            localStorage.setItem(SELECTED_BOT_KEY, botId);
+        } else {
+            localStorage.removeItem(SELECTED_BOT_KEY);
+        }
     }
 
     /**

@@ -2,12 +2,28 @@
 import { computed } from "vue";
 import { Cpu, HardDrive, MemoryStick } from "lucide-vue-next";
 import SystemStatusCard from "@/views/dashboard/SystemStatusCard.vue";
+import type { DashboardSystemInfo } from "@/views/dashboard/types";
 
-const props = defineProps<{
-    cpu: number;
-    memory: number;
-    disk: number;
-}>();
+const props = withDefaults(
+    defineProps<{
+        cpu: number;
+        memory: number;
+        disk: number;
+        systemInfo: DashboardSystemInfo;
+        /** 首屏数据加载中：透传给资源卡的数值骨架 */
+        loading?: boolean;
+    }>(),
+    {
+        loading: false,
+    },
+);
+
+// systemInfo 里的总量单位已经是 GB（后端换算好的），
+// 这里按百分比直接算已用量，不要再当字节除一次 1024³
+const usageSubtitle = (percent: number, totalGb: number) =>
+    totalGb > 0
+        ? `${((totalGb * percent) / 100).toFixed(1)} GB / ${totalGb.toFixed(1)} GB`
+        : undefined;
 
 const resourceCards = computed(() => [
     {
@@ -16,8 +32,11 @@ const resourceCards = computed(() => [
         value: props.cpu,
         icon: Cpu,
         iconColor: "text-zx-primary",
-        normalBarClass: "bg-zx-primary",
-        class: "h-22",
+        subtitle:
+            props.systemInfo.cpuFreq > 0 && props.systemInfo.cpuCores > 0
+                ? `${(props.systemInfo.cpuFreq / 1000).toFixed(1)} GHz / ${props.systemInfo.cpuCores} 核心`
+                : undefined,
+        class: "h-30",
     },
     {
         key: "memory",
@@ -25,8 +44,8 @@ const resourceCards = computed(() => [
         value: props.memory,
         icon: MemoryStick,
         iconColor: "text-zx-primary",
-        normalBarClass: "bg-zx-primary",
-        class: "h-22",
+        subtitle: usageSubtitle(props.memory, props.systemInfo.memoryTotal),
+        class: "h-30",
     },
     {
         key: "disk",
@@ -34,8 +53,8 @@ const resourceCards = computed(() => [
         value: props.disk,
         icon: HardDrive,
         iconColor: "text-zx-primary",
-        normalBarClass: "bg-zx-primary",
-        class: "h-22 sm:col-span-2 lg:col-span-1",
+        subtitle: usageSubtitle(props.disk, props.systemInfo.diskTotal),
+        class: "h-30 sm:col-span-2 lg:col-span-1",
     },
 ]);
 </script>
@@ -50,8 +69,9 @@ const resourceCards = computed(() => [
             :icon="card.icon"
             :value="card.value"
             :icon-color="card.iconColor"
-            :normal-bar-class="card.normalBarClass"
             :title="card.title"
+            :subtitle="card.subtitle"
+            :loading="props.loading"
             :class="card.class"
         />
     </div>

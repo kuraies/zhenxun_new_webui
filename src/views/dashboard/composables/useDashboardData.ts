@@ -1,5 +1,5 @@
 import { computed, ref } from "vue";
-import { Activity, MessageSquare, Plug } from "lucide-vue-next";
+import { Activity, Flame, MessageSquare, Package } from "lucide-vue-next";
 import { useSystemStore } from "@/store/system.js";
 import { useBotStore } from "@/store/bot";
 import { analyticsApi, mainApi, systemApi } from "@/utils/api-next";
@@ -22,6 +22,7 @@ const defaultSystemInfo: DashboardSystemInfo = {
     cpuCores: 0,
     cpuFreq: 0,
     memoryTotal: 0,
+    diskTotal: 0,
 };
 
 const defaultNetworkStatus: DashboardNetworkStatus = {
@@ -36,6 +37,13 @@ const defaultStatsTrend: Record<string, Trend> = {
     call_day: "stable",
 };
 
+const defaultStatsChange: Record<string, number | null> = {
+    chat_num: null,
+    chat_day: null,
+    call_num: null,
+    call_day: null,
+};
+
 const toFiniteNumber = (value: unknown) => {
     const numberValue = Number(value);
     return Number.isFinite(numberValue) ? numberValue : null;
@@ -47,6 +55,28 @@ const compareTrend = (current: number, previous: number): Trend => {
     return "stable";
 };
 
+/** 趋势方向 + 相对变化百分比（基数为 0 时无法计算，返回 null） */
+const compareWithChange = (
+    current: number,
+    previous: number,
+): { trend: Trend; change: number | null } => {
+    // 基数为 0 但当前有数据时按 +100% 展示，否则百分比永远缺席
+    const change =
+        previous > 0
+            ? ((current - previous) / previous) * 100
+            : current > 0
+              ? 100
+              : null;
+    return { trend: compareTrend(current, previous), change };
+};
+
+/** 本地时间的 ISO 风格字符串（不带时区）：
+ *  后端按本地时间入库，toISOString 的 UTC 会造成查询窗口偏移 */
+const toLocalIso = (d: Date) => {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+};
+
 export const useDashboardData = () => {
     const systemStore = useSystemStore();
     const botStore = useBotStore();
@@ -55,7 +85,12 @@ export const useDashboardData = () => {
     const networkStatus = ref<DashboardNetworkStatus>({
         ...defaultNetworkStatus,
     });
+    // 首屏骨架屏开关：仅首次加载数据期间为 true，轮询刷新不影响
+    const loading = ref(true);
     const statsTrend = ref<Record<string, Trend>>({ ...defaultStatsTrend });
+    const statsChange = ref<Record<string, number | null>>({
+        ...defaultStatsChange,
+    });
 
     const updateSystemUsage = (data: SystemStatus) => {
         const cpu = toFiniteNumber(data?.cpu);
@@ -75,6 +110,7 @@ export const useDashboardData = () => {
             cpuCores: data.cpu_cores,
             cpuFreq: data.cpu_freq_mhz,
             memoryTotal: data.memory_total,
+            diskTotal: data.disk_total ?? 0,
         };
     };
 
@@ -85,27 +121,37 @@ export const useDashboardData = () => {
         const latest = points[points.length - 1];
         const previous = points[points.length - 2];
 
-        statsTrend.value.chat_num = compareTrend(
+        const numResult = compareWithChange(
             latest.message_count,
             previous.message_count,
         );
-        statsTrend.value.call_num = compareTrend(
+        statsTrend.value.chat_num = numResult.trend;
+        statsChange.value.chat_num = numResult.change;
+
+        const callResult = compareWithChange(
             latest.plugin_call_count,
             previous.plugin_call_count,
         );
+        statsTrend.value.call_num = callResult.trend;
+        statsChange.value.call_num = callResult.change;
 
         if (points.length < 3) return;
 
         const previousDay = points[points.length - 3];
 
-        statsTrend.value.chat_day = compareTrend(
+        const dayNumResult = compareWithChange(
             latest.message_count,
             previousDay.message_count,
         );
-        statsTrend.value.call_day = compareTrend(
+        statsTrend.value.chat_day = dayNumResult.trend;
+        statsChange.value.chat_day = dayNumResult.change;
+
+        const dayCallResult = compareWithChange(
             latest.plugin_call_count,
             previousDay.plugin_call_count,
         );
+        statsTrend.value.call_day = dayCallResult.trend;
+        statsChange.value.call_day = dayCallResult.change;
     };
 
     const checkNetwork = async () => {
@@ -134,8 +180,8 @@ export const useDashboardData = () => {
                     systemApi.getStatus(),
                     systemApi.getSystemInfo(),
                     analyticsApi.getTrendData({
-                        start_time: yesterday.toISOString(),
-                        end_time: now.toISOString(),
+                        start_time: toLocalIso(yesterday),
+                        end_time: toLocalIso(now),
                         granularity: "hour",
                     }),
                 ]);
@@ -183,7 +229,11 @@ export const useDashboardData = () => {
     const startDashboard = async () => {
         systemStore.startPolling();
         await botStore.getBotList();
-        await loadDashboardData();
+        try {
+            await loadDashboardData();
+        } finally {
+            loading.value = false;
+        }
     };
 
     const stopDashboard = () => {
@@ -194,38 +244,43 @@ export const useDashboardData = () => {
         {
             id: "chat_num",
             title: "消息总数",
-            value: botStore.selectedBot?.messages_total ?? 0,
+            // 计数值由 system store 每 5 秒轮询刷新，保证实时性
+            value: systemStore.count.chat_num,
             icon: MessageSquare,
-            bgClass: "bg-zx-primary-soft",
-            colorClass: "text-zx-primary",
+            strokeWidth: 2,
+            colorClass: "text-sky-500",
             trend: statsTrend.value.chat_num,
+            change: statsChange.value.chat_num,
         },
         {
             id: "chat_day",
             title: "今日消息",
-            value: botStore.selectedBot?.received_messages ?? 0,
+            value: systemStore.count.chat_day,
             icon: Activity,
-            bgClass: "bg-zx-primary-soft",
-            colorClass: "text-zx-primary",
+            strokeWidth: 2,
+            colorClass: "text-emerald-500",
             trend: statsTrend.value.chat_day,
+            change: statsChange.value.chat_day,
         },
         {
             id: "call_num",
             title: "调用总数",
-            value: botStore.selectedBot?.total_call ?? 0,
-            icon: Plug,
-            bgClass: "bg-zx-primary-soft",
-            colorClass: "text-zx-primary",
+            value: systemStore.count.call_num,
+            icon: Package,
+            strokeWidth: 2,
+            colorClass: "text-amber-500",
             trend: statsTrend.value.call_num,
+            change: statsChange.value.call_num,
         },
         {
             id: "call_day",
             title: "今日调用",
-            value: botStore.selectedBot?.day_call ?? 0,
-            icon: Activity,
-            bgClass: "bg-zx-primary-soft",
-            colorClass: "text-zx-primary",
+            value: systemStore.count.call_day,
+            icon: Flame,
+            strokeWidth: 2,
+            colorClass: "text-violet-500",
             trend: statsTrend.value.call_day,
+            change: statsChange.value.call_day,
         },
     ]);
 
@@ -234,6 +289,7 @@ export const useDashboardData = () => {
         systemInfo,
         networkStatus,
         statCards,
+        loading,
         startDashboard,
         stopDashboard,
     };

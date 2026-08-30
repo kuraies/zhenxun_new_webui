@@ -1,5 +1,10 @@
 <script lang="ts" setup>
-import { onBeforeUnmount, onMounted } from "vue";
+import {
+    onActivated,
+    onBeforeUnmount,
+    onDeactivated,
+    onMounted,
+} from "vue";
 import UserCard from "@/views/dashboard/UserCard.vue";
 import CommitTimeline from "@/views/dashboard/CommitTimeline.vue";
 import LogCard from "@/views/dashboard/LogCard.vue";
@@ -13,12 +18,24 @@ const {
     systemInfo,
     networkStatus,
     statCards,
+    loading,
     startDashboard,
     stopDashboard,
 } = useDashboardData();
 
 onMounted(async () => {
     await startDashboard();
+});
+
+// KeepAlive：离开首页时暂停统计轮询，回来时恢复。
+// 之前只在 onBeforeUnmount 里停，但 KeepAlive 缓存的页面不会触发卸载，
+// 导致切到其他页面后轮询仍在后台打 chat-statistics / plugin-statistics
+onActivated(() => {
+    systemStore.startPolling();
+});
+
+onDeactivated(() => {
+    systemStore.stopPolling();
 });
 
 onBeforeUnmount(() => {
@@ -36,7 +53,7 @@ onBeforeUnmount(() => {
         >
             <!-- 顶部状态栏 -->
             <UserCard />
-            <DashboardStatsGrid :cards="statCards" />
+            <DashboardStatsGrid :cards="statCards" :loading="loading" />
 
             <div
                 class="col-span-1 flex min-h-0 flex-col gap-4 max-2xl:order-last lg:col-span-2 2xl:col-span-1 2xl:col-start-3 2xl:row-span-3 2xl:row-start-1 2xl:h-full"
@@ -45,17 +62,20 @@ onBeforeUnmount(() => {
                     class="min-h-0 flex-1 max-2xl:max-h-96 max-lg:max-h-64"
                 />
 
-                <SystemInfoCard
-                    :system-info="systemInfo"
-                    :network-status="networkStatus"
-                    class="shrink-0"
-                />
+            <SystemInfoCard
+                :system-info="systemInfo"
+                :network-status="networkStatus"
+                :loading="loading"
+                class="shrink-0"
+            />
             </div>
 
             <DashboardResourceGrid
                 :cpu="systemStore.systemStatus.cpu"
                 :memory="systemStore.systemStatus.memory"
                 :disk="systemStore.systemStatus.disk"
+                :system-info="systemInfo"
+                :loading="loading"
             />
 
             <LogCard

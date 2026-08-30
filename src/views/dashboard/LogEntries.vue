@@ -42,11 +42,11 @@ const levelClass = (level: LogEntry["level"]) => {
         <span class="text-sm">暂无日志</span>
     </div>
 
-    <div v-else class="space-y-0.5 pr-5 font-mono text-xs">
+    <div v-else class="space-y-0.5 pr-2 font-mono text-xs sm:pr-5">
         <div
             v-for="(log, index) in logs"
             :key="log.seq || index"
-            class="grid grid-cols-[3rem_3rem_minmax(0,1fr)] items-center gap-1.5 rounded-lg px-2 text-slate-700 transition-colors hover:bg-slate-200/70"
+            class="grid grid-cols-[2.5rem_2.6rem_minmax(0,1fr)] items-center gap-1 rounded-lg px-1 text-slate-700 transition-colors hover:bg-slate-200/70 sm:grid-cols-[3rem_3rem_minmax(0,1fr)] sm:gap-1.5 sm:px-2"
         >
             <span class="text-[10px] text-slate-400 tabular-nums ">
                 {{ formatTimestamp(log.timestamp) }}
@@ -65,7 +65,7 @@ const levelClass = (level: LogEntry["level"]) => {
                 >
                     <span
                         :title="log.module"
-                        class="truncate py-0.5 pr-1 text-[12px] font-medium text-slate-500"
+                        class="truncate py-0.5 pr-1 text-[12px] font-bold text-violet-500"
                     >
                         {{ log.module }}
                     </span>

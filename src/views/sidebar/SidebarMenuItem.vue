@@ -3,8 +3,8 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { gsap } from "gsap";
 import { ChevronRight } from "lucide-vue-next";
 import { useGlobalStore } from "@/store/global.js";
-import { router } from "@/router/index.js";
-import type { MenuItem } from "@/config/menu";
+import { prefetchRoute, router } from "@/router/index.js";
+import { openExternalWindow, type MenuItem } from "@/config/menu";
 
 const props = defineProps<{ item: MenuItem }>();
 
@@ -117,16 +117,38 @@ const handleClick = () => {
         expanded.value = !expanded.value;
         return;
     }
+    if (props.item.external) {
+        if (!props.item.path) return;
+        if (props.item.externalWindow) {
+            openExternalWindow(props.item.path, props.item.externalWindow);
+        } else {
+            window.open(props.item.path, "_blank", "noopener");
+        }
+        return;
+    }
     globalStore.activeMenuKey = props.item.key;
     if (props.item.path) router.push(props.item.path);
 };
 
 const handleChildClick = (child: MenuItem) => {
+    if (child.external) {
+        if (!child.path) return;
+        if (child.externalWindow) {
+            openExternalWindow(child.path, child.externalWindow);
+        } else {
+            window.open(child.path, "_blank", "noopener");
+        }
+        return;
+    }
     globalStore.activeMenuKey = child.key;
     if (child.path) router.push(child.path);
 };
 
 const handleMouseEnter = () => {
+    // 顺手预取目标页的异步组件，消除点击后的 chunk 下载等待
+    if (!hasChildren.value && !props.item.external && props.item.path) {
+        prefetchRoute(props.item.path);
+    }
     if (!isActive.value) startAnim();
 };
 const handleMouseLeave = () => {

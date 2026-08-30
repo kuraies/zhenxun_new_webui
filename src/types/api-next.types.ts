@@ -105,6 +105,7 @@ export interface SystemInfo {
     cpu_cores: number
     cpu_freq_mhz: number
     memory_total: number
+    disk_total?: number
     nickname: string
 }
 

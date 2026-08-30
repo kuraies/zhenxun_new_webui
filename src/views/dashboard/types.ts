@@ -11,6 +11,7 @@ export interface DashboardSystemInfo {
     cpuCores: number;
     cpuFreq: number;
     memoryTotal: number;
+    diskTotal: number;
 }
 
 export interface DashboardNetworkStatus {
@@ -23,7 +24,10 @@ export interface DashboardStatCard {
     title: string;
     value: number;
     icon: Component;
-    bgClass: string;
+    bgClass?: string;
     colorClass: string;
+    filled?: boolean;
+    strokeWidth?: number;
+    change?: number | null;
     trend: Trend;
 }

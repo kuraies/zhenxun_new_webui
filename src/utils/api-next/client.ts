@@ -34,6 +34,16 @@ export const updateApiBaseUrl = () => {
     apiClient.defaults.baseURL = getBaseUrl() + API_V1_BASE
 }
 
+// ==================== Mock 模式接入 ====================
+// virtual:mock-api 由 vite.config.ts 的开关决定指向真实 mock server 还是空实现，
+// 关闭/生产构建时 mockAdapter 为 undefined，src/mocks 不会进入产物
+import { mockAdapter } from 'virtual:mock-api'
+
+if (mockAdapter) {
+    apiClient.defaults.adapter = mockAdapter
+}
+// =========================================================
+
 apiClient.interceptors.request.use(config => {
     const token = auth.getAuthToken()
     if (token) {

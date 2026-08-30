@@ -5,6 +5,8 @@ import type { DashboardStatCard, Trend } from "@/views/dashboard/types";
 
 defineProps<{
     cards: DashboardStatCard[];
+    /** 首屏数据加载中：透传给统计卡的数值骨架 */
+    loading?: boolean;
 }>();
 
 const getTrendIcon = (trend: Trend | undefined) => {
@@ -29,10 +31,14 @@ const getTrendIcon = (trend: Trend | undefined) => {
             :icon="item.icon"
             :icon-bg-class="item.bgClass"
             :icon-color-class="item.colorClass"
+            :icon-filled="item.filled"
+            :icon-stroke-width="item.strokeWidth"
+            :change="item.change"
             :trend-icon="item.trend ? getTrendIcon(item.trend).icon : undefined"
             :trend-color-class="
                 item.trend ? getTrendIcon(item.trend).color : undefined
             "
+            :loading="loading"
         />
     </div>
 </template>
