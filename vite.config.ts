@@ -9,7 +9,44 @@ import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 import compression from "vite-plugin-compression2";
 
 // https://vite.dev/config/
+// ==================== Mock 模式开关 ====================
+// 开启后开发服务器里所有 API 请求与 WebSocket 数据均来自 src/mocks 的本地数据，
+// 无需启动真寻后端即可开发前端页面（仅 dev 生效，build 永远关闭）
+const MOCK = false;
+// ===========================================================
+
 export default defineConfig(({ command }) =>({
+    resolve: {
+        alias: {
+            "@": fileURLToPath(new URL("./src", import.meta.url)),
+            components: fileURLToPath(
+                new URL("./src/components", import.meta.url),
+            ),
+            // Mock 开关注入载体:代码里 import { MOCK_MODE } from "virtual:mock-mode"
+            // 拿到编译期常量；import { mockAdapter } from "virtual:mock-api" 拿到
+            // mock 适配器（关闭时指向空实现，src/mocks 不会进入构建产物）
+            ...(command === "serve" && MOCK
+                ? {
+                      "virtual:mock-mode": fileURLToPath(
+                          new URL("./src/mocks/flag-on.ts", import.meta.url),
+                      ),
+                      "virtual:mock-api": fileURLToPath(
+                          new URL("./src/mocks/server.ts", import.meta.url),
+                      ),
+                  }
+                : {
+                      "virtual:mock-mode": fileURLToPath(
+                          new URL("./src/mocks/flag-off.ts", import.meta.url),
+                      ),
+                      "virtual:mock-api": fileURLToPath(
+                          new URL(
+                              "./src/mocks/empty-adapter.ts",
+                              import.meta.url,
+                          ),
+                      ),
+                  }),
+        },
+    },
     plugins: [
         vue(),
         tailwindcss(),
@@ -31,14 +68,6 @@ export default defineConfig(({ command }) =>({
         // 编辑器已替换为轻量 textarea 实现，避免 worker 进入构建
     ],
     base: command === "build" ? "/next/" : "/",
-    resolve: {
-        alias: {
-            "@": fileURLToPath(new URL("./src", import.meta.url)),
-            components: fileURLToPath(
-                new URL("./src/components", import.meta.url),
-            ),
-        },
-    },
     build: {
         minify: "terser",
         terserOptions: {
