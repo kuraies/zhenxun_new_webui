@@ -315,7 +315,24 @@ export interface ChatMessage {
 }
 
 export interface ChatMessageItem {
-    type: 'text' | 'img' | 'at' | 'other'
+    /** 后端目前推 text/img/at，其余为 OneBot 段类型预留 */
+    type:
+        | 'text'
+        | 'img'
+        | 'image'
+        | 'at'
+        | 'face'
+        | 'record'
+        | 'voice'
+        | 'video'
+        | 'json'
+        | 'xml'
+        | 'forward'
+        | 'share'
+        | 'music'
+        | 'location'
+        | 'reply'
+        | 'other'
     msg: string
     time: string
 }

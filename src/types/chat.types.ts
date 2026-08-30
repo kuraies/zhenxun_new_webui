@@ -1,7 +1,28 @@
 /**
- * 消息类型
+ * 消息类型（覆盖 OneBot v11 常见消息段）
  */
-export type MessageType = 'text' | 'image' | 'face' | 'record' | 'video' | 'at' | 'reply'
+export type MessageType =
+    | 'text'
+    | 'image'
+    | 'face'
+    | 'record'
+    | 'video'
+    | 'at'
+    | 'reply'
+    | 'json'
+    | 'xml'
+    | 'forward'
+    | 'share'
+    | 'music'
+    | 'location'
+
+/**
+ * 混合消息的内容段（文本/图片等按原始顺序）
+ */
+export interface ChatMessagePart {
+    type: MessageType
+    content: string
+}
 
 /**
  * 聊天消息类型
@@ -17,6 +38,8 @@ export interface ChatMessage {
     is_self: boolean
     group_id?: string
     group_name?: string
+    /** 混合消息的内容段；单类型消息不设，仍走 message/message_type */
+    parts?: ChatMessagePart[]
 }
 
 /**

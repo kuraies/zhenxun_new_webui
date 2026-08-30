@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import type {
     ChatMessage,
+    ChatMessagePart,
     Friend,
     Group as GroupType,
     MessageType,
@@ -180,48 +181,104 @@ export const useChatStore = defineStore("chat", () => {
         await removeMessage(selectedContact.value, selectedId.value, messageId);
     };
 
+    /** 后端段类型 -> 本地消息类型（后端 chat WS 目前推 text/img/at，其余预留） */
+    const SEGMENT_TYPE_MAP: Record<string, MessageType> = {
+        img: "image",
+        image: "image",
+        face: "face",
+        record: "record",
+        voice: "record",
+        video: "video",
+        json: "json",
+        xml: "xml",
+        forward: "forward",
+        share: "share",
+        music: "music",
+        location: "location",
+        reply: "reply",
+    };
+
+    /** 各特殊类型无负载时的占位文案 */
+    const TYPE_PLACEHOLDER: Partial<Record<MessageType, string>> = {
+        image: "[图片]",
+        face: "[表情]",
+        record: "[语音]",
+        video: "[视频]",
+        json: "[JSON卡片]",
+        xml: "[XML卡片]",
+        forward: "[合并转发消息]",
+        share: "[链接分享]",
+        music: "[音乐分享]",
+        location: "[位置]",
+        reply: "[回复]",
+    };
+
     const parseIncomingMessage = (data: any) => {
-        let messageText = "";
-        let messageType: MessageType = "text";
-        let imageUrl = "";
+        const parts: ChatMessagePart[] = [];
+        const pushText = (text: string) => {
+            if (!text) return;
+            const last = parts[parts.length - 1];
+            if (last && last.type === "text") {
+                last.content += text;
+            } else {
+                parts.push({ type: "text", content: text });
+            }
+        };
 
         if (Array.isArray(data.message)) {
-            const imageItem = data.message.find(
-                (item: any) => item.type === "img" || item.type === "image",
-            );
-
-            if (imageItem) {
-                messageType = "image";
-                // url 可能在外层，也可能在段 data 里（OneBot 段格式）
+            for (const item of data.message) {
                 const segData =
-                    imageItem.data && typeof imageItem.data === "object"
-                        ? imageItem.data
+                    item.data && typeof item.data === "object"
+                        ? item.data
                         : {};
-                imageUrl =
-                    imageItem.url ||
-                    (typeof imageItem.data === "string"
-                        ? imageItem.data
-                        : "") ||
-                    imageItem.msg ||
-                    segData.url ||
-                    segData.file ||
-                    "";
+                const mapped = SEGMENT_TYPE_MAP[item.type];
+                if (mapped) {
+                    // 每个特殊段独立保留，混合消息按原始顺序渲染
+                    const payload =
+                        item.url ||
+                        item.msg ||
+                        (typeof item.data === "string" ? item.data : "") ||
+                        segData.url ||
+                        segData.file ||
+                        "";
+                    parts.push({
+                        type: mapped,
+                        content: payload || TYPE_PLACEHOLDER[mapped] || "",
+                    });
+                    continue;
+                }
+                if (item.type === "text") {
+                    pushText(item.msg || item.data?.text || "");
+                } else if (item.type === "at") {
+                    // 后端 at 段的 msg 已是 "@昵称" 文本
+                    pushText(item.msg || `@${segData.qq ?? ""}`);
+                }
+                // 其余未知类型跳过
             }
-
-            messageText = data.message
-                .filter((item: any) => item.type === "text")
-                .map((item: any) => item.msg || item.data?.text || "")
-                .join("");
         } else if (typeof data.message === "string") {
-            messageText = data.message;
+            pushText(data.message);
         } else {
-            messageText = data.msg || "";
+            pushText(data.msg || "");
         }
 
-        return {
-            message: messageType === "image" ? imageUrl : messageText,
-            messageType,
-        };
+        if (!parts.length) {
+            parts.push({ type: "text", content: "" });
+        }
+
+        const first = parts[0];
+        // 兼容字段：单段消息直接用内容；混合消息给拼接摘要
+        const message =
+            parts.length === 1
+                ? first.content
+                : parts
+                      .map((part) =>
+                          part.type === "text"
+                              ? part.content
+                              : part.content || "",
+                      )
+                      .join("");
+
+        return { parts, messageType: first.type, message };
     };
 
     const appendIncomingMessage = async (data: WsChatMessage | any) => {
@@ -242,7 +299,7 @@ export const useChatStore = defineStore("chat", () => {
 
         if (!conversationId) return;
 
-        const { message, messageType } = parseIncomingMessage(data);
+        const { message, messageType, parts } = parseIncomingMessage(data);
         if (!message) return;
 
         const incomingMessage: ChatMessage = {
@@ -255,6 +312,7 @@ export const useChatStore = defineStore("chat", () => {
             timestamp: data.time || new Date().toISOString(),
             is_self: currentBotId ? userId === currentBotId : false,
             group_id: groupId || undefined,
+            parts: parts.length > 1 ? parts : undefined,
         };
 
         const conversationKey = getConversationKey(

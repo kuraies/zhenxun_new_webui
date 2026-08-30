@@ -58,6 +58,7 @@ export type { LogLevel, LogEntry } from './log.types'
 export type {
     MessageType,
     ChatMessage,
+    ChatMessagePart,
     SendMessageParam,
     MessageItem,
     ChatWebSocketMessage,
