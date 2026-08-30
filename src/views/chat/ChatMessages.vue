@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowLeft, ImageIcon, MessageSquare, Send } from "lucide-vue-next";
+import { ArrowLeft, ImageIcon, MessageSquare, PanelRight, Send } from "lucide-vue-next";
 import { storeToRefs } from "pinia";
 import { useChatStore } from "@/store/chat.ts";
 import { computed, onMounted, ref, watch } from "vue";
@@ -7,6 +7,15 @@ import { ZXNotification } from "@/services/ui";
 import { sendMessage as sendWsMessage } from "@/utils/api-next/websocket-chat";
 import { useBotStore } from "@/store/bot.ts";
 import type { ChatMessage } from "@/types";
+
+const props = defineProps<{
+    /** 右侧详情面板是否展开（用于按钮高亮） */
+    detailOpen?: boolean;
+}>();
+
+const emit = defineEmits<{
+    "toggle-detail": [];
+}>();
 
 const chatStore = useChatStore();
 const botStore = useBotStore();
@@ -309,7 +318,7 @@ onMounted(async () => {
         <!-- 当前聊天信息 -->
         <div
             v-if="currentContactInfo"
-            class="flex items-center space-x-3 border-b border-gray-200 p-6 px-6 pb-4"
+            class="flex items-center gap-3 border-b border-gray-200 px-4 pl-6 py-3 pt-4"
         >
             <!-- 移动端返回按钮 -->
             <button
@@ -322,7 +331,7 @@ onMounted(async () => {
                 <ArrowLeft class="h-5 w-5" />
             </button>
             <div
-                class="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-zx-primary-soft text-sm font-bold text-zx-primary"
+                class="flex h-8 w-8 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-zx-primary-soft text-xs font-bold text-zx-primary"
             >
                 <img
                     v-if="currentContactInfo.avatar"
@@ -339,7 +348,7 @@ onMounted(async () => {
                     currentContactInfo.name.charAt(0)
                 }}</span>
             </div>
-            <div class="min-w-0 flex-1">
+            <div class="flex min-w-0 flex-1 items-baseline gap-2">
                 <p class="truncate font-bold text-gray-700">
                     {{ currentContactInfo.name }}
                 </p>
@@ -347,6 +356,19 @@ onMounted(async () => {
                     {{ currentContactInfo.id }}
                 </p>
             </div>
+            <!-- 右侧详情面板开关 -->
+            <button
+                :class="
+                    props.detailOpen
+                        ? 'bg-zx-primary-soft text-zx-primary'
+                        : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+                "
+                class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
+                :title="props.detailOpen ? '收起详情' : '查看详情'"
+                @click="emit('toggle-detail')"
+            >
+                <PanelRight class="h-4 w-4" />
+            </button>
         </div>
 
         <!-- 消息列表 -->
@@ -392,78 +414,72 @@ onMounted(async () => {
                     }}</span>
                 </div>
 
-                <!-- 消息气泡 -->
-                <div>
+                <!-- 消息内容：图片不带气泡直接展示，其余用气泡 -->
+                <div class="min-w-0">
                     <p
                         class="mb-1 text-xs text-gray-600"
                         v-if="!message.is_self"
                     >
                         {{ message.user_name || "未知用户" }}
                     </p>
+
+                    <!-- 图片消息 -->
                     <div
+                        v-if="message.message_type === 'image'"
+                        class="max-w-[70%] overflow-hidden rounded-xl sm:max-w-xs"
+                    >
+                        <el-image
+                            :src="message.message"
+                            class="block max-h-64 w-auto max-w-full cursor-pointer align-top"
+                            :preview-src-list="[message.message]"
+                            referrerpolicy="no-referrer"
+                            hide-on-click-modal
+                        >
+                            <template #placeholder>
+                                <div
+                                    class="flex h-32 w-48 items-center justify-center rounded-xl bg-gray-100"
+                                >
+                                    <div class="text-xs text-gray-400">
+                                        加载中...
+                                    </div>
+                                </div>
+                            </template>
+                            <template #error>
+                                <div
+                                    class="flex h-32 w-48 items-center justify-center rounded-xl bg-gray-100"
+                                >
+                                    <div class="text-center text-gray-400">
+                                        <div class="mb-1 text-2xl">⚠️</div>
+                                        <span class="text-xs"
+                                            >图片加载失败</span
+                                        >
+                                    </div>
+                                </div>
+                            </template>
+                        </el-image>
+                    </div>
+
+                    <!-- 文本等其它消息 -->
+                    <div
+                        v-else
                         :class="[
                             message.is_self
-                                ? 'bg-zx-primary text-white'
-                                : 'bg-gray-200 text-gray-800',
-
-                            message.message_type !== 'image' &&
-                                (message.is_self
-                                    ? 'rounded-br-none'
-                                    : 'rounded-bl-none'),
+                                ? 'bg-zx-primary text-white rounded-br-md'
+                                : 'bg-gray-200 text-gray-800 rounded-bl-md',
                         ]"
                         class="max-w-[70%] overflow-hidden rounded-2xl sm:max-w-md"
                     >
-                        <!-- 图片消息 -->
-                        <div
-                            v-if="message.message_type === 'image'"
-                            class="h-full w-full max-w-48"
-                        >
-                            <el-image
-                                :src="message.message"
-                                class="block h-auto max-w-full align-top"
-                                fit="cover"
-                                :preview-src-list="[message.message]"
-                                referrerpolicy="no-referrer"
-                                hide-on-click-modal
-                            >
-                                <template #placeholder>
-                                    <div
-                                        class="image-placeholder flex h-32 items-center justify-center rounded-3xl bg-gray-100"
-                                    >
-                                        <div class="text-xs text-gray-400">
-                                            加载中...
-                                        </div>
-                                    </div>
-                                </template>
-                                <template #error>
-                                    <div
-                                        class="image-error flex h-32 items-center justify-center rounded-3xl bg-gray-100"
-                                    >
-                                        <div class="text-center text-gray-400">
-                                            <div class="mb-1 text-2xl">⚠️</div>
-                                            <span class="text-xs"
-                                                >图片加载失败</span
-                                            >
-                                        </div>
-                                    </div>
-                                </template>
-                            </el-image>
-                        </div>
-
-                        <!-- 文本消息 -->
-                        <p
-                            v-else
-                            :class="[
-                                'px-3 py-2 text-xs break-words sm:text-sm',
-                                message.is_self
-                                    ? 'rounded-2xl rounded-br-md'
-                                    : 'rounded-2xl rounded-bl-md',
-                            ]"
-                        >
+                        <p class="px-3 py-2 text-xs break-words sm:text-sm">
                             {{ message.message }}
                         </p>
                     </div>
-                    <p class="mt-1 text-right text-xs text-gray-500">
+
+                    <p
+                        :class="
+                            message.is_self ? 'text-right' : 'text-left'
+                        "
+                        class="mt-1 text-xs text-gray-500"
+                    >
                         {{ new Date(message.timestamp).toLocaleTimeString() }}
                     </p>
                 </div>

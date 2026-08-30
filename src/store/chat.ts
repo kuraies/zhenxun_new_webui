@@ -8,7 +8,9 @@ import type {
 } from "@/types";
 import type { ChatMessage as WsChatMessage } from "@/types/api-next.types";
 import { useBotStore } from "@/store/bot.ts";
+import { ZXNotification } from "@/services/ui";
 import { addMessageCallback } from "@/utils/api-next/websocket-chat";
+import { chatApi } from "@/utils/api-next";
 import {
     cacheMessage,
     getCachedMessages,
@@ -58,6 +60,56 @@ export const useChatStore = defineStore("chat", () => {
 
     const currentConversationKey = () =>
         getConversationKey(selectedContact.value, selectedId.value);
+
+    /** 拉取当前 bot 的好友与群列表（审批通过后也需要调用以刷新联系人） */
+    const loadContacts = async () => {
+        loadingContacts.value = true;
+        try {
+            const botStore = useBotStore();
+            if (botStore.botList.length === 0) {
+                await botStore.getBotList();
+            }
+            const botId = botStore.getSelectedBotId();
+            if (!botId) {
+                ZXNotification({
+                    title: "呜呼～",
+                    message: "还没有找到可用的 Bot 哦 (っ °Д °;) っ",
+                    type: "😭",
+                    position: "top-right",
+                });
+                return;
+            }
+            const friendRes = await chatApi.getFriendList(botId);
+            if (friendRes?.success && friendRes?.data) {
+                friends.value = friendRes.data;
+            }
+            const groupRes = await chatApi.getGroupList(botId);
+            if (groupRes?.success && groupRes?.data) {
+                groups.value = groupRes.data;
+            }
+
+            // 列表变化后（bot 下线、好友被删等）校验当前选中是否仍存在，
+            // 不存在则清空，右侧聊天区与详情面板回到空状态，
+            // 避免继续挂在已失效的联系人上反复报错
+            const friendExists = friends.value.some(
+                (f) => String(f.user_id) === selectedId.value,
+            );
+            const groupExists = groups.value.some(
+                (g) => String(g.group_id) === selectedId.value,
+            );
+            if (
+                selectedContact.value &&
+                ((selectedContact.value === "friend" && !friendExists) ||
+                    (selectedContact.value === "group" && !groupExists))
+            ) {
+                clearSelection();
+            }
+        } catch (error) {
+            console.error("加载联系人列表失败:", error);
+        } finally {
+            loadingContacts.value = false;
+        }
+    };
 
     const setConversationMessages = (
         conversationKey: string,
@@ -140,13 +192,25 @@ export const useChatStore = defineStore("chat", () => {
 
             if (imageItem) {
                 messageType = "image";
+                // url 可能在外层，也可能在段 data 里（OneBot 段格式）
+                const segData =
+                    imageItem.data && typeof imageItem.data === "object"
+                        ? imageItem.data
+                        : {};
                 imageUrl =
-                    imageItem.url || imageItem.data || imageItem.msg || "";
+                    imageItem.url ||
+                    (typeof imageItem.data === "string"
+                        ? imageItem.data
+                        : "") ||
+                    imageItem.msg ||
+                    segData.url ||
+                    segData.file ||
+                    "";
             }
 
             messageText = data.message
                 .filter((item: any) => item.type === "text")
-                .map((item: any) => item.msg)
+                .map((item: any) => item.msg || item.data?.text || "")
                 .join("");
         } else if (typeof data.message === "string") {
             messageText = data.message;
@@ -236,6 +300,15 @@ export const useChatStore = defineStore("chat", () => {
         await loadCachedMessages(type, id);
     };
 
+    // 清空选中：必须连消息列表一起清，否则桌面端的消息卡片
+    // （sm 以上常显）会继续展示上一个会话的残留内容
+    const clearSelection = () => {
+        selectedContact.value = null;
+        selectedId.value = "";
+        selectedName.value = "";
+        messages.value = [];
+    };
+
     return {
         selectedName,
         activeTab,
@@ -245,8 +318,10 @@ export const useChatStore = defineStore("chat", () => {
         loadingContacts,
         selectedId,
         messages,
+        loadContacts,
 
         selectContact,
+        clearSelection,
         appendCurrentMessage,
         appendIncomingMessage,
         removeCurrentMessage,

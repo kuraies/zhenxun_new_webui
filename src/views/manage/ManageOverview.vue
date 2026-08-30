@@ -22,9 +22,9 @@ import {
     MessageSquare,
     Search,
     Settings,
-    Trash2,
     TrendingUp,
     Users,
+    X,
     Zap,
 } from "lucide-vue-next";
 import { ZXMessageBox, ZXNotification } from "@/services/ui";
@@ -58,6 +58,9 @@ const props = withDefaults(
         targetId: null,
     },
 );
+
+// 嵌入聊天详情面板时，由父组件关闭面板
+const emit = defineEmits<{ close: [] }>();
 
 // 注册 ChartJS 组件
 ChartJS.register(
@@ -160,15 +163,18 @@ const changeMemberPage = (page: number) => {
 };
 
 // 加载数据
-const loadData = async () => {
+const loadData = async (retried = false) => {
     loading.value = true;
 
     try {
+        // 列表按当前选中的 bot 过滤，切换 bot 后同步变化
+        const botId = selectedBotId.value ?? undefined;
+
         // 👉 第一次：两个都加载
         if (!isInitLoaded.value) {
             const [groupRes, friendRes] = await Promise.all([
-                manageApi.getGroupList(),
-                manageApi.getFriendList(),
+                manageApi.getGroupList(botId),
+                manageApi.getFriendList(botId),
             ]);
 
             // groups
@@ -196,23 +202,23 @@ const loadData = async () => {
             }
 
             isInitLoaded.value = true;
-            await syncSelectedTarget();
+            await syncSelectedTarget(retried);
             return;
         }
 
         // 👉 后续：只加载当前 tab
         if (activeTab.value === "groups") {
-            const res = await manageApi.getGroupList();
+            const res = await manageApi.getGroupList(botId);
             if (res.success && res.data) {
                 groups.value = res.data;
             }
         } else {
-            const res = await manageApi.getFriendList();
+            const res = await manageApi.getFriendList(botId);
             if (res.success && res.data) {
                 friends.value = res.data;
             }
         }
-        await syncSelectedTarget();
+        await syncSelectedTarget(retried);
     } catch (error) {
         console.error("加载数据失败:", error);
 
@@ -227,14 +233,22 @@ const loadData = async () => {
     }
 };
 
-const syncSelectedTarget = async () => {
+const syncSelectedTarget = async (retried = false) => {
     if (!props.embedded || !props.targetType || !props.targetId) return;
 
     if (props.targetType === "group") {
         activeTab.value = "groups";
-        const group = groups.value.find(
+        let group = groups.value.find(
             (item) => item.group_id === props.targetId,
         );
+
+        // 列表可能是选中的 bot 变化前加载的旧数据，拉一次新的再找
+        if (!group && !retried) {
+            await loadData(true);
+            group = groups.value.find(
+                (item) => item.group_id === props.targetId,
+            );
+        }
 
         if (group && selectedGroupId.value !== group.group_id) {
             await selectGroup(group);
@@ -244,10 +258,15 @@ const syncSelectedTarget = async () => {
     }
 
     activeTab.value = "friends";
-    const friend = friends.value.find(
+    let friend = friends.value.find(
         (item) => item.user_id === props.targetId,
     );
-
+    if (!friend && !retried) {
+        await loadData(true);
+        friend = friends.value.find(
+            (item) => item.user_id === props.targetId,
+        );
+    }
     if (friend && selectedUserId.value !== friend.user_id) {
         await selectFriend(friend);
     }
@@ -873,6 +892,14 @@ watch(
     },
 );
 
+// 顶栏切换 bot 后，好友/群列表按新 bot 重新加载
+watch(
+    () => selectedBotId.value,
+    (newBotId, oldBotId) => {
+        if (newBotId && newBotId !== oldBotId) loadData();
+    },
+);
+
 onMounted(async () => {
     await loadData();
 });
@@ -1075,8 +1102,15 @@ onMounted(async () => {
             >
                 <div
                     v-if="embedded && !targetId"
-                    class="flex h-full items-center justify-center p-6 text-center text-gray-400"
+                    class="relative flex h-full items-center justify-center p-6 text-center text-gray-400"
                 >
+                    <button
+                        title="返回"
+                        class="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
+                        @click="emit('close')"
+                    >
+                        <X class="h-4 w-4" />
+                    </button>
                     <div>
                         <Group class="mx-auto mb-4 h-14 w-14 opacity-20" />
                         <p class="text-sm text-gray-500">
@@ -1169,6 +1203,14 @@ onMounted(async () => {
                                 <div
                                     class="flex flex-shrink-0 gap-1.5 sm:gap-2"
                                 >
+                                    <button
+                                        v-if="embedded"
+                                        title="返回"
+                                        class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
+                                        @click="emit('close')"
+                                    >
+                                        <X class="h-4 w-4" />
+                                    </button>
                                     <button
                                         @click="
                                             toggleGroupStatus(
@@ -1749,28 +1791,13 @@ onMounted(async () => {
                                 <div
                                     class="flex flex-shrink-0 gap-1.5 sm:gap-2"
                                 >
-                                    <!--                                    <button-->
-                                    <!--                                        @click="-->
-                                    <!--                                            sendMessage(memberDetail as any)-->
-                                    <!--                                        "-->
-                                    <!--                                        class="flex items-center gap-1.5 rounded-2xl bg-blue-500 px-2 py-1.5 text-xs font-medium text-white transition-all hover:bg-blue-600 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"-->
-                                    <!--                                    >-->
-                                    <!--                                        <MessageSquare class="h-4 w-4" />-->
-                                    <!--                                        <span class="hidden sm:inline"-->
-                                    <!--                                            >发消息</span-->
-                                    <!--                                        >-->
-                                    <!--                                        <span class="sm:hidden">消息</span>-->
-                                    <!--                                    </button>-->
                                     <button
-                                        @click="
-                                            deleteFriend(memberDetail as any)
-                                        "
-                                        class="flex items-center gap-1.5 rounded-2xl bg-red-50 px-2 py-1.5 text-xs font-medium text-red-600 transition-all hover:bg-red-100 sm:gap-2 sm:px-4 sm:py-2 sm:text-sm"
+                                        v-if="embedded"
+                                        title="返回"
+                                        class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-colors hover:bg-slate-200 hover:text-slate-700"
+                                        @click="emit('close')"
                                     >
-                                        <Trash2 class="h-4 w-4" />
-                                        <span class="hidden sm:inline"
-                                            >删除</span
-                                        >
+                                        <X class="h-4 w-4" />
                                     </button>
                                 </div>
                             </div>
