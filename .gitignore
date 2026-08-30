@@ -9,6 +9,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+
+# 后端插件目录的 junction 链接（指向 PycharmProjects 里的真寻插件）
+zhenxun-plugin
 *.local
 
 # Editor directories and files
@@ -22,3 +25,7 @@ dist-ssr
 *.sln
 *.sw?
 /backup.vite.config.js
+
+# 工具会话产物
+.zcode
+.mimocode
