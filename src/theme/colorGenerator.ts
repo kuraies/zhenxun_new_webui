@@ -131,9 +131,15 @@ export function generateThemeFromColors(
 
         // Primary
         "--zx-color-primary": hsl(p.h, p.s, p.l),
+        // hover 方向按主色亮度自适应：亮色变暗、暗色变亮，
+        // 否则用户选了深色主色时 hover 再变暗就看不清了
         "--zx-color-primary-hover": isDark
             ? hsl(p.h, clamp(p.s + 5, 0, 100), clamp(p.l + 8, 0, 100))
-            : hsl(p.h, clamp(p.s + 5, 0, 100), clamp(p.l - 8, 0, 100)),
+            : hsl(
+                  p.h,
+                  clamp(p.s + 5, 0, 100),
+                  clamp(p.l + (p.l > 50 ? -8 : 10), 0, 100),
+              ),
         "--zx-color-primary-soft": isDark
             ? hsl(p.h, clamp(p.s * 0.4, 10, 40), 20)
             : hsl(p.h, clamp(p.s * 0.5, 15, 50), 92),

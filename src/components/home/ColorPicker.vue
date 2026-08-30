@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, useTemplateRef } from "vue";
+import { ref, computed, onMounted, watch, nextTick, useTemplateRef } from "vue";
 import { onClickOutside } from "@vueuse/core";
 
 const props = defineProps<{
@@ -75,18 +75,26 @@ function hslToHex(h: number, s: number, l: number): string {
 
 const currentColor = computed(() => hslToHex(hue.value, saturation.value, lightness.value));
 
+// props 同步引起的 currentColor 变化不回写 modelValue：
+// HSL 换算的舍入误差会让回写值和色板原色差一点，
+// 覆盖掉刚选的颜色导致对勾要点两次才出现
+let syncingFromProp = false;
+
 watch(currentColor, (val) => {
     hexInput.value = val;
+    if (syncingFromProp) return;
     emit("update:modelValue", val);
 });
 
 watch(() => props.modelValue, (val) => {
     if (val !== currentColor.value) {
+        syncingFromProp = true;
         const hsl = hexToHsl(val);
         hue.value = hsl.h;
         saturation.value = hsl.s;
         lightness.value = hsl.l;
         hexInput.value = val;
+        nextTick(() => (syncingFromProp = false));
     }
 });
 
