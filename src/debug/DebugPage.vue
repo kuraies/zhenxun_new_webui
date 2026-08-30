@@ -8,7 +8,10 @@ import {
     GroupIcon,
     ImageIcon,
     ImageOff,
+    Link2,
+    MapPin,
     MessageSquare,
+    Mic,
     Pencil,
     Plus,
     Search,
@@ -30,8 +33,14 @@ import {
     buildGroupMessageEvent,
     buildPrivateMessageEvent,
 } from "@/utils/onebot/events";
-import { looksLikeBase64, seg } from "@/utils/onebot/message";
+import {
+    cqToSegments,
+    looksLikeBase64,
+} from "@/utils/onebot/message";
+import type { MessageSegment } from "@/utils/onebot/types";
 import { simState, type SimFriend, type SimMember } from "@/utils/onebot/state";
+import { useVoiceRecorder } from "@/composables/useVoiceRecorder";
+import { useCustomCaret } from "@/composables/useCustomCaret";
 import {
     cacheBubble,
     clearCachedBubbles,
@@ -617,14 +626,54 @@ interface Bubble {
 }
 
 interface BubblePart {
-    kind: "text" | "image" | "at" | "other";
+    kind:
+        | "text"
+        | "image"
+        | "at"
+        | "face"
+        | "voice"
+        | "video"
+        | "dice"
+        | "rps"
+        | "poke"
+        | "shake"
+        | "location"
+        | "share"
+        | "music"
+        | "json"
+        | "xml"
+        | "reply"
+        | "forward"
+        | "node"
+        | "contact"
+        | "tts"
+        | "markdown"
+        | "other";
     text?: string;
+    /** 图片/语音/视频地址 */
     src?: string;
+    /** 分享/音乐等卡片的外链 */
+    url?: string;
+    /** 卡片标题 */
+    title?: string;
+    /** 卡片副标题 */
+    subtitle?: string;
     /** 图片加载失败标记 */
     broken?: boolean;
 }
 
-/** 把消息段数组拆成气泡渲染段 */
+/** 尽量把 JSON 字符串格式化，失败则原样返回并截断 */
+const prettyStructured = (raw: string, max = 2000) => {
+    let text = raw;
+    try {
+        text = JSON.stringify(JSON.parse(raw), null, 2);
+    } catch {
+        /* 不是 JSON 就原样展示 */
+    }
+    return text.length > max ? text.slice(0, max) + "…" : text;
+};
+
+/** 把消息段数组拆成气泡渲染段（覆盖 OneBot v11 标准段类型） */
 const toBubbleParts = (
     message: import('@/utils/onebot/types').MessageContent,
     fallbackText: string,
@@ -639,8 +688,23 @@ const toBubbleParts = (
             case "text":
                 parts.push({ kind: "text", text: String(data.text ?? "") });
                 break;
+            case "tts":
+                parts.push({ kind: "tts", text: String(data.text ?? "") });
+                break;
+            case "markdown":
+                parts.push({
+                    kind: "markdown",
+                    text:
+                        typeof data.data === "string"
+                            ? data.data
+                            : String(data.data ?? ""),
+                });
+                break;
             case "at":
-                parts.push({ kind: "at", text: `@${data.qq}` });
+                parts.push({
+                    kind: "at",
+                    text: data.qq === "all" ? "@全体成员" : `@${data.qq}`,
+                });
                 break;
             case "image": {
                 const src = String(data.url || data.file || "");
@@ -648,6 +712,84 @@ const toBubbleParts = (
                 else parts.push({ kind: "other", text: "[图片]" });
                 break;
             }
+            case "record":
+                parts.push({
+                    kind: "voice",
+                    src: String(data.url || data.file || "") || undefined,
+                });
+                break;
+            case "video":
+                parts.push({
+                    kind: "video",
+                    src: String(data.url || data.file || "") || undefined,
+                });
+                break;
+            case "face":
+                parts.push({ kind: "face", text: `表情 ${data.id ?? ""}`.trim() });
+                break;
+            case "dice":
+                parts.push({ kind: "dice", text: data.magic ? `骰子 ${data.magic}` : "骰子" });
+                break;
+            case "rps":
+                parts.push({ kind: "rps", text: data.magic ? `猜拳 ${data.magic}` : "猜拳" });
+                break;
+            case "poke":
+                parts.push({ kind: "poke", text: "戳一戳" });
+                break;
+            case "shake":
+                parts.push({ kind: "shake", text: "窗口抖动" });
+                break;
+            case "location":
+                parts.push({
+                    kind: "location",
+                    title: String(data.title || "位置"),
+                    subtitle: String(data.content || `${data.lat ?? ""},${data.lon ?? ""}`),
+                });
+                break;
+            case "share":
+                parts.push({
+                    kind: "share",
+                    title: String(data.title || "链接分享"),
+                    subtitle: String(data.content || ""),
+                    url: String(data.url || ""),
+                });
+                break;
+            case "music":
+                parts.push({
+                    kind: "music",
+                    title: String(data.title || data.id || "音乐分享"),
+                    subtitle: String(data.content || data.type || ""),
+                    url: String(data.url || ""),
+                });
+                break;
+            case "contact":
+                parts.push({
+                    kind: "contact",
+                    title: data.type === "group" ? "推荐群" : "推荐好友",
+                    subtitle: String(data.id ?? ""),
+                });
+                break;
+            case "json":
+                parts.push({ kind: "json", text: prettyStructured(String(data.data ?? "")) });
+                break;
+            case "xml":
+                parts.push({ kind: "xml", text: prettyStructured(String(data.data ?? "")) });
+                break;
+            case "reply":
+                parts.push({ kind: "reply", text: `回复消息 ${data.id ?? ""}`.trim() });
+                break;
+            case "forward":
+                parts.push({ kind: "forward", text: "合并转发消息" });
+                break;
+            case "node":
+                parts.push({
+                    kind: "node",
+                    title: String(data.nickname || "转发节点"),
+                    subtitle: String(
+                        typeof data.content === "string" ? data.content : "",
+                    ),
+                });
+                break;
             default:
                 parts.push({
                     kind: "other",
@@ -795,12 +937,225 @@ const onAvatarError = (e: Event) => {
 
 // ==================== 发送 ====================
 
-const inputMessage = ref("");
 const messagesContainer = ref<HTMLElement | null>(null);
 
 // 图片消息（输入 URL 发送 image 消息段）
 const imageOpen = ref(false);
 const imageUrl = ref("");
+
+// ==================== 富文本输入框（图片内联）+ 语音附件 ====================
+
+// 富文本编辑器（contenteditable），图片以 <img> 内联在文字之间
+const editorRef = ref<HTMLElement | null>(null);
+/** 编辑器里内联图片的 dataUrl -> 纯 base64 缓存 */
+const imageBase64Map = new Map<string, string>();
+
+// 自绘光标：行内图片撑高行框时原生光标会变高，改画恒定字高的光标
+useCustomCaret(editorRef);
+
+/** 待发送语音（录音后挂在输入框上方） */
+interface VoiceItem {
+    id: number;
+    dataUrl: string;
+    base64: string;
+    duration: number;
+}
+
+const voiceItems = ref<VoiceItem[]>([]);
+let voiceSeq = 0;
+const imageInput = ref<HTMLInputElement | null>(null);
+
+const removeVoiceItem = (id: number) => {
+    voiceItems.value = voiceItems.value.filter((item) => item.id !== id);
+};
+
+const fileToBase64 = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+
+/** 在光标处插入内联图片 */
+const insertInlineImage = (dataUrl: string) => {
+    const editor = editorRef.value;
+    if (!editor) return;
+    editor.focus();
+    let inserted = false;
+    try {
+        inserted = document.execCommand("insertImage", false, dataUrl);
+    } catch {
+        inserted = false;
+    }
+    if (!inserted) {
+        const img = document.createElement("img");
+        img.src = dataUrl;
+        editor.appendChild(img);
+    }
+    imageBase64Map.set(dataUrl, dataUrl.split(",")[1] ?? "");
+};
+
+/** 选择/粘贴/拖拽来的图片统一从这里进编辑器（类型/大小校验） */
+const enqueueImages = async (files: File[]) => {
+    for (const file of files) {
+        if (!file.type.startsWith("image/")) {
+            ZXNotification({
+                title: "提示",
+                message: "只能选择图片文件哦～",
+                type: "info",
+            });
+            continue;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            ZXNotification({
+                title: "提示",
+                message: "图片大小不能超过 10MB 哦～",
+                type: "info",
+            });
+            continue;
+        }
+        insertInlineImage(await fileToBase64(file));
+    }
+};
+
+const triggerImageUpload = () => imageInput.value?.click();
+
+const handleImageSelect = async (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    await enqueueImages(Array.from(input.files ?? []));
+    input.value = "";
+};
+
+// 粘贴：图片插入编辑器，纯文本按原样插入（保留 CQ 码/JSON 输入习惯）
+const handlePaste = async (event: ClipboardEvent) => {
+    const clipboard = event.clipboardData;
+    const files = Array.from(clipboard?.files ?? []).filter((file) =>
+        file.type.startsWith("image/"),
+    );
+    if (files.length) {
+        event.preventDefault();
+        await enqueueImages(files);
+        return;
+    }
+    const text = clipboard?.getData("text/plain");
+    if (text) {
+        event.preventDefault();
+        document.execCommand("insertText", false, text);
+    }
+};
+
+let dragDepth = 0;
+const dragOver = ref(false);
+
+const handleDragEnter = () => {
+    dragDepth += 1;
+    dragOver.value = true;
+};
+
+const handleDragLeave = () => {
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0) dragOver.value = false;
+};
+
+// 拖拽图片到输入区插入编辑器
+const handleDrop = async (event: DragEvent) => {
+    dragDepth = 0;
+    dragOver.value = false;
+    event.preventDefault();
+    const files = Array.from(event.dataTransfer?.files ?? []).filter((file) =>
+        file.type.startsWith("image/"),
+    );
+    if (!files.length) return;
+    await enqueueImages(files);
+};
+
+/** 编辑器内容切面：按顺序抽出文字与内联图片 */
+interface EditorPiece {
+    type: "text" | "image";
+    text?: string;
+    dataUrl?: string;
+}
+
+const extractEditor = (): EditorPiece[] => {
+    const pieces: EditorPiece[] = [];
+    const walk = (node: Node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+            pieces.push({ type: "text", text: node.textContent ?? "" });
+            return;
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+        const el = node as HTMLElement;
+        if (el.tagName === "IMG") {
+            pieces.push({ type: "image", dataUrl: el.getAttribute("src") ?? "" });
+            return;
+        }
+        if (el.tagName === "BR") {
+            pieces.push({ type: "text", text: "\n" });
+            return;
+        }
+        // contenteditable 的换行是 <div>/<p> 块，抽成换行符
+        if (el.tagName === "DIV" || el.tagName === "P") {
+            pieces.push({ type: "text", text: "\n" });
+        }
+        Array.from(el.childNodes).forEach(walk);
+    };
+    Array.from(editorRef.value?.childNodes ?? []).forEach(walk);
+    return pieces;
+};
+
+const clearEditor = () => {
+    if (editorRef.value) editorRef.value.innerHTML = "";
+    imageBase64Map.clear();
+};
+
+// ==================== 语音输入 ====================
+
+const {
+    recording: voiceRecording,
+    duration: voiceDuration,
+    start: startRecording,
+    stop: stopRecording,
+} = useVoiceRecorder();
+
+const toggleRecord = async () => {
+    if (voiceRecording.value) {
+        const result = await stopRecording();
+        if (result?.base64) {
+            voiceItems.value.push({
+                id: ++voiceSeq,
+                dataUrl: result.dataUrl,
+                base64: result.base64,
+                duration: result.duration,
+            });
+        } else if (!result) {
+            ZXNotification({
+                title: "录音失败",
+                message: "这段语音没能录下来，再试一次吧 (´；ω；`)",
+                type: "error",
+            });
+        }
+        return;
+    }
+    const ok = await startRecording();
+    if (!ok) {
+        ZXNotification({
+            title: "无法录音",
+            message: "没有拿到麦克风权限哦 (｡•ˇ‸ˇ•｡)",
+            type: "error",
+        });
+    }
+};
+
+/**
+ * 语音段地址解析：base64:// 转成浏览器可播的 data URL（webm/opus）
+ */
+const resolveAudioSrc = (src: string) => {
+    if (src.startsWith("base64://")) {
+        return `data:audio/webm;base64,${src.slice(9)}`;
+    }
+    return src;
+};
 
 const scrollToBottom = () => {
     setTimeout(() => {
@@ -813,10 +1168,35 @@ const scrollToBottom = () => {
     }, 100);
 };
 
-// 输入框支持简单的 @ 语法：@12345 提到某人
-const parseMessage = (raw: string) => {
-    const segments: { type: string; data: Record<string, any> }[] = [];
-    const pattern = /@(\d+)/g;
+// 输入解析优先级：JSON 消息段数组 -> CQ 码字符串 -> 普通文本 + @QQ号 语法
+const parseMessage = (raw: string): MessageSegment[] => {
+    const trimmed = raw.trim();
+
+    // JSON 段数组：[{"type":"text","data":{"text":"..."}}]
+    if (trimmed.startsWith("[")) {
+        try {
+            const parsed = JSON.parse(trimmed);
+            if (
+                Array.isArray(parsed) &&
+                parsed.every(
+                    (item) =>
+                        item && typeof item.type === "string" && "data" in (item ?? {}),
+                )
+            ) {
+                return parsed as MessageSegment[];
+            }
+        } catch {
+            /* 不是 JSON，继续往下 */
+        }
+    }
+
+    // CQ 码：[CQ:image,file=https://...][CQ:at,qq=12345]
+    if (trimmed.includes("[CQ:")) {
+        return cqToSegments(trimmed);
+    }
+
+    const segments: MessageSegment[] = [];
+    const pattern = /@(\d+|all)/g;
     let lastIndex = 0;
     let match: RegExpExecArray | null;
     while ((match = pattern.exec(raw)) !== null) {
@@ -901,10 +1281,36 @@ const sendSegments = (messageSegments: import('@/utils/onebot/types').MessageCon
 };
 
 const handleSendMessage = () => {
-    const text = inputMessage.value.trim();
-    if (!text) return;
-    if (sendSegments(parseMessage(text), text)) {
-        inputMessage.value = "";
+    const pieces = extractEditor();
+    const text = pieces
+        .filter((piece) => piece.type === "text")
+        .map((piece) => piece.text ?? "")
+        .join("")
+        .trim();
+    const images = pieces
+        .filter((piece) => piece.type === "image" && piece.dataUrl)
+        .map((piece) => ({
+            dataUrl: piece.dataUrl!,
+            base64: imageBase64Map.get(piece.dataUrl!) ?? "",
+        }));
+
+    if (!text && images.length === 0 && voiceItems.value.length === 0) return;
+
+    // 语音在最前，其后是内联图片，最后是文字解析出的段（@/CQ 码/JSON）
+    const segments: MessageSegment[] = [];
+    for (const voice of voiceItems.value) {
+        segments.push({ type: "record", data: { file: `base64://${voice.base64}` } });
+    }
+    for (const image of images) {
+        segments.push({ type: "image", data: { file: `base64://${image.base64}` } });
+    }
+    if (text) {
+        segments.push(...parseMessage(text));
+    }
+
+    if (sendSegments(segments, text || "[附件]")) {
+        clearEditor();
+        voiceItems.value = [];
     }
 };
 
@@ -1023,12 +1429,6 @@ const removeFriendDirect = (friend: SimFriend) => {
     simState.friends = simState.friends.filter(
         f => f.user_id !== friend.user_id,
     );
-};
-
-const autoResize = (e: Event) => {
-    const el = e.target as HTMLTextAreaElement;
-    el.style.height = "auto";
-    el.style.height = el.scrollHeight + "px";
 };
 
 const contactSubtitle = computed(() => {
@@ -1452,7 +1852,10 @@ const removeRole = (user: SimUser) => {
 
                         <div>
                             <p
-                                v-if="item.message.from === 'bot'"
+                                v-if="
+                                    item.message.from === 'bot' &&
+                                    selectedContact?.type === 'group'
+                                "
                                 class="mb-1 text-xs text-gray-600"
                             >
                                 {{ botNickname }}
@@ -1487,8 +1890,8 @@ const removeRole = (user: SimUser) => {
                                 v-else
                                 :class="
                                     item.message.from === 'user'
-                                        ? 'rounded-2xl rounded-br-md bg-zx-primary text-white'
-                                        : 'rounded-2xl rounded-bl-md bg-gray-200 text-gray-800'
+                                        ? 'rounded-2xl rounded-br-xs bg-zx-primary text-white'
+                                        : 'rounded-2xl rounded-bl-xs bg-gray-200 text-gray-800'
                                 "
                                 class="max-w-[70%] overflow-hidden sm:max-w-md"
                             >
@@ -1499,6 +1902,7 @@ const removeRole = (user: SimUser) => {
                                         v-for="(part, pIdx) in item.message.parts"
                                         :key="pIdx"
                                     >
+                                        <!-- 图片 -->
                                         <span
                                             v-if="part.kind === 'image'"
                                             class="inline-flex"
@@ -1517,11 +1921,108 @@ const removeRole = (user: SimUser) => {
                                                 @error="part.broken = true"
                                             />
                                         </span>
+                                        <!-- @ -->
                                         <span
                                             v-else-if="part.kind === 'at'"
                                             class="font-semibold"
                                         >{{ part.text }}</span>
-                                        <span v-else>{{ part.text }}</span>
+                                        <!-- 文本 / tts / markdown -->
+                                        <span
+                                            v-else-if="
+                                                part.kind === 'text' ||
+                                                part.kind === 'tts' ||
+                                                part.kind === 'markdown'
+                                            "
+                                            class="whitespace-pre-wrap"
+                                        >{{ part.text }}</span>
+                                        <!-- 语音 -->
+                                        <span
+                                            v-else-if="part.kind === 'voice'"
+                                            class="inline-flex items-center gap-1 rounded-lg bg-black/10 px-2 py-1"
+                                        >
+                                            <Mic class="h-3.5 w-3.5 shrink-0" />
+                                            <audio
+                                                v-if="part.src"
+                                                controls
+                                                :src="resolveAudioSrc(part.src)"
+                                                class="h-8 max-w-52"
+                                            ></audio>
+                                            <span v-else class="text-[10px]">语音消息</span>
+                                        </span>
+                                        <!-- 视频 -->
+                                        <video
+                                            v-else-if="part.kind === 'video' && part.src"
+                                            controls
+                                            :src="resolveImageSrc(part.src)"
+                                            class="max-h-52 max-w-full rounded-lg"
+                                        ></video>
+                                        <span
+                                            v-else-if="part.kind === 'video'"
+                                            class="inline-flex items-center gap-1 rounded-md bg-black/10 px-1.5 py-0.5 text-[10px]"
+                                        >
+                                            [视频]
+                                        </span>
+                                        <!-- JSON / XML 卡片数据 -->
+                                        <pre
+                                            v-else-if="part.kind === 'json' || part.kind === 'xml'"
+                                            class="max-h-48 max-w-full overflow-auto rounded-lg bg-slate-800/90 px-2 py-1.5 text-left font-mono text-[10px] leading-4 whitespace-pre-wrap text-emerald-100"
+                                        >{{ part.text }}</pre>
+                                        <!-- 链接/音乐分享卡片 -->
+                                        <a
+                                            v-else-if="
+                                                part.kind === 'share' || part.kind === 'music'
+                                            "
+                                            :href="part.url || undefined"
+                                            target="_blank"
+                                            rel="noopener"
+                                            class="flex max-w-full min-w-40 flex-col rounded-xl bg-white/85 px-3 py-2 text-left shadow-sm"
+                                        >
+                                            <span class="truncate text-xs font-semibold text-slate-700">
+                                                {{ part.title }}
+                                            </span>
+                                            <span
+                                                v-if="part.subtitle"
+                                                class="truncate text-[10px] text-slate-400"
+                                            >
+                                                {{ part.subtitle }}
+                                            </span>
+                                            <span
+                                                v-if="part.url"
+                                                class="truncate text-[10px] text-sky-500"
+                                            >
+                                                {{ part.url }}
+                                            </span>
+                                        </a>
+                                        <!-- 位置/名片/转发节点卡片 -->
+                                        <span
+                                            v-else-if="
+                                                part.kind === 'location' ||
+                                                part.kind === 'contact' ||
+                                                part.kind === 'node'
+                                            "
+                                            class="flex max-w-full min-w-40 flex-col rounded-xl bg-white/85 px-3 py-2 text-left shadow-sm"
+                                        >
+                                            <span
+                                                class="flex items-center gap-1 truncate text-xs font-semibold text-slate-700"
+                                            >
+                                                <MapPin
+                                                    v-if="part.kind === 'location'"
+                                                    class="h-3.5 w-3.5 shrink-0"
+                                                />
+                                                {{ part.title }}
+                                            </span>
+                                            <span
+                                                v-if="part.subtitle"
+                                                class="truncate text-[10px] text-slate-400"
+                                            >
+                                                {{ part.subtitle }}
+                                            </span>
+                                        </span>
+                                        <!-- 表情/骰子/猜拳/戳一戳/抖动/回复/转发 等小占位 -->
+                                        <span
+                                            v-else
+                                            class="inline-flex items-center gap-1 rounded-md bg-black/10 px-1.5 py-0.5 text-[10px]"
+                                        >{{ part.text }}</span>
                                     </template>
                                 </div>
                             </div>
@@ -1555,14 +2056,112 @@ const removeRole = (user: SimUser) => {
             <!-- 输入框 -->
             <div
                 v-if="selectedContact"
-                class="border-t border-gray-100 bg-white p-3"
+                class="relative border-t border-gray-100 bg-white p-3"
+                @dragenter.prevent="handleDragEnter"
+                @dragover.prevent
+                @dragleave="handleDragLeave"
+                @drop.prevent="handleDrop"
             >
-                <!-- 图片 URL 输入行 -->
+                <!-- 语音附件（录音后挂在输入框上方） -->
+                <div
+                    v-if="voiceItems.length || voiceRecording"
+                    class="mb-2 flex items-center gap-2 overflow-x-auto"
+                >
+                    <div
+                        v-for="item in voiceItems"
+                        :key="item.id"
+                        class="flex shrink-0 items-center gap-2 rounded-xl bg-slate-100 px-2.5 py-1.5"
+                    >
+                        <Mic class="h-4 w-4 shrink-0 text-zx-primary" />
+                        <audio controls :src="item.dataUrl" class="h-8 max-w-44"></audio>
+                        <span class="shrink-0 text-xs text-slate-400">
+                            {{ item.duration }}s
+                        </span>
+                        <button
+                            class="flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                            title="移除"
+                            type="button"
+                            @click="removeVoiceItem(item.id)"
+                        >
+                            <X class="h-3 w-3" />
+                        </button>
+                    </div>
+                    <!-- 录音中提示 -->
+                    <div
+                        v-if="voiceRecording"
+                        class="flex shrink-0 items-center gap-2 rounded-xl bg-red-50 px-3 py-1.5"
+                    >
+                        <span
+                            class="h-2.5 w-2.5 animate-pulse rounded-full bg-red-500"
+                        ></span>
+                        <span class="text-xs font-semibold text-red-500">
+                            录音中 {{ voiceDuration }}s
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 工具栏（输入框上方） -->
+                <div class="mb-1.5 flex items-center gap-0.5 px-0.5">
+                    <button
+                        type="button"
+                        class="btn-touch flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                        title="插入图片（可选本地文件）"
+                        @click="triggerImageUpload"
+                    >
+                        <ImageIcon class="h-4 w-4" />
+                    </button>
+                    <!-- 隐藏的图片输入（可多选） -->
+                    <input
+                        ref="imageInput"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        class="hidden"
+                        @change="handleImageSelect"
+                    />
+                    <!-- URL 发图入口 -->
+                    <button
+                        :class="
+                            imageOpen
+                                ? 'bg-zx-primary-soft text-zx-primary'
+                                : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+                        "
+                        class="btn-touch flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
+                        title="用图片 URL 发送"
+                        type="button"
+                        @click="imageOpen = !imageOpen"
+                    >
+                        <Link2 class="h-4 w-4" />
+                    </button>
+                    <!-- 语音按钮 -->
+                    <button
+                        type="button"
+                        :class="
+                            voiceRecording
+                                ? 'bg-red-100 text-red-500'
+                                : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+                        "
+                        class="btn-touch flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
+                        :title="
+                            voiceRecording
+                                ? `停止录音（${voiceDuration}s）`
+                                : '录制语音'
+                        "
+                        @click="toggleRecord"
+                    >
+                        <Mic
+                            :class="voiceRecording ? 'animate-pulse' : ''"
+                            class="h-4 w-4"
+                        />
+                    </button>
+                </div>
+
+                <!-- 图片 URL 输入行（模拟 http 图片用） -->
                 <div
                     v-if="imageOpen"
                     class="mb-2 flex items-center gap-1.5 rounded-2xl border border-zx-primary-soft bg-zx-primary-tint/50 px-3 py-1.5"
                 >
-                    <ImageIcon class="h-4 w-4 shrink-0 text-zx-primary" />
+                    <Link2 class="h-4 w-4 shrink-0 text-zx-primary" />
                     <input
                         v-model="imageUrl"
                         placeholder="输入图片 URL，回车发送 image 消息段"
@@ -1587,41 +2186,27 @@ const removeRole = (user: SimUser) => {
                     </button>
                 </div>
 
-                <div class="mb-1.5 px-1 text-[10px] text-slate-400">
-                    群聊里可用 @QQ号 提到某人
-                </div>
+                <!-- 拖拽提示遮罩 -->
                 <div
-                    class="flex min-h-11 items-end gap-1 rounded-2xl border border-slate-200 bg-slate-50 px-2 py-1.5 transition-all focus-within:border-zx-primary focus-within:bg-white focus-within:shadow-sm focus-within:shadow-slate-100"
+                    v-if="dragOver"
+                    class="pointer-events-none absolute inset-x-0 bottom-0 z-10 m-3 rounded-2xl border-2 border-dashed border-zx-primary bg-white/80 py-6 text-center text-xs font-semibold text-zx-primary"
                 >
-                    <button
-                        :class="
-                            imageOpen
-                                ? 'bg-zx-primary-soft text-zx-primary'
-                                : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
-                        "
-                        class="btn-touch mb-0.5 flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors"
-                        title="发送图片"
-                        type="button"
-                        @click="imageOpen = !imageOpen"
-                    >
-                        <ImageIcon class="h-4 w-4" />
-                    </button>
-                    <textarea
-                        v-model="inputMessage"
-                        rows="1"
-                        placeholder="输入消息，按 Enter 发送给真寻"
-                        class="max-h-28 min-h-8 flex-1 resize-none overflow-y-auto bg-transparent px-1 py-1.5 text-sm leading-5 text-slate-700 placeholder:text-slate-400 focus:ring-0 focus:outline-none"
-                        @input="autoResize"
+                    松开把图片插入输入框
+                </div>
+
+                <!-- 富文本输入框：文字与内联图片混排，发送按钮在框内右下角 -->
+                <div class="relative">
+                    <div
+                        ref="editorRef"
+                        contenteditable="true"
+                        data-placeholder="输入消息，Enter 发送；@QQ号 / CQ 码 / JSON 段数组"
+                        class="rich-editor max-h-32 min-h-11 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-14 text-sm leading-5 text-slate-700 focus:outline-none"
+                        @paste="handlePaste"
                         @keydown.enter.exact.prevent="handleSendMessage"
-                    ></textarea>
+                    ></div>
                     <button
                         type="button"
-                        :class="
-                            inputMessage.trim()
-                                ? 'bg-zx-primary text-white shadow-sm hover:bg-zx-primary-hover'
-                                : 'bg-slate-200 text-slate-400'
-                        "
-                        class="btn-touch mb-0.5 flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-full transition-all"
+                        class="btn-touch absolute bottom-1.5 right-1.5 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-zx-primary text-white shadow-sm transition-colors hover:bg-zx-primary-hover"
                         title="发送"
                         @click="handleSendMessage"
                     >
@@ -2659,3 +3244,27 @@ const removeRole = (user: SimUser) => {
         </Teleport>
     </div>
 </template>
+
+<style scoped>
+/* 富文本输入框：内联图片与占位提示（运行时插入的节点拿不到 scoped 属性，需 :deep）
+   图片与文字行内混排，同行文字与图片底部对齐（text-bottom），行框随图片撑高 */
+.rich-editor :deep(img) {
+    display: inline-block;
+    max-height: 6rem;
+    max-width: 12rem;
+    margin: 0 2px;
+    border-radius: 0.5rem;
+    vertical-align: text-bottom;
+}
+
+/* 原生光标由 useCustomCaret 自绘替代 */
+.rich-editor {
+    caret-color: transparent;
+}
+
+.rich-editor:empty::before {
+    content: attr(data-placeholder);
+    color: #94a3b8;
+    pointer-events: none;
+}
+</style>
