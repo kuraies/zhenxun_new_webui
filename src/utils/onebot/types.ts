@@ -42,6 +42,11 @@ export const RETCODE = {
     FAILED: 1404,
 } as const
 
+/**
+ * OneBot v11 标准响应结构：
+ * - retcode 0 = ok；1404 = action 不存在/参数错误；1200 = 执行异常？各实现略有差异，
+ *   我们统一只区分 0 与 1404，错误信息放 message 字段（go-cqhttp 惯例）
+ */
 export const okResponse = (data: any, echo?: string): ActionResponse => ({
     status: 'ok',
     retcode: RETCODE.OK,
