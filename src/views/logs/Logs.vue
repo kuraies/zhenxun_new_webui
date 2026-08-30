@@ -131,37 +131,28 @@ onBeforeUnmount(() => {
 
 <template>
     <div class="flex h-full w-full flex-col space-y-3 sm:space-y-4">
-        <!-- 头部标题 -->
+        <!-- 头部操作：自动滚动 / 清空 -->
         <div
-            class="flex flex-col items-start justify-between gap-3 rounded-3xl bg-white p-4 shadow-sm outline-1 outline-slate-200 sm:flex-row sm:items-center sm:gap-0"
+            class="flex items-center justify-end gap-3 rounded-3xl bg-white p-2 shadow-sm outline-1 outline-slate-200 sm:p-3"
             v-if="!globalStore.isDesktopMode"
         >
-            <div class="flex items-center space-x-3">
-                <FileText class="h-6 w-6 flex-shrink-0 text-zx-primary" />
-                <h2 class="text-lg font-semibold text-gray-800">实时日志</h2>
-                <span class="text-sm text-gray-500"
-                    >({{ filteredLogs.length }} 条)</span
-                >
-            </div>
-            <div class="flex w-full items-center space-x-2 sm:w-auto">
-                <button
-                    @click="autoScroll = !autoScroll"
-                    :class="
-                        autoScroll
-                            ? 'bg-zx-primary text-white'
-                            : 'bg-gray-100 text-gray-600'
-                    "
-                    class="btn-touch flex-shrink-0 rounded-2xl px-3 py-1.5 text-sm font-medium transition-colors"
-                >
-                    自动滚动 {{ autoScroll ? "开" : "关" }}
-                </button>
-                <button
-                    @click="clearLogs"
-                    class="btn-touch flex-shrink-0 rounded-2xl bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100"
-                >
-                    清空日志
-                </button>
-            </div>
+            <button
+                @click="autoScroll = !autoScroll"
+                :class="
+                    autoScroll
+                        ? 'bg-zx-primary text-white'
+                        : 'bg-gray-100 text-gray-600'
+                "
+                class="btn-touch flex-shrink-0 rounded-2xl px-3 py-1.5 text-sm font-medium transition-colors"
+            >
+                自动滚动 {{ autoScroll ? "开" : "关" }}
+            </button>
+            <button
+                @click="clearLogs"
+                class="btn-touch flex-shrink-0 rounded-2xl bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100"
+            >
+                清空日志
+            </button>
         </div>
 
         <!-- 过滤工具栏 -->

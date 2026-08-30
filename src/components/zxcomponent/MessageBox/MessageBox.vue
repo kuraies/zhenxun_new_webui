@@ -3,29 +3,31 @@
         <div
             v-show="visible"
             ref="overlay"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 select-none"
+            class="glass-overlay fixed inset-0 z-50 flex items-center justify-center select-none"
             @click.self="handleCancel"
         >
             <div
                 ref="box"
-                class="relative w-100 max-w-[90%] scale-95 rounded-2xl bg-white p-6 opacity-0 shadow-xl"
+                class="modal-content relative w-90 max-w-[90%] rounded-3xl border border-slate-200 bg-white p-6 shadow-xl opacity-0"
             >
                 <h3
                     v-if="title"
-                    class="mb-4 text-xl font-semibold text-gray-800"
+                    class="text-base font-bold text-slate-800"
                 >
                     {{ title }}
                 </h3>
 
-                <div class="mb-6 text-sm text-gray-700">
+                <div
+                    class="mt-1.5 mb-5 rounded-2xl bg-slate-50 px-4 py-3.5 text-sm text-slate-700"
+                >
                     <slot>{{ message }}</slot>
                 </div>
 
-                <div class="flex justify-end gap-6">
+                <div class="flex justify-end gap-2">
                     <button
                         v-if="cancelButtonText"
                         @click="handleCancel"
-                        class="cursor-pointer rounded-full bg-gray-200 px-6 py-1.5 text-sm text-gray-700 transition hover:bg-gray-300 active:scale-95"
+                        class="cursor-pointer rounded-full border border-slate-200 px-4 py-1.5 text-xs font-semibold text-slate-500 transition-colors hover:bg-slate-50 active:scale-95"
                     >
                         {{ cancelButtonText }}
                     </button>
@@ -34,11 +36,11 @@
                         @click="handleConfirm"
                         @mouseenter="hovering = true"
                         @mouseleave="hovering = false"
-                        class="cursor-pointer rounded-full px-6 py-1.5 text-sm text-white transition active:scale-95"
+                        class="cursor-pointer rounded-full border border-transparent px-5 py-1.5 text-xs font-bold text-white shadow-sm transition-all active:scale-95"
                         :class="
                             confirmButtonHoverBg
                                 ? confirmButtonHoverBg
-                                : 'bg-sky-500 hover:bg-sky-600'
+                                : 'bg-zx-primary hover:bg-zx-primary-hover'
                         "
                     >
                         {{
@@ -49,8 +51,8 @@
                     </button>
                 </div>
 
-                <div
-                    class="absolute top-0 right-0 -translate-x-4/5 translate-y-4/5 cursor-pointer text-gray-400 active:scale-90"
+                <button
+                    class="absolute top-4 right-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 active:scale-90"
                     @click="handleCancel"
                 >
                     <svg
@@ -59,7 +61,7 @@
                         viewBox="0 0 24 24"
                         stroke-width="1.5"
                         stroke="currentColor"
-                        class="size-5"
+                        class="size-4"
                     >
                         <path
                             stroke-linecap="round"
@@ -67,7 +69,7 @@
                             d="M6 18 18 6M6 6l12 12"
                         />
                     </svg>
-                </div>
+                </button>
             </div>
         </div>
     </Teleport>

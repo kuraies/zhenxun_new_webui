@@ -702,16 +702,11 @@ onMounted(() => {
 
 <template>
     <div class="flex h-full w-full flex-col space-y-3 sm:space-y-4">
-        <!-- 头部标题 -->
+        <!-- 头部操作：快捷时间范围 / 时间粒度 -->
         <div
-            class="flex flex-col space-y-3 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:space-y-0"
+            class="flex flex-col space-y-3 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:space-y-0"
             v-if="!globalStore.isDesktopMode"
         >
-            <div class="flex items-center space-x-3">
-                <Activity class="h-6 w-6 flex-shrink-0 text-zx-primary" />
-                <h2 class="text-lg font-semibold text-gray-800">数据统计</h2>
-            </div>
-
             <div
                 class="flex flex-col items-start space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-3"
             >

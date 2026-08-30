@@ -359,20 +359,9 @@ onMounted(() => {
 <template>
     <div class="database-page flex h-full w-full flex-col gap-3 overflow-hidden sm:gap-4">
         <div
-            class="flex flex-shrink-0 items-center justify-between rounded-3xl border-1 border-slate-200 bg-white p-4 shadow-sm"
+            class="flex flex-shrink-0 items-center justify-end rounded-3xl border-1 border-slate-200 bg-white p-2 shadow-sm sm:p-3"
             v-if="!globalStore.isDesktopMode"
         >
-            <div class="flex min-w-0 items-center space-x-3">
-                <Database class="h-6 w-6 flex-shrink-0 text-zx-primary" />
-                <div class="min-w-0">
-                    <h2 class="truncate text-lg font-semibold text-gray-800">
-                        数据库管理
-                    </h2>
-                    <p class="text-xs text-gray-400">
-                        {{ tableList.length }} 张表
-                    </p>
-                </div>
-            </div>
             <button
                 @click="openSqlLog"
                 class="btn-touch flex cursor-pointer items-center space-x-2 rounded-2xl bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 sm:px-4"

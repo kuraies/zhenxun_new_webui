@@ -45,58 +45,75 @@
 
 /* 果冻进入动画 - 应用于弹窗内容容器 */
 .jelly-in {
-    animation: jelly-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    animation: jelly-enter 0.5s cubic-bezier(0.34, 1.3, 0.64, 1) both;
 }
 
 /* 果冻离开动画 */
 .jelly-out {
-    animation: jelly-leave 0.25s ease-in forwards;
+    animation: jelly-leave 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
-/* 果冻进入关键帧 */
+/* 果冻进入关键帧:上方落下 + 挤压回弹 + 轻微旋转回正 */
 @keyframes jelly-enter {
     0% {
         opacity: 0;
-        transform: scale(0.3);
+        transform: translateY(-28px) scale(0.72) rotate(-1.5deg);
     }
-    50% {
+    35% {
         opacity: 1;
-        transform: scale(1.02);
+        transform: translateY(0) scale(1.04) rotate(0.4deg);
     }
-    70% {
-        transform: scale(0.96);
-    }
-    85% {
-        transform: scale(1.02);
+    60% {
+        transform: translateY(0) scale(0.98) rotate(-0.2deg);
     }
     100% {
         opacity: 1;
-        transform: scale(1);
+        transform: translateY(0) scale(1) rotate(0deg);
     }
 }
 
-/* 果冻离开关键帧 */
+/* 果冻离开关键帧:轻微下沉 + 缩小淡出 */
 @keyframes jelly-leave {
     0% {
         opacity: 1;
-        transform: scale(1);
+        transform: translateY(0) scale(1);
     }
     100% {
         opacity: 0;
-        transform: scale(0.8);
+        transform: translateY(12px) scale(0.9);
     }
 }
 
 /* 弹窗容器过渡动画 - 配合 Transition 组件使用 */
 /* 容器不需要动画，使用 Vue 的 :duration prop 控制时长 */
 
-/* 弹窗内容果冻动画 */
-.modal-jelly-enter-active .modal-content {
-    animation: jelly-enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+/* 弹窗内容果冻动画(enter 与首次挂载 appear 共用) */
+.modal-jelly-enter-active .modal-content,
+.modal-jelly-appear-active .modal-content {
+    animation: jelly-enter 0.5s cubic-bezier(0.34, 1.3, 0.64, 1) both;
+}
+
+/* 遮罩随弹窗同步淡入淡出 */
+.modal-jelly-enter-active .glass-overlay,
+.modal-jelly-appear-active .glass-overlay {
+    transition: opacity 0.35s ease-out;
+}
+
+.modal-jelly-enter-from .glass-overlay,
+.modal-jelly-appear-from .glass-overlay {
+    opacity: 0;
 }
 
 .modal-jelly-leave-active .modal-content {
-    animation: jelly-leave 0.25s ease-in forwards;
+    animation: jelly-leave 0.25s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.modal-jelly-leave-active .glass-overlay {
+    transition: opacity 0.25s ease-in;
+}
+
+.modal-jelly-leave-to .glass-overlay {
+    opacity: 0;
 }
 
 /* ===================================

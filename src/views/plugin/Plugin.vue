@@ -224,19 +224,11 @@ onMounted(() => {
 
 <template>
     <div class="flex h-full w-full flex-col space-y-3 sm:space-y-4">
-        <!-- 头部标题和统计 -->
+        <!-- 头部操作 -->
         <div
-            class="flex flex-col items-start justify-between gap-3 rounded-3xl border-1 border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:gap-0"
+            class="flex items-center justify-end rounded-3xl border-1 border-slate-200 bg-white p-2 shadow-sm sm:p-3"
             v-if="!globalStore.isDesktopMode"
         >
-            <div class="flex items-center space-x-3">
-                <Blocks class="h-6 w-6 flex-shrink-0 text-blue-500" />
-                <h2 class="text-lg font-semibold text-gray-800">插件管理</h2>
-                <span class="text-sm text-gray-500"
-                    >(共 {{ currentCount }} 个)</span
-                >
-            </div>
-
             <!-- 刷新按钮 -->
             <button
                 @click="activeView === 'local' ? loadPlugins() : loadStoreData()"

@@ -1,6 +1,6 @@
 <template>
     <Teleport to="body">
-        <Transition name="modal-jelly" :duration="{ enter: 500, leave: 250 }">
+        <Transition appear name="modal-jelly" :duration="{ enter: 500, leave: 250 }">
             <div v-if="visible" class="LocationAddress fixed inset-0 flex items-center justify-center z-50">
                 <div v-if="bg_visible" ref="bgRef" class="bg glass-overlay w-full h-full absolute -z-1"
                      @click="onCancel"></div>
@@ -10,7 +10,7 @@
                     class="backdrop rounded-l-2xl bg-white flex justify-center flex-col overflow-hidden min-w-50 w-100 h-full max-md:w-full">
                     <img :src="poster"
                          alt=""
-                         class="h-full object-cover object-center filter url(#remove-white) max-md:object-top">
+                         class="h-full object-cover object-center max-md:object-top">
                 </div>
                 <div
                     class="right-area flex-1 flex flex-col px-[10%] pt-16 pb-8 z-2 rounded-r-2xl space-y-8  max-md:rounded-t-2xl max-md:shadow-[0_3px_10px_rgb(0,0,0,0.2)]">
@@ -100,7 +100,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import { getWsBaseUrl, updateApiBaseUrl, getPort, getBaseUrl, setBaseApiUrl, setPort } from "@/utils/api-next/client";
 import ZXNotification from "components/zxcomponent/Notification";
 import { throttle } from "@/utils/util.ts";
@@ -121,13 +121,15 @@ const updateRequestUrl = (url, port) => {
 图片导入区
  */
 
-import poster from "@/assets/img/img.png";
+import { rawPoster } from "@/utils/poster";
 import right_top_img from "@/assets/img/2.png";
 import ZXInput from "@/components/zxcomponent/ZXInput.vue";
 
 /*
 图片导入区结束
  */
+
+const poster = computed(() => rawPoster.value);
 
 
 const props = defineProps({
