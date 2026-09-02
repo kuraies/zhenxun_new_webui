@@ -2,10 +2,8 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from "vue";
 import {
     ArrowLeft,
-    ArrowRightLeft,
     Bot,
     Check,
-    GroupIcon,
     ImageIcon,
     ImageOff,
     Link2,
@@ -20,6 +18,9 @@ import {
     Trash2,
     UserRound,
     UserRoundPlus,
+    UserRoundX,
+    UsersRound,
+    LogOut,
     X,
 } from "lucide-vue-next";
 import ZXInput from "@/components/zxcomponent/ZXInput.vue";
@@ -30,6 +31,7 @@ import defaultAva from "@/assets/img/avatar.jpg";
 import { OneBotV11Simulator } from "@/utils/onebot/client";
 import {
     buildFriendRequestEvent,
+    buildGroupDecreaseEvent,
     buildGroupMessageEvent,
     buildPrivateMessageEvent,
 } from "@/utils/onebot/events";
@@ -93,12 +95,12 @@ watch([autoReconnect, autoConnect, showError], () => {
 interface SimUser {
     user_id: number;
     nickname: string;
+    /** 自定义头像（dataURL），缺省按 QQ 号取真实头像 */
+    avatar?: string;
 }
 
-const users = ref<SimUser[]>([
-    { user_id: 10000, nickname: "调试用户" },
-    { user_id: 10001, nickname: "管理员小号" },
-]);
+// 不预置默认账户：身份由用户在"身份管理"里自行创建
+const users = ref<SimUser[]>([]);
 
 // 恢复持久化的身份列表
 try {
@@ -169,25 +171,16 @@ watch(
 );
 
 // 当前扮演的用户 / 模拟的机器人，都从身份池里选
-const myUserId = ref(
-    loadSetting("myUserId", String(users.value[0]?.user_id ?? 10000)),
-);
-const botId = ref(
-    loadSetting(
-        "botId",
-        String(users.value.find(u => u.user_id !== users.value[0]?.user_id)?.user_id ?? 10086),
-    ),
-);
+const myUserId = ref(loadSetting("myUserId", ""));
+const botId = ref(loadSetting("botId", ""));
 
 watch([myUserId, botId], () => {
     localStorage.setItem(STORAGE_PREFIX + "myUserId", myUserId.value);
     localStorage.setItem(STORAGE_PREFIX + "botId", botId.value);
 });
 
-const currentUser = computed(
-    () =>
-        users.value.find(u => String(u.user_id) === myUserId.value) ??
-        users.value[0],
+const currentUser = computed(() =>
+    users.value.find(u => String(u.user_id) === myUserId.value),
 );
 
 const currentBot = computed(
@@ -195,13 +188,16 @@ const currentBot = computed(
 );
 
 const myNickname = computed(() => currentUser.value?.nickname ?? "调试用户");
+
+/** 是否已创建并选择扮演身份（没有时引导用户先创建） */
+const hasIdentity = computed(() => !!currentUser.value);
 const botNickname = computed(
     () => currentBot.value?.nickname ?? "小真寻",
 );
 
 // 机器人头像：优先用后端回填的真实头像，否则按 QQ 号走 qlogo 头像
 const botAvatarUrl = ref<string | null>(null);
-const botAvatar = computed(() => botAvatarUrl.value ?? userAvatarUrl(botId.value));
+const botAvatar = computed(() => botAvatarUrl.value ?? resolveAvatar(botId.value));
 
 // 机器人身份同步到 simState.bot（get_login_info 等应答使用）
 watchEffect(() => {
@@ -398,6 +394,10 @@ onMounted(() => {
     if (autoConnect.value && botId.value.trim()) {
         connect();
     }
+    // 没有任何身份时自动打开身份管理，引导用户自行创建
+    if (users.value.length === 0) {
+        identityOpen.value = true;
+    }
 });
 
 // ==================== 弹窗 ====================
@@ -447,11 +447,16 @@ const contactSearch = ref("");
 
 const contactList = computed<DebugContact[]>(() => {
     const list: DebugContact[] = [
-        {
-            type: "bot",
-            id: botId.value,
-            name: botNickname.value,
-        },
+        // 未设置机器人身份时不显示私聊联系人
+        ...(botId.value
+            ? [
+                  {
+                      type: "bot" as const,
+                      id: botId.value,
+                      name: botNickname.value,
+                  },
+              ]
+            : []),
         ...simState.groups.map(g => ({
             type: "group" as const,
             id: String(g.group_id),
@@ -603,6 +608,41 @@ const removeContact = (contact: DebugContact) => {
     if (selectedContact.value?.id === contact.id) {
         selectedContact.value = null;
     }
+};
+
+// 联系人右键菜单：机器人 → 添加/删除好友；群聊 → 删除联系人。
+// 与聊天头部的好友图标共享同一套状态和处理函数
+const openContactMenu = (e: MouseEvent, contact: DebugContact) => {
+    const items: {
+        label: string;
+        icon: typeof Bot;
+        danger?: boolean;
+        action: () => void;
+    }[] = [];
+    if (contact.type === "bot") {
+        if (!isBotFriend.value) {
+            items.push({
+                label: "添加好友",
+                icon: UserRoundPlus,
+                action: sendFriendRequest,
+            });
+        } else {
+            items.push({
+                label: "删除好友",
+                icon: UserRoundX,
+                danger: true,
+                action: deleteBotFriend,
+            });
+        }
+    } else {
+        items.push({
+            label: "删除群聊",
+            icon: Trash2,
+            danger: true,
+            action: () => removeContact(contact),
+        });
+    }
+    openContextMenu(e, items);
 };
 
 const selectContact = (contact: DebugContact) => {
@@ -927,6 +967,11 @@ const restoreConversation = async (key: string) => {
 
 const userAvatarUrl = (id: string | number) =>
     `https://q1.qlogo.cn/g?b=qq&nk=${id}&s=160`;
+
+// 自定义头像优先，否则按 QQ 号取真实头像
+const resolveAvatar = (id: string | number) =>
+    users.value.find(u => String(u.user_id) === String(id))?.avatar ??
+    userAvatarUrl(id);
 
 const groupAvatarUrl = (id: string | number) =>
     `https://p.qlogo.cn/gh/${id}/${id}/100/`;
@@ -1281,6 +1326,15 @@ const sendSegments = (messageSegments: import('@/utils/onebot/types').MessageCon
 };
 
 const handleSendMessage = () => {
+    if (!hasIdentity.value) {
+        ZXNotification({
+            title: "等等",
+            message: "还没有身份哦，先在左下角创建一个",
+            type: "warning",
+        });
+        identityOpen.value = true;
+        return;
+    }
     const pieces = extractEditor();
     const text = pieces
         .filter((piece) => piece.type === "text")
@@ -1369,6 +1423,52 @@ const sendFriendRequest = () => {
     }
 };
 
+// 删除好友：把当前身份从机器人好友列表移除，
+// get_friend_list 应答即时生效，联系人页拉取即见
+const deleteBotFriend = () => {
+    simState.friends = simState.friends.filter(
+        f => f.user_id !== Number(myUserId.value),
+    );
+    pushLog("已删除与机器人的好友关系");
+    ZXNotification({
+        title: "已删除好友",
+        message: "机器人的好友列表已更新",
+        type: "success",
+    });
+};
+
+// 退出群聊：把自己移出群成员，并按 OneBot 标准推送
+// group_decrease(leave)，真寻会更新群成员缓存
+const leaveGroup = () => {
+    const contact = selectedContact.value;
+    if (!contact || contact.type !== "group") return;
+    const groupId = Number(contact.id);
+    const members = simState.members[groupId] ?? [];
+    const idx = members.findIndex(m => m.user_id === Number(myUserId.value));
+    if (idx !== -1) {
+        members.splice(idx, 1);
+        const group = simState.groups.find(g => g.group_id === groupId);
+        if (group) group.member_count = members.length;
+        persistGroups();
+    }
+    const sent = simulator?.connected
+        ? simulator.sendEvent(
+              buildGroupDecreaseEvent({
+                  selfId: botId.value,
+                  groupId: contact.id,
+                  userId: String(myUserId.value),
+                  subType: "leave",
+              }),
+          )
+        : false;
+    pushLog(sent ? "已退群并推送 group_decrease" : "已退群（未连接，仅本地移除）");
+    ZXNotification({
+        title: "已退出群聊",
+        message: sent ? "真寻会收到群成员减少通知" : "未连接，仅更新了本地群成员",
+        type: sent ? "success" : "warning",
+    });
+};
+
 // ==================== 好友管理（设置里的 tab） ====================
 // 直接操作 simState.friends：改备注 / 删除会即时反映到
 // get_friend_list 应答，WebUI 联系人页拉取即可见
@@ -1439,7 +1539,7 @@ const contactSubtitle = computed(() => {
         : `群 ${contact.id} · 以 ${myNickname.value}(${myUserId.value}) 身份发言`;
 });
 
-// ==================== 角色管理弹窗逻辑 ====================
+// ==================== 身份管理弹窗逻辑 ====================
 
 const roleFilter = ref("");
 
@@ -1475,53 +1575,118 @@ const assignUser = (type: "user" | "bot", userId: string) => {
     }
 };
 
-// 新建角色
-const showCreateRole = ref(false);
-const newRoleId = ref("");
-const newRoleName = ref("");
+// 新建 / 编辑身份弹窗
+const formOpen = ref(false);
+const formMode = ref<"create" | "edit">("create");
+const editingUserId = ref<string | null>(null);
+const formAvatar = ref("");
+const formUserId = ref("");
+const formNickname = ref("");
+const avatarInputRef = ref<HTMLInputElement | null>(null);
 
-const createRole = () => {
-    if (!newRoleId.value.trim()) return;
-    const id = Number(newRoleId.value);
-    if (users.value.some(u => u.user_id === id)) {
+// 头像预览防抖：账号输入停顿 500ms 才请求 QQ 头像，避免每个按键都发一次请求
+const debouncedAvatarUserId = ref("");
+let avatarDebounceTimer: number | undefined;
+
+watch(
+    () => formUserId.value,
+    id => {
+        window.clearTimeout(avatarDebounceTimer);
+        if (!id) {
+            debouncedAvatarUserId.value = "";
+            return;
+        }
+        avatarDebounceTimer = window.setTimeout(() => {
+            debouncedAvatarUserId.value = id;
+        }, 500);
+    },
+    { immediate: true },
+);
+
+const formAvatarPreview = computed(
+    () =>
+        formAvatar.value ||
+        (debouncedAvatarUserId.value
+            ? userAvatarUrl(debouncedAvatarUserId.value)
+            : defaultAva),
+);
+
+const openCreateUser = () => {
+    formMode.value = "create";
+    editingUserId.value = null;
+    formAvatar.value = "";
+    formUserId.value = "";
+    formNickname.value = "";
+    formOpen.value = true;
+};
+
+const openEditUser = (user: SimUser) => {
+    formMode.value = "edit";
+    editingUserId.value = String(user.user_id);
+    formAvatar.value = user.avatar ?? "";
+    formUserId.value = String(user.user_id);
+    // 编辑预填立即显示头像，不走防抖
+    debouncedAvatarUserId.value = String(user.user_id);
+    formNickname.value = user.nickname;
+    formOpen.value = true;
+};
+
+const pickAvatar = () => avatarInputRef.value?.click();
+
+// 读取图片并居中裁剪压缩成 128×128 的 dataURL，避免撑爆 localStorage
+const readImageAsAvatar = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+                canvas.width = canvas.height = 128;
+                const ctx = canvas.getContext("2d");
+                if (!ctx) {
+                    reject(new Error("canvas 不可用"));
+                    return;
+                }
+                const size = Math.min(img.width, img.height);
+                ctx.drawImage(
+                    img,
+                    (img.width - size) / 2,
+                    (img.height - size) / 2,
+                    size,
+                    size,
+                    0,
+                    0,
+                    128,
+                    128,
+                );
+                resolve(canvas.toDataURL("image/jpeg", 0.85));
+            };
+            img.onerror = () => reject(new Error("图片解析失败"));
+            img.src = String(reader.result);
+        };
+        reader.onerror = () => reject(new Error("文件读取失败"));
+        reader.readAsDataURL(file);
+    });
+
+const onAvatarPicked = async (e: Event) => {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file) return;
+    try {
+        formAvatar.value = await readImageAsAvatar(file);
+    } catch {
         ZXNotification({
-            title: "已存在",
-            message: `身份 ${id} 已经有了哦`,
+            title: "失败了",
+            message: "图片读取失败，换一张试试",
             type: "warning",
         });
-        return;
     }
-    users.value.push({
-        user_id: id,
-        nickname: newRoleName.value.trim() || `用户${newRoleId.value}`,
-    });
-    persistUsers();
-    newRoleId.value = "";
-    newRoleName.value = "";
-    showCreateRole.value = false;
 };
 
-// 行内编辑
-const editingId = ref<string | null>(null);
-const editIdValue = ref("");
-const editNameValue = ref("");
-
-const startEdit = (user: SimUser) => {
-    editingId.value = String(user.user_id);
-    editIdValue.value = String(user.user_id);
-    editNameValue.value = user.nickname;
-};
-
-const saveEdit = () => {
-    const target = users.value.find(
-        u => String(u.user_id) === editingId.value,
-    );
-    if (!target) {
-        editingId.value = null;
-        return;
-    }
-    const newId = Number(editIdValue.value);
-    if (!newId) {
+const saveUserForm = () => {
+    const id = Number(formUserId.value.trim());
+    if (!id) {
         ZXNotification({
             title: "等等",
             message: "QQ 号得是数字哦",
@@ -1529,14 +1694,47 @@ const saveEdit = () => {
         });
         return;
     }
-    const oldUserId = String(target.user_id);
-    target.user_id = newId;
-    target.nickname = editNameValue.value.trim() || target.nickname;
-    // 同步角色指向
-    if (myUserId.value === oldUserId) myUserId.value = String(newId);
-    if (botId.value === oldUserId) botId.value = String(newId);
+    const nickname = formNickname.value.trim() || `用户${id}`;
+    const avatar = formAvatar.value;
+
+    if (
+        users.value.some(
+            u => u.user_id === id && String(u.user_id) !== editingUserId.value,
+        )
+    ) {
+        ZXNotification({
+            title: "已存在",
+            message: `身份 ${id} 已经有了哦`,
+            type: "warning",
+        });
+        return;
+    }
+
+    if (formMode.value === "create") {
+        users.value.push(
+            avatar
+                ? { user_id: id, nickname, avatar }
+                : { user_id: id, nickname },
+        );
+    } else {
+        const target = users.value.find(
+            u => String(u.user_id) === editingUserId.value,
+        );
+        if (!target) {
+            formOpen.value = false;
+            return;
+        }
+        const oldUserId = String(target.user_id);
+        target.user_id = id;
+        target.nickname = nickname;
+        if (avatar) target.avatar = avatar;
+        else delete target.avatar;
+        // 同步角色指向
+        if (myUserId.value === oldUserId) myUserId.value = String(id);
+        if (botId.value === oldUserId) botId.value = String(id);
+    }
     persistUsers();
-    editingId.value = null;
+    formOpen.value = false;
 };
 
 const removeRole = (user: SimUser) => {
@@ -1571,7 +1769,7 @@ const removeRole = (user: SimUser) => {
         >
             <!-- 搜索 + 添加群聊 -->
             <div class="mb-2 flex gap-2 px-2">
-                <div class="flex min-w-0 flex-1 items-center gap-1.5 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-1.5 transition-all focus-within:border-zx-primary focus-within:bg-white">
+                <div class="flex min-w-0 flex-1 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3.5 transition-all focus-within:border-zx-primary focus-within:bg-white h-9.5">
                     <Search class="h-4 w-4 shrink-0 text-slate-400" />
                     <input
                         v-model="contactSearch"
@@ -1589,7 +1787,7 @@ const removeRole = (user: SimUser) => {
                     </button>
                 </div>
                 <button
-                    class="flex h-9.5 w-9.5 shrink-0 cursor-pointer items-center justify-center rounded-2xl border border-slate-200 text-slate-400 transition-colors hover:border-zx-primary hover:text-zx-primary"
+                    class="flex h-9.5 w-9.5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200 text-slate-400 transition-colors hover:border-zx-primary hover:text-zx-primary"
                     title="创建群聊"
                     type="button"
                     @click="createGroupOpen = true"
@@ -1618,6 +1816,7 @@ const removeRole = (user: SimUser) => {
                     class="group flex w-full cursor-pointer items-center gap-2.5 rounded-2xl p-2 text-left transition-colors"
                     type="button"
                     @click="selectContact(contact)"
+                    @contextmenu="openContactMenu($event, contact)"
                 >
                     <div
                         :class="
@@ -1642,32 +1841,23 @@ const removeRole = (user: SimUser) => {
                             <span class="truncate">{{ contact.name }}</span>
                             <span
                                 v-if="contact.type === 'bot'"
-                                class="flex shrink-0 items-center gap-0.5 rounded bg-violet-100 px-1 py-0.5 text-[10px] leading-none text-violet-500"
+                                class="shrink-0 text-violet-400"
+                                title="机器人"
                             >
-                                <Bot class="size-2.5" />
-                                机器人
+                                <Bot class="size-3.5" />
                             </span>
                             <span
                                 v-else
-                                class="flex shrink-0 items-center gap-0.5 rounded bg-sky-100 px-1 py-0.5 text-[10px] leading-none text-sky-600"
+                                class="shrink-0 text-sky-500"
+                                title="群聊"
                             >
-                                <GroupIcon class="size-2.5" />
-                                群聊
+                                <UsersRound class="size-3.5" />
                             </span>
                         </p>
                         <p class="truncate text-xs text-slate-400">
-                            {{ contact.type === "bot" ? "私聊" : "群聊" }}
                             {{ contact.id }}
                         </p>
                     </div>
-                    <span
-                        v-if="contact.type === 'group'"
-                        class="flex h-7 w-7 items-center justify-center rounded-lg text-slate-300 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
-                        title="删除"
-                        @click.stop="removeContact(contact)"
-                    >
-                        <Trash2 class="h-3.5 w-3.5" />
-                    </span>
                 </button>
             </div>
 
@@ -1675,8 +1865,8 @@ const removeRole = (user: SimUser) => {
             <div class="shrink-0 border-t border-slate-100 p-2">
                 <div class="flex items-center gap-1.5">
                     <button
-                        class="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-2xl p-1.5 transition-colors hover:bg-slate-100"
-                        title="管理用户和机器人角色"
+                        class="group flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 rounded-2xl p-1.5 transition-colors hover:bg-slate-100"
+                        title="身份管理"
                         type="button"
                         @click="identityOpen = true"
                     >
@@ -1685,7 +1875,7 @@ const removeRole = (user: SimUser) => {
                                 class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full ring-2 ring-rose-100"
                             >
                                 <img
-                                    :src="userAvatarUrl(myUserId)"
+                                    :src="resolveAvatar(myUserId)"
                                     @error="onAvatarError"
                                     class="h-full w-full object-cover"
                                 />
@@ -1701,12 +1891,15 @@ const removeRole = (user: SimUser) => {
                         </div>
                         <div class="min-w-0 flex-1 text-left">
                             <p class="truncate text-sm font-medium text-slate-700">
-                                {{ myNickname }}
+                                {{ hasIdentity ? myNickname : "未创建身份" }}
                             </p>
                             <p class="truncate text-xs text-slate-400">
-                                {{ myUserId }} · 点击管理角色
+                                {{ hasIdentity ? myUserId : "点击创建身份" }}
                             </p>
                         </div>
+                        <Pencil
+                            class="h-4 w-4 shrink-0 text-slate-300 transition-colors group-hover:text-slate-500"
+                        />
                     </button>
                     <button
                         class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
@@ -1727,8 +1920,9 @@ const removeRole = (user: SimUser) => {
                 selectedContact ? 'flex' : 'hidden sm:flex',
             ]"
         >
-            <!-- 工具栏 -->
+            <!-- 工具栏：未选择联系人时不渲染，避免兜底显示机器人信息 -->
             <div
+                v-if="selectedContact"
                 class="flex items-center justify-between gap-2 border-b border-slate-100 px-4 py-3"
             >
                 <div class="flex min-w-0 flex-1 items-center gap-2">
@@ -1779,14 +1973,33 @@ const removeRole = (user: SimUser) => {
                             }}
                         </p>
                     </div>
+                    <!-- 好友关系 / 群成员操作：纯图标按钮 -->
                     <button
                         v-if="selectedContact?.type === 'bot' && !isBotFriend"
-                        class="flex shrink-0 cursor-pointer items-center gap-1 rounded-full border border-zx-primary-soft bg-zx-primary-soft/60 px-3 py-1 text-xs font-semibold text-zx-primary transition-colors hover:bg-zx-primary-soft"
+                        class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-zx-primary transition-colors hover:bg-zx-primary-soft"
+                        title="添加好友"
                         type="button"
                         @click="sendFriendRequest"
                     >
-                        <UserRoundPlus class="size-3.5" />
-                        添加好友
+                        <UserRoundPlus class="size-4.5" />
+                    </button>
+                    <button
+                        v-else-if="selectedContact?.type === 'bot' && isBotFriend"
+                        class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                        title="删除好友"
+                        type="button"
+                        @click="deleteBotFriend"
+                    >
+                        <UserRoundX class="size-4.5" />
+                    </button>
+                    <button
+                        v-else-if="selectedContact?.type === 'group'"
+                        class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                        title="退出群聊"
+                        type="button"
+                        @click="leaveGroup"
+                    >
+                        <LogOut class="size-4.5" />
                     </button>
                 </div>
             </div>
@@ -1810,9 +2023,6 @@ const removeRole = (user: SimUser) => {
                                     ? "开始和真寻对话吧"
                                     : "选择一个联系人开始聊天"
                             }}
-                        </p>
-                        <p class="mt-2 text-xs sm:text-sm">
-                            发出的消息会作为 OneBot 事件推给真寻
                         </p>
                     </div>
                 </div>
@@ -2044,7 +2254,7 @@ const removeRole = (user: SimUser) => {
                             class="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-rose-100"
                         >
                             <img
-                                :src="userAvatarUrl(myUserId)"
+                                :src="resolveAvatar(myUserId)"
                                 @error="onAvatarError"
                                 class="h-full w-full object-cover"
                             />
@@ -2200,13 +2410,13 @@ const removeRole = (user: SimUser) => {
                         ref="editorRef"
                         contenteditable="true"
                         data-placeholder="输入消息，Enter 发送；@QQ号 / CQ 码 / JSON 段数组"
-                        class="rich-editor max-h-32 min-h-11 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 pr-14 text-sm leading-5 text-slate-700 focus:outline-none"
+                        class="rich-editor max-h-32 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 pr-12 text-sm leading-5 text-slate-700 focus:outline-none"
                         @paste="handlePaste"
                         @keydown.enter.exact.prevent="handleSendMessage"
                     ></div>
                     <button
                         type="button"
-                        class="btn-touch absolute bottom-1.5 right-1.5 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-zx-primary text-white shadow-sm transition-colors hover:bg-zx-primary-hover"
+                        class="btn-touch absolute bottom-[5px] right-1.5 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-zx-primary text-white shadow-sm transition-colors hover:bg-zx-primary-hover"
                         title="发送"
                         @click="handleSendMessage"
                     >
@@ -2216,7 +2426,7 @@ const removeRole = (user: SimUser) => {
             </div>
         </div>
 
-        <!-- 角色管理弹窗 -->
+        <!-- 身份管理弹窗 -->
         <Teleport to="body">
             <Transition name="modal-jelly" :duration="{ enter: 500, leave: 250 }">
                 <div
@@ -2228,233 +2438,266 @@ const removeRole = (user: SimUser) => {
                         @click="identityOpen = false"
                     ></div>
                     <div
-                        class="modal-content relative z-1 w-100 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl max-sm:mx-4"
+                        class="modal-content relative z-1 w-140 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl max-sm:mx-4"
                     >
-                        <div class="mb-4">
-                            <p class="text-base font-bold text-slate-800">
-                                角色管理
-                            </p>
-                            <p class="text-sm text-slate-400">
-                                管理当前交互的用户和机器人角色
-                            </p>
-                        </div>
-
-                        <!-- 用户 <-> 机器人 -->
-                        <div class="mb-4 flex items-center justify-evenly gap-4">
-                            <div class="relative">
-                                <div
-                                    class="flex size-14 items-center justify-center overflow-hidden rounded-full ring-4 ring-rose-100"
-                                >
-                                    <img
-                                        :src="userAvatarUrl(myUserId)"
-                                        @error="onAvatarError"
-                                        class="h-full w-full object-cover"
-                                    />
-                                </div>
-                                <div
-                                    class="absolute left-1/2 top-0 flex -translate-x-1/2 -translate-y-1/2 items-center gap-0.5 rounded bg-rose-100 px-1 py-0.5 text-xs text-rose-500"
-                                >
-                                    <UserRound class="size-3.5" />
-                                    <span class="whitespace-nowrap">用户</span>
-                                </div>
-                                <p
-                                    class="mt-1.5 w-24 truncate text-center text-xs text-slate-500"
-                                    :title="`${myNickname} (${myUserId})`"
-                                >
-                                    {{ myNickname }}
+                        <!-- 标题 -->
+                        <div class="mb-5 flex items-start justify-between gap-2">
+                            <div>
+                                <p class="text-base font-bold text-slate-800">
+                                    身份管理
+                                </p>
+                                <p class="mt-0.5 text-sm text-slate-400">
+                                    管理用户与机器人身份
                                 </p>
                             </div>
                             <button
-                                class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100"
-                                title="交换用户和机器人"
+                                class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                                title="关闭"
                                 type="button"
-                                @click="swapUserBot"
+                                @click="identityOpen = false"
                             >
-                                <ArrowRightLeft class="h-4.5 w-4.5" />
+                                <X class="h-4 w-4" />
                             </button>
-                            <div class="relative">
-                                <div
-                                    class="flex size-14 items-center justify-center overflow-hidden rounded-full ring-4 ring-violet-100"
-                                >
-                                    <img
-                                        :src="botAvatar"
-                                        @error="onAvatarError"
-                                        class="h-full w-full object-cover"
-                                    />
-                                </div>
-                                <div
-                                    class="absolute left-1/2 top-0 flex -translate-x-1/2 -translate-y-1/2 items-center gap-0.5 rounded bg-violet-100 px-1 py-0.5 text-xs text-violet-500"
-                                >
-                                    <Bot class="size-3.5" />
-                                    <span class="whitespace-nowrap">机器人</span>
-                                </div>
-                                <p
-                                    class="mt-1.5 w-24 truncate text-center text-xs text-slate-500"
-                                    :title="`${botNickname} (${botId})`"
-                                >
-                                    {{ botNickname }}
-                                </p>
-                            </div>
                         </div>
 
-                        <!-- 搜索 -->
-                        <div class="mb-2 flex items-center gap-1.5 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-1.5 transition-all focus-within:border-zx-primary focus-within:bg-white">
-                            <Search class="h-4 w-4 shrink-0 text-slate-400" />
-                            <input
-                                v-model="roleFilter"
-                                placeholder="搜索角色"
-                                class="min-w-0 flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
-                            />
+                        <!-- 搜索 + 新建身份 -->
+                        <div class="mb-3 flex items-center gap-2">
+                            <div
+                                class="flex min-w-0 flex-1 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3.5 py-1.5 transition-all focus-within:border-zx-primary focus-within:bg-white"
+                            >
+                                <Search
+                                    class="h-4 w-4 shrink-0 text-slate-400"
+                                />
+                                <input
+                                    v-model="roleFilter"
+                                    placeholder="搜索身份"
+                                    class="min-w-0 flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+                                />
+                            </div>
+                            <button
+                                class="flex size-8.5 shrink-0 cursor-pointer items-center justify-center rounded-full border border-slate-200 text-slate-400 transition-colors hover:border-zx-primary hover:text-zx-primary"
+                                title="新建身份"
+                                type="button"
+                                @click="openCreateUser"
+                            >
+                                <Plus class="h-4 w-4" />
+                            </button>
                         </div>
 
-                        <!-- 角色列表 -->
-                        <div class="max-h-60 space-y-2 overflow-y-auto p-1">
-                            <!-- 新建角色行 -->
+                        <!-- 身份卡片墙：所有身份以卡片展示，角色在卡片上设置 -->
+                        <div
+                            class="grid max-h-80 grid-cols-2 gap-2.5 overflow-y-auto p-0.5"
+                        >
                             <div
-                                v-if="showCreateRole"
-                                class="flex items-center gap-1.5 rounded-xl bg-slate-50 p-2"
+                                v-if="filteredUsers.length === 0"
+                                class="col-span-2 py-10 text-center text-xs text-slate-300"
                             >
-                                <ZXInput
-                                    v-model="newRoleId"
-                                    placeholder="QQ 号"
-                                />
-                                <ZXInput
-                                    v-model="newRoleName"
-                                    placeholder="昵称"
-                                />
-                                <button
-                                    class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-zx-primary text-white transition-colors hover:bg-zx-primary-hover"
-                                    title="保存"
-                                    type="button"
-                                    @click="createRole"
-                                >
-                                    <Check class="h-4 w-4" />
-                                </button>
-                                <button
-                                    class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100"
-                                    title="取消"
-                                    type="button"
-                                    @click="showCreateRole = false"
-                                >
-                                    <X class="h-4 w-4" />
-                                </button>
+                                还没有身份，点右上角「+」新建
                             </div>
 
-                            <!-- 行内编辑行 -->
-                            <div
-                                v-if="editingId"
-                                class="flex items-center gap-1.5 rounded-xl bg-slate-50 p-2"
-                            >
-                                <ZXInput
-                                    v-model="editIdValue"
-                                    placeholder="QQ 号"
-                                />
-                                <ZXInput
-                                    v-model="editNameValue"
-                                    placeholder="昵称"
-                                />
-                                <button
-                                    class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg bg-zx-primary text-white transition-colors hover:bg-zx-primary-hover"
-                                    title="保存"
-                                    type="button"
-                                    @click="saveEdit"
-                                >
-                                    <Check class="h-4 w-4" />
-                                </button>
-                                <button
-                                    class="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100"
-                                    title="取消"
-                                    type="button"
-                                    @click="editingId = null"
-                                >
-                                    <X class="h-4 w-4" />
-                                </button>
-                            </div>
-
+                            <!-- 身份卡 -->
                             <div
                                 v-for="user in filteredUsers"
-                                v-show="String(user.user_id) !== editingId"
                                 :key="user.user_id"
                                 :class="{
-                                    'bg-rose-100 ring-1 ring-rose-300':
+                                    'border-rose-200':
                                         String(user.user_id) === myUserId,
-                                    'bg-violet-100 ring-1 ring-violet-300':
+                                    'border-violet-200':
                                         String(user.user_id) === botId,
                                 }"
-                                class="group flex items-center gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-slate-50"
+                                class="group relative flex items-center gap-3 rounded-2xl border border-slate-200 p-3 transition-colors"
                             >
-                                <div
-                                    class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full"
-                                >
-                                    <img
-                                        :src="userAvatarUrl(user.user_id)"
-                                        @error="onAvatarError"
-                                        class="h-full w-full object-cover"
-                                    />
-                                </div>
+                                <img
+                                    :src="resolveAvatar(user.user_id)"
+                                    @error="onAvatarError"
+                                    class="size-10 shrink-0 rounded-full object-cover"
+                                />
                                 <div class="min-w-0 flex-1">
-                                    <p class="truncate text-sm font-medium leading-none text-slate-700">
-                                        {{ user.nickname }}
+                                    <p
+                                        class="flex items-center gap-1.5"
+                                        :title="`${user.nickname} (${user.user_id})`"
+                                    >
+                                        <span
+                                            class="truncate text-sm font-medium text-slate-700"
+                                        >
+                                            {{ user.nickname }}
+                                        </span>
+                                        <span
+                                            v-if="
+                                                String(user.user_id) === myUserId
+                                            "
+                                            class="shrink-0 rounded bg-rose-100 px-1.5 py-0.5 text-[10px] leading-none text-rose-500"
+                                        >
+                                            用户
+                                        </span>
+                                        <span
+                                            v-else-if="
+                                                String(user.user_id) === botId
+                                            "
+                                            class="shrink-0 rounded bg-violet-100 px-1.5 py-0.5 text-[10px] leading-none text-violet-500"
+                                        >
+                                            机器人
+                                        </span>
                                     </p>
-                                    <p class="mt-1 truncate text-xs text-slate-400">
+                                    <p class="mt-0.5 truncate text-xs text-slate-400">
                                         {{ user.user_id }}
                                     </p>
                                 </div>
-                                <div class="ml-auto flex items-center gap-0.5">
+                                <!-- 悬停显示操作：覆盖在卡片右侧，不占布局空间 -->
+                                <div
+                                    class="absolute inset-y-2 right-2 flex items-center gap-0.5 rounded-xl bg-gradient-to-l from-white via-white/95 to-transparent pl-8 opacity-0 transition-opacity group-hover:opacity-100"
+                                >
                                     <button
-                                        :class="
-                                            String(user.user_id) === myUserId
-                                                ? 'cursor-default bg-rose-200 text-rose-500'
-                                                : 'text-slate-400 hover:bg-rose-100 hover:text-rose-500'
-                                        "
-                                        class="flex size-8 cursor-pointer items-center justify-center rounded-lg transition-colors"
+                                        v-if="String(user.user_id) !== myUserId"
+                                        class="flex size-7 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-rose-100 hover:text-rose-500"
                                         title="设为用户"
                                         type="button"
                                         @click="assignUser('user', String(user.user_id))"
                                     >
-                                        <UserRound class="size-4" />
+                                        <UserRound class="size-3.5" />
                                     </button>
                                     <button
-                                        :class="
-                                            String(user.user_id) === botId
-                                                ? 'cursor-default bg-violet-200 text-violet-500'
-                                                : 'text-slate-400 hover:bg-violet-100 hover:text-violet-500'
-                                        "
-                                        class="flex size-8 cursor-pointer items-center justify-center rounded-lg transition-colors"
+                                        v-if="String(user.user_id) !== botId"
+                                        class="flex size-7 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-violet-100 hover:text-violet-500"
                                         title="设为机器人"
                                         type="button"
                                         @click="assignUser('bot', String(user.user_id))"
                                     >
-                                        <Bot class="size-4" />
+                                        <Bot class="size-3.5" />
                                     </button>
                                     <button
-                                        class="flex size-8 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100"
+                                        class="flex size-7 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
                                         title="编辑"
                                         type="button"
-                                        @click="startEdit(user)"
+                                        @click="openEditUser(user)"
                                     >
-                                        <Pencil class="size-4" />
+                                        <Pencil class="size-3.5" />
                                     </button>
+                                    <!-- 当前使用中的身份不可删除 -->
                                     <button
-                                        class="flex size-8 cursor-pointer items-center justify-center rounded-lg text-slate-300 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
+                                        v-if="
+                                            String(user.user_id) !== myUserId &&
+                                            String(user.user_id) !== botId
+                                        "
+                                        class="flex size-7 cursor-pointer items-center justify-center rounded-lg text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500"
                                         title="删除"
                                         type="button"
                                         @click="removeRole(user)"
                                     >
-                                        <Trash2 class="size-4" />
+                                        <Trash2 class="size-3.5" />
                                     </button>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
 
-                        <!-- 底部新建按钮 -->
+        <!-- 新建 / 编辑身份弹窗 -->
+        <Teleport to="body">
+            <Transition name="modal-jelly" :duration="{ enter: 500, leave: 250 }">
+                <div
+                    v-if="formOpen"
+                    class="fixed inset-0 z-[60] flex items-center justify-center"
+                >
+                    <div
+                        class="glass-overlay absolute h-full w-full"
+                        @click="formOpen = false"
+                    ></div>
+                    <div
+                        class="modal-content relative z-1 w-90 rounded-3xl border border-slate-200 bg-white px-8 py-7 shadow-xl max-sm:mx-4"
+                    >
                         <button
-                            class="mt-4 flex h-9 w-full cursor-pointer items-center justify-center gap-1.5 rounded-2xl border border-transparent bg-slate-800 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-700"
+                            class="absolute right-4 top-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                            title="关闭"
                             type="button"
-                            @click="showCreateRole = true"
+                            @click="formOpen = false"
                         >
-                            <Plus class="h-4 w-4" />
-                            新建角色
+                            <X class="h-4 w-4" />
+                        </button>
+
+                        <!-- QQ 登录式：居中头像，随账号实时预览 -->
+                        <div class="flex flex-col items-center">
+                            <p class="text-base font-bold text-slate-800">
+                                {{
+                                    formMode === "create"
+                                        ? "新建身份"
+                                        : "编辑身份"
+                                }}
+                            </p>
+                            <button
+                                class="group relative mt-4 size-20 cursor-pointer overflow-hidden rounded-full ring-4 ring-slate-100"
+                                title="更换头像"
+                                type="button"
+                                @click="pickAvatar"
+                            >
+                                <img
+                                    :src="formAvatarPreview"
+                                    @error="onAvatarError"
+                                    class="h-full w-full object-cover"
+                                />
+                                <span
+                                    class="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                                >
+                                    <Pencil class="size-4" />
+                                </span>
+                            </button>
+                            <button
+                                v-if="formAvatar"
+                                class="mt-1.5 cursor-pointer text-xs font-medium text-zx-primary hover:underline"
+                                type="button"
+                                @click="formAvatar = ''"
+                            >
+                                恢复默认头像
+                            </button>
+                            <p v-else class="mt-1.5 text-xs text-slate-400">
+                                默认按账号使用 QQ 头像
+                            </p>
+                        </div>
+                        <input
+                            ref="avatarInputRef"
+                            accept="image/*"
+                            class="hidden"
+                            type="file"
+                            @change="onAvatarPicked"
+                        />
+
+                        <!-- 账号 / 名称 -->
+                        <div class="mt-5 space-y-3">
+                            <div
+                                class="flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 transition-all focus-within:border-zx-primary focus-within:bg-white"
+                            >
+                                <input
+                                    v-model="formUserId"
+                                    placeholder="账号"
+                                    class="min-w-0 flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+                                />
+                            </div>
+                            <div
+                                class="flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-4 py-2 transition-all focus-within:border-zx-primary focus-within:bg-white"
+                            >
+                                <input
+                                    v-model="formNickname"
+                                    placeholder="名称"
+                                    class="min-w-0 flex-1 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            class="mt-5 flex h-10 w-full cursor-pointer items-center justify-center rounded-full bg-zx-primary text-sm font-medium text-white transition-colors hover:bg-zx-primary-hover"
+                            type="button"
+                            @click="saveUserForm"
+                        >
+                            保存
+                        </button>
+                        <button
+                            class="mt-2 flex h-10 w-full cursor-pointer items-center justify-center rounded-full text-sm font-medium text-slate-500 transition-colors hover:bg-slate-100"
+                            type="button"
+                            @click="formOpen = false"
+                        >
+                            取消
                         </button>
                     </div>
                 </div>
@@ -2600,7 +2843,7 @@ const removeRole = (user: SimUser) => {
                                                     :src="
                                                         String(member.user_id) === botId
                                                             ? botAvatar
-                                                            : userAvatarUrl(member.user_id)
+                                                            : resolveAvatar(member.user_id)
                                                     "
                                                     :class="
                                                         String(member.user_id) === botId
@@ -2759,7 +3002,7 @@ const removeRole = (user: SimUser) => {
                                         class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full"
                                     >
                                         <img
-                                            :src="userAvatarUrl(friend.user_id)"
+                                            :src="resolveAvatar(friend.user_id)"
                                             @error="onAvatarError"
                                             class="h-full w-full object-cover"
                                         />

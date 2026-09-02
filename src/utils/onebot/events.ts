@@ -105,3 +105,23 @@ export const buildFriendRequestEvent = (options: FriendRequestOptions): OneBotEv
     flag: options.flag,
     ...baseFields(options.selfId),
 })
+
+export interface GroupDecreaseOptions {
+    selfId: string
+    groupId: string
+    /** 减少的成员 */
+    userId: string
+    /** 操作者，退群时就是本人，被踢时是管理员 */
+    operatorId?: string
+    subType?: 'leave' | 'kick' | 'kick_me'
+}
+
+export const buildGroupDecreaseEvent = (options: GroupDecreaseOptions): OneBotEvent => ({
+    post_type: 'notice',
+    notice_type: 'group_decrease',
+    sub_type: options.subType ?? 'leave',
+    group_id: Number(options.groupId),
+    user_id: Number(options.userId),
+    operator_id: Number(options.operatorId ?? options.userId),
+    ...baseFields(options.selfId),
+})
