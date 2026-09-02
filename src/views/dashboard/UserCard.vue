@@ -81,7 +81,7 @@ const handleRestart = async () => {
                         <h2
                             class="truncate text-base font-bold text-zx-user-card-text sm:text-3xl"
                         >
-                            {{ botStore.selectedBot?.nickname ?? "暂无协议端接入" }}
+                            {{ botStore.selectedBot?.nickname ?? "" }}
                         </h2>
                         <div
                             class="relative flex h-2 w-2 shrink-0 sm:h-2.5 sm:w-2.5"
@@ -106,8 +106,7 @@ const handleRestart = async () => {
                     >
                         <span class="flex items-center space-x-1">
                             <span class="truncate">{{
-                                botStore.selectedBot?.self_id ??
-                                "等待 OneBot 客户端连接"
+                                botStore.selectedBot?.self_id ?? ""
                             }}</span>
                         </span>
                     </div>
