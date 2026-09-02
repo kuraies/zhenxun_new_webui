@@ -1,23 +1,27 @@
 <script setup lang="ts">
 import { FileText, Maximize2, Minimize2 } from "lucide-vue-next";
 
-// 日志等级筛选按钮:淡色底 + 等级色文字，与日志条目的等级色呼应
+// 日志等级筛选按钮:无底色，启用时文字与小圆点亮等级色，与日志条目的等级色呼应
 const LEVEL_CHIPS = [
     {
         key: "INFO",
-        activeClass: "border-transparent bg-sky-100 text-sky-700",
+        textClass: "text-sky-600",
+        dotClass: "bg-sky-500",
     },
     {
         key: "WARNING",
-        activeClass: "border-transparent bg-amber-100 text-amber-700",
+        textClass: "text-amber-600",
+        dotClass: "bg-amber-500",
     },
     {
         key: "ERROR",
-        activeClass: "border-transparent bg-red-100 text-red-700",
+        textClass: "text-red-600",
+        dotClass: "bg-red-500",
     },
     {
         key: "DEBUG",
-        activeClass: "border-transparent bg-slate-100 text-slate-700",
+        textClass: "text-slate-500",
+        dotClass: "bg-slate-400",
     },
 ] as const;
 
@@ -49,13 +53,21 @@ const emit = defineEmits<{
                 <button
                     :class="
                         activeLevels.length === LEVEL_CHIPS.length
-                            ? 'border-transparent bg-slate-100 text-slate-700'
-                            : 'border-slate-200 bg-white text-slate-300 hover:text-slate-500'
+                            ? 'text-slate-700'
+                            : 'text-slate-400 hover:text-slate-600'
                     "
-                    class="btn-touch h-6 cursor-pointer rounded-full border px-1.5 text-[10px] font-semibold transition-colors sm:h-6.5 sm:px-2.5 sm:text-[11px]"
+                    class="btn-touch flex h-6 cursor-pointer items-center gap-1 rounded-full px-2 text-[10px] font-semibold transition-colors sm:text-[11px]"
                     type="button"
                     @click="emit('toggleAll')"
                 >
+                    <span
+                        class="size-1.5 rounded-full transition-colors"
+                        :class="
+                            activeLevels.length === LEVEL_CHIPS.length
+                                ? 'bg-slate-400'
+                                : 'bg-slate-300'
+                        "
+                    ></span>
                     全部
                 </button>
                 <button
@@ -63,13 +75,21 @@ const emit = defineEmits<{
                     :key="chip.key"
                     :class="
                         activeLevels.includes(chip.key)
-                            ? chip.activeClass
-                            : 'border-slate-200 bg-white text-slate-300 hover:text-slate-500'
+                            ? chip.textClass
+                            : 'text-slate-400 hover:text-slate-600'
                     "
-                    class="btn-touch h-6 cursor-pointer rounded-full border px-1.5 text-[10px] font-semibold transition-colors sm:h-6.5 sm:px-2.5 sm:text-[11px]"
+                    class="btn-touch flex h-6 cursor-pointer items-center gap-1 rounded-full px-2 text-[10px] font-semibold transition-colors sm:text-[11px]"
                     type="button"
                     @click="emit('toggleLevel', chip.key)"
                 >
+                    <span
+                        class="size-1.5 rounded-full transition-colors"
+                        :class="
+                            activeLevels.includes(chip.key)
+                                ? chip.dotClass
+                                : 'bg-slate-300'
+                        "
+                    ></span>
                     {{ chip.key }}
                 </button>
             </div>

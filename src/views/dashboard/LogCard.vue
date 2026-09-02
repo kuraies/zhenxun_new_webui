@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import {
-    computed,
-    onBeforeUnmount,
-    onMounted,
-    ref,
-    useAttrs,
-    watch,
-} from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useAttrs } from "vue";
 import { useLogsStore } from "@/store/logs";
 import LogEntries from "./LogEntries.vue";
 import LogPanelHeader from "./LogPanelHeader.vue";
@@ -17,11 +10,9 @@ defineOptions({ inheritAttrs: false });
 
 const attrs = useAttrs();
 
-// 自动滚动
+// 自动滚动：滚动与跟随逻辑都在 LogEntries（虚拟滚动）内部
 const autoScroll = ref(true);
 const cardRoot = ref<HTMLElement | null>(null);
-const logsContainer = ref<HTMLElement | null>(null);
-const fullscreenLogsContainer = ref<HTMLElement | null>(null);
 const {
     isFullscreen,
     isClosing,
@@ -48,17 +39,6 @@ const filteredLogs = computed(() =>
     logsStore.logs.filter(log => activeLevels.value.includes(log.level)),
 );
 
-// 自动滚动
-const scrollToBottom = () => {
-    const container = isFullscreen.value
-        ? fullscreenLogsContainer.value
-        : logsContainer.value;
-
-    if (container) {
-        container.scrollTop = container.scrollHeight;
-    }
-};
-
 const toggleFullscreen = async () => {
     if (isFullscreen.value) {
         closeFullscreen();
@@ -66,10 +46,6 @@ const toggleFullscreen = async () => {
     }
 
     await openFullscreen();
-
-    if (autoScroll.value) {
-        scrollToBottom();
-    }
 };
 
 const handleKeydown = (event: KeyboardEvent) => {
@@ -78,19 +54,9 @@ const handleKeydown = (event: KeyboardEvent) => {
     }
 };
 
-watch(
-    () => logsStore.logs.length,
-    () => {
-        if (autoScroll.value) {
-            scrollToBottom();
-        }
-    },
-);
-
 onMounted(() => {
     logsStore.initWebSocket();
     window.addEventListener("keydown", handleKeydown);
-    scrollToBottom();
 });
 
 onBeforeUnmount(() => {
@@ -116,10 +82,8 @@ onBeforeUnmount(() => {
             @toggle-all="enableAllLevels"
         />
 
-        <!-- 日志列表 -->
-        <div ref="logsContainer" class="min-h-0 flex-1 overflow-y-auto">
-            <LogEntries :logs="filteredLogs" />
-        </div>
+        <!-- 日志列表（虚拟滚动） -->
+        <LogEntries :logs="filteredLogs" :auto-scroll="autoScroll" />
     </div>
 
     <Teleport to="body">
@@ -139,12 +103,7 @@ onBeforeUnmount(() => {
                 @toggle-all="enableAllLevels"
             />
 
-            <div
-                ref="fullscreenLogsContainer"
-                class="min-h-0 flex-1 overflow-y-auto"
-            >
-                <LogEntries :logs="filteredLogs" />
-            </div>
+            <LogEntries :logs="filteredLogs" :auto-scroll="autoScroll" />
         </div>
     </Teleport>
 </template>
