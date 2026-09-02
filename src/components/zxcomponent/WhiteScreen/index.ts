@@ -29,6 +29,9 @@ export const whiteScreen = {
 
     async out() {
         if (!vm) return;
+        // 红屏（未检测到协议端）只能通过它自己的按钮或模拟端接入流程关闭，
+        // 首页挂载时的自动揭开不能把红屏带掉（否则红屏一闪而过直接进首页）
+        if (vm.visible && vm.mode === "error") return;
         await vm.hide();
     },
 

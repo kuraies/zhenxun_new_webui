@@ -186,6 +186,8 @@ const hide = () => {
 defineExpose({
     show,
     hide,
+    mode,
+    visible,
 });
 </script>
 
