@@ -61,7 +61,8 @@ onMounted(async () => {
         await botStore.getBotList();
 
         if (!botStore.botList[0]?.self_id) {
-            auth.logout();
+            // 不清除登录态：红屏上的"启用模拟端"接入协议端后
+            // 要靠这个 token 直接进入首页
             await whiteScreen.error();
             return;
         }

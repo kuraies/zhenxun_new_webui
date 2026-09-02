@@ -12,7 +12,19 @@
                 <div class="subtitle">连接终止</div>
                 <div class="desc">请你接入协议端，连接取消，拒绝登入系统。</div>
 
-                <div class="btn" @click="handleClose">返回</div>
+                <div class="btn-group">
+                    <div
+                        class="btn btn-primary"
+                        :class="{ 'is-disabled': enabling }"
+                        @click="handleStartDebugClient"
+                    >
+                        {{ enabling ? "等待模拟端上线..." : enableFailed ? "重试" : "启动调试客户端" }}
+                    </div>
+                    <div class="btn" @click="handleGiveUp">返回</div>
+                </div>
+                <div v-if="enableFailed" class="retry-hint">
+                    {{ failReason }}
+                </div>
             </template>
         </div>
     </div>
@@ -21,11 +33,98 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { gsap } from "gsap";
+import { getActivePinia } from "pinia";
+import { router } from "@/router";
+import { api } from "@/utils/api-next/client";
+import { auth } from "@/utils/auth";
+import { useBotStore } from "@/store/bot";
+import { openDebugClient } from "@/config/menu";
 
 const visible = ref(false);
 const bgColor = ref("#fff");
 const z_index = ref(999);
 const mode = ref<"normal" | "error">("normal");
+
+const enabling = ref(false);
+const enableFailed = ref(false);
+const failReason = ref("");
+let cancelled = false;
+
+// 启动调试客户端：打开独立的 OneBot 模拟客户端窗口（autoConnect 会自动
+// 接入后端桥接），轮询 bot 列表，协议端上线后自动进入首页
+const handleStartDebugClient = async () => {
+    if (enabling.value) return;
+    enabling.value = true;
+    enableFailed.value = false;
+    failReason.value = "";
+    cancelled = false;
+    try {
+        if (!openDebugClient()) {
+            failReason.value =
+                "调试客户端窗口被浏览器拦截，请允许本站弹出窗口后重试";
+            enableFailed.value = true;
+            return;
+        }
+        const online = await waitSimulatorOnline();
+        if (cancelled) return;
+        if (!online) {
+            failReason.value = "等待超时，请在调试客户端里连接后再重试";
+            enableFailed.value = true;
+            return;
+        }
+        await enterApp();
+    } catch (error) {
+        console.error("启动调试客户端失败:", error);
+        enableFailed.value = true;
+    } finally {
+        enabling.value = false;
+    }
+};
+
+/** 轮询后端 bot 列表，等调试客户端的模拟端上线（约 60 秒超时） */
+const waitSimulatorOnline = async () => {
+    const deadline = Date.now() + 60000;
+    while (Date.now() < deadline) {
+        if (cancelled) return false;
+        try {
+            const res = (await api.get("/main/bot-list")) as any;
+            if ((res?.data ?? []).length > 0) {
+                return true;
+            }
+        } catch {
+            /* 后端暂时不可达，继续等待 */
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    return false;
+};
+
+// 模拟端已上线：登录流程来的走白屏过渡进首页；
+// 应用内协议端掉线来的揭开红屏并刷新 bot 列表
+const enterApp = async () => {
+    const botStore = useBotStore(getActivePinia());
+    await botStore.getBotList();
+    if (!auth.getAuthState()) {
+        await hide();
+        await router.push("/login");
+        return;
+    }
+    if (router.currentRoute.value.name === "Login") {
+        // 先让白屏滑入再跳转，Home 挂载时会调用 out() 揭开
+        await show({ color: "#fff", mode: "normal" });
+        await router.push("/dashboard");
+    } else {
+        await hide();
+    }
+};
+
+// 返回：放弃接入，退出登录回登录页
+const handleGiveUp = async () => {
+    cancelled = true;
+    auth.logout();
+    await hide();
+    await router.push("/login");
+};
 
 let resolveFn: (() => void) | null = null;
 
@@ -82,10 +181,6 @@ const hide = () => {
             },
         });
     });
-};
-
-const handleClose = async () => {
-    await hide();
 };
 
 defineExpose({
@@ -193,5 +288,34 @@ defineExpose({
 
 .btn:hover {
     background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-group {
+    display: flex;
+    gap: 18px;
+    justify-content: center;
+}
+
+/* 主操作：白底实心，在红屏上比幽灵按钮更醒目。
+   放在 .btn:hover 之后，同特异性下覆盖它的半透明底色 */
+.btn-primary {
+    background: #fff;
+    color: #d1383b;
+    border-color: #fff;
+}
+
+.btn-primary:hover {
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.btn.is-disabled {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.retry-hint {
+    margin-top: 16px;
+    font-size: clamp(0.9rem, 1.6vw, 1.1rem);
+    opacity: 0.85;
 }
 </style>

@@ -56,34 +56,33 @@ export const openExternalWindow = (url: string, windowName: string) => {
     );
 };
 
-/** 打开独立 OneBot 调试客户端；已打开过则直接聚焦原窗口（不会重载页面、连接不断） */
-export const openDebugClient = () => {
-    // 以空地址按窗口名探测：同名窗口已存在时返回其引用且不触发导航，
-    // about:blank 则说明窗口不存在，关掉探针后正常新开
-    const probe = window.open("", "zhenxun-debug-client");
-    if (probe) {
-        try {
-            if (probe.location.href !== "about:blank") {
-                probe.focus();
-                return;
-            }
-        } catch {
-            // 跨域窗口视为已存在，直接聚焦
-            probe.focus();
-            return;
-        }
-        probe.close();
+/**
+ * 打开独立 OneBot 调试客户端；已打开过则直接聚焦原窗口（不会重载页面、连接不断）。
+ * 返回 false 表示窗口被浏览器弹窗拦截。
+ *
+ * 注意必须只做一次 window.open：老实现的"空白探针→关闭→再开"一次点击连开
+ * 两个窗口，容易被 Chrome 的弹窗拦截规则吃掉第二个。这里改为持有窗口引用
+ * （因此不能带 noopener），活着就聚焦，否则新开
+ */
+let debugClientWindow: Window | null = null;
+
+export const openDebugClient = (): boolean => {
+    if (debugClientWindow && !debugClientWindow.closed) {
+        debugClientWindow.focus();
+        return true;
     }
+    debugClientWindow = null;
 
     const width = Math.max(480, Math.round(window.innerWidth * 0.9));
     const height = Math.max(600, Math.round(window.innerHeight * 0.9));
     const left = Math.max(0, window.screenX + (window.innerWidth - width) / 2);
     const top = Math.max(0, window.screenY + (window.innerHeight - height) / 2);
-    window.open(
+    debugClientWindow = window.open(
         DEBUG_PWA_URL,
         "zhenxun-debug-client",
-        `noopener,popup=yes,width=${width},height=${height},left=${left},top=${top}`,
+        `popup=yes,width=${width},height=${height},left=${left},top=${top}`,
     );
+    return debugClientWindow != null;
 };
 
 /**
