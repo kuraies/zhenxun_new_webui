@@ -34,6 +34,7 @@ zhenxun-builtin-webui
 # 根目录本地笔记（AI 会话产物，不入库）
 /REFACTOR_PLAN.md
 /zhenxun-builtin-webui.README.md
+/API_DOCUMENTATION.md
 
 # 参考用临时克隆（不参与版本管理）
 .tmp/
