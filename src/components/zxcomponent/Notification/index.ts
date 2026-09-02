@@ -10,6 +10,8 @@ const defaultOptions: Required<ZXNotificationOptions> = {
     customClass: '',
     confetti: false,
     message: '',
+    avatar: '',
+    subtitle: '',
 }
 
 let vm: ComponentInternalInstance | null = null

@@ -17,7 +17,7 @@
                     :data-index="index"
                     :data-notification-id="item.id"
                     :class="[
-                        'min-h-20 min-w-80 rounded-xl bg-white px-4 py-4 shadow-sm',
+                        'min-h-20 min-w-80 rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm',
                         item.type,
                         item.customClass,
                     ]"
@@ -25,9 +25,16 @@
                     @mouseleave="resumeTimer(item)"
                 >
                     <div class="relative flex">
-                        <div class="logo">
+                        <div class="logo shrink-0 self-start">
+                            <!--头像模式（如 bot 上下线通知）-->
+                            <img
+                                v-if="item.avatar"
+                                :src="item.avatar"
+                                class="size-12 shrink-0 rounded-full object-cover"
+                                @error="onAvatarError"
+                            />
                             <!--info-->
-                            <div v-if="item.type === 'info'">
+                            <div v-else-if="item.type === 'info'">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
                                     fill="none"
@@ -100,18 +107,73 @@
                                 {{ item.type }}
                             </div>
                         </div>
-                        <div class="content w-full pl-2">
-                            <div class="notification-header">
-                                <strong v-if="item.title" class="title">{{
-                                    item.title
-                                }}</strong>
-                            </div>
-                            <div
-                                class="message mt-2 text-sm"
-                                :class="item.contentClass"
-                            >
-                                {{ item.message }}
-                            </div>
+                        <div class="content w-full pl-2.5">
+                            <!--头像模式：名字 / ID 副标题 / 带图标的上下线消息-->
+                            <template v-if="item.avatar">
+                                <div class="notification-header">
+                                    <strong
+                                        v-if="item.title"
+                                        class="title block"
+                                        >{{ item.title }}</strong
+                                    >
+                                    <span
+                                        v-if="item.subtitle"
+                                        class="mt-0.5 block text-xs text-gray-400"
+                                    >
+                                        {{ item.subtitle }}
+                                    </span>
+                                </div>
+                                <!-- 上下线消息：状态色文字 + 尾部小圆点 -->
+                                <span
+                                    :class="
+                                        item.type === 'success'
+                                            ? 'text-emerald-600'
+                                            : item.type === 'warning'
+                                              ? 'text-rose-600'
+                                              : 'text-slate-500'
+                                    "
+                                    class="mt-1.5 inline-flex items-center gap-1.5 text-sm font-medium"
+                                >
+                                    {{ item.message }}
+                                    <!-- 环状波动小点（animate-ping） -->
+                                    <span class="relative inline-flex size-2">
+                                        <span
+                                            class="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75"
+                                            :class="
+                                                item.type === 'success'
+                                                    ? 'bg-emerald-400'
+                                                    : item.type === 'warning'
+                                                      ? 'bg-rose-400'
+                                                      : 'bg-slate-400'
+                                            "
+                                        ></span>
+                                        <span
+                                            class="relative inline-flex size-2 rounded-full"
+                                            :class="
+                                                item.type === 'success'
+                                                    ? 'bg-emerald-500'
+                                                    : item.type === 'warning'
+                                                      ? 'bg-rose-500'
+                                                      : 'bg-slate-400'
+                                            "
+                                        ></span>
+                                    </span>
+                                </span>
+                            </template>
+                            <!--默认模式-->
+                            <template v-else>
+                                <div class="notification-header">
+                                    <strong v-if="item.title" class="title">{{
+                                        item.title
+                                    }}</strong>
+                                </div>
+                                <div
+                                    class="message mt-2 text-sm"
+                                    :class="item.contentClass"
+                                >
+                                    {{ item.message }}
+                                </div>
+                            </template>
                             <div
                                 class="absolute top-0 right-0 cursor-pointer text-gray-400"
                                 @click="manualClose(item)"
@@ -143,6 +205,12 @@
 import { computed, ref } from "vue";
 import gsap from "gsap";
 import { ZXConfetti } from "components/zxcomponent/Confetti/index.ts";
+import defaultAva from "@/assets/img/avatar.jpg";
+
+// 头像加载失败回退默认头像
+function onAvatarError(e) {
+    e.target.src = defaultAva;
+}
 
 const MAX_PER_POSITION = 99;
 const notifications = ref([]);
@@ -171,6 +239,8 @@ function addNotification(config) {
         customClass = "",
         contentClass = "text-gray-500",
         confetti = false,
+        avatar = "",
+        subtitle = "",
     } = config;
 
     const list = notifications.value.filter((n) => n.position === position);
@@ -192,6 +262,8 @@ function addNotification(config) {
         remaining: duration,
         createdAt: Date.now(),
         confetti,
+        avatar,
+        subtitle,
     };
 
     notifications.value.push(notification);

@@ -1,7 +1,42 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { mainApi } from "@/utils/api-next";
+import { ZXNotification } from "@/services/ui";
+import defaultAva from "@/assets/img/avatar.jpg";
 import type { BotInfo } from "@/types/api-next.types";
+
+/**
+ * 比对刷新前后的机器人列表，谁上线/下线了就弹通知
+ * （此前列表为空说明是首次加载，只建立基线不弹，避免整表都算"上线"）
+ */
+function notifyBotChanges(prev: BotInfo[], next: BotInfo[]) {
+    if (prev.length === 0) return;
+    const displayName = (b: BotInfo) => b.nickname?.trim() || "未知 Bot";
+    const nextIds = new Set(next.map((b) => b.self_id));
+    const prevIds = new Set(prev.map((b) => b.self_id));
+    for (const b of prev) {
+        if (!nextIds.has(b.self_id)) {
+            ZXNotification({
+                title: displayName(b),
+                subtitle: b.self_id ?? "",
+                avatar: b.ava_url || defaultAva,
+                message: "下线了",
+                type: "warning",
+            });
+        }
+    }
+    for (const b of next) {
+        if (!prevIds.has(b.self_id)) {
+            ZXNotification({
+                title: displayName(b),
+                subtitle: b.self_id ?? "",
+                avatar: b.ava_url || defaultAva,
+                message: "上线了",
+                type: "success",
+            });
+        }
+    }
+}
 
 // 本地 BotStatus 类型（在 API 类型基础上扩展）
 // export interface BotStatus extends ApiBotStatus {
@@ -55,7 +90,10 @@ export const useBotStore = defineStore("bot", () => {
             if (res?.success && res?.data) {
                 // 刷新前正在展示的 bot（selectedBotId 为空时展示第一个）
                 const prevDisplayed = selectedBot.value?.self_id ?? null;
+                const prevList = botList.value;
                 botList.value = res.data;
+                // bot 上下线通知：与刷新前列表比对，有进出就弹
+                notifyBotChanges(prevList, res.data);
 
                 // 选中的 id 不在新列表里（从未选择 / 本地恢复的 id 已下线，
                 // 如上次模拟端连接后退出）时归一：优先回到刷新前展示的 bot，
