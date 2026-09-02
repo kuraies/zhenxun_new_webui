@@ -15,7 +15,7 @@ type Phase = "checking" | "login" | "ready";
 const phase = ref<Phase>("checking");
 
 // 仅在"由主站脚本打开的弹窗"里显示：转为普通标签页后弹窗自关。
-// 直接在地址栏打开（opener 为空）或 PWA 里没有转的必要
+// 直接在地址栏打开（opener 为空）时没有转的必要
 const canReturnToTab = !!window.opener && !window.opener.closed;
 
 const returnToTab = () => {

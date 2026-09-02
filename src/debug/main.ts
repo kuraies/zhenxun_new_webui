@@ -65,13 +65,3 @@ createApp(App).mount("#app");
 
 // 统一边框表面自动磁贴发光（深色主题下生效）
 initTileGlowAuto();
-
-// 生产环境注册 Service Worker（dev 下不注册，避免缓存干扰调试）。
-// 独立构建的 base 为 /next/debug/，SW 与页面同目录
-if (import.meta.env.PROD && "serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-        navigator.serviceWorker
-            .register(`${import.meta.env.BASE_URL}sw.js`)
-            .catch(err => console.warn("Service Worker 注册失败:", err));
-    });
-}

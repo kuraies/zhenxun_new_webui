@@ -36,8 +36,8 @@ export interface MenuItem {
     hidden?: boolean;
 }
 
-/** 独立调试客户端 PWA 地址（随主站部署；dev 下主站 dev server 直接可访问） */
-export const DEBUG_PWA_URL = `${import.meta.env.BASE_URL}debug/index.html`;
+/** 独立调试客户端地址（随主站部署；dev 下主站 dev server 直接可访问） */
+export const DEBUG_CLIENT_URL = `${import.meta.env.BASE_URL}debug/index.html`;
 
 /**
  * 以独立应用窗口（popup，无标签栏/地址栏）打开外部页面，
@@ -78,7 +78,7 @@ export const openDebugClient = (): boolean => {
     const left = Math.max(0, window.screenX + (window.innerWidth - width) / 2);
     const top = Math.max(0, window.screenY + (window.innerHeight - height) / 2);
     debugClientWindow = window.open(
-        DEBUG_PWA_URL,
+        DEBUG_CLIENT_URL,
         "zhenxun-debug-client",
         `popup=yes,width=${width},height=${height},left=${left},top=${top}`,
     );
@@ -131,8 +131,8 @@ export const mainMenus = reactive<MenuItem[]>([
         name: "调试",
         key: "debug",
         icon: Bug,
-        // 独立 OneBot 调试客户端 PWA，以独立应用窗口打开
-        path: DEBUG_PWA_URL,
+        // 独立 OneBot 调试客户端，以独立应用窗口打开
+        path: DEBUG_CLIENT_URL,
         external: true,
         externalWindow: "zhenxun-debug-client",
     },

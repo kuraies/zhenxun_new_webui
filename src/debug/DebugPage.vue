@@ -389,7 +389,7 @@ onUnmounted(() => {
     releaseSimLock?.();
 });
 
-// 打开即连接：PWA 从桌面启动后无需手动点连接
+// 打开即连接：从主站弹窗打开后无需手动点连接
 onMounted(() => {
     if (autoConnect.value && botId.value.trim()) {
         connect();

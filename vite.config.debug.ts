@@ -7,12 +7,12 @@ import tailwindcss from "@tailwindcss/vite";
 import compression from "vite-plugin-compression2";
 
 /**
- * OneBot 调试客户端（调试页独立 PWA）的构建配置
+ * OneBot 调试客户端（调试页独立构建）的构建配置
  *
  * - 独立入口 debug/index.html，不依赖主站 router / pinia / element-plus，
  *   依赖图与主站构建完全隔离（rolldown 多入口共享图会产生循环 chunk，故独立构建）
  * - 产物输出到 dist/debug/ 且不清空目录，与主站产物合并成一个 dist ——
- *   部署方式与之前完全一致，调试 PWA 自动挂在与主站同域的 /next/debug/ 下
+ *   部署方式与之前完全一致，调试端挂在与主站同域的 /next/debug/ 下
  * - 主站构建（vite.config.ts）保持原样，npm run build 会串起两个构建
  */
 export default defineConfig(({ command }) => ({
@@ -48,7 +48,6 @@ export default defineConfig(({ command }) => ({
         },
     ],
     base: command === "build" ? "/next/debug/" : "/",
-    publicDir: "public-debug",
     build: {
         outDir: "dist/debug",
         // 关键：不清空输出目录，否则会把主站刚构建的产物抹掉

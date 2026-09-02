@@ -35,7 +35,7 @@ const routes = [
                 component: () => import("@/views/analytics/Analytics.vue"),
                 meta: { menuKey: "analytics" },
             },
-            // 调试页已独立为 OneBot 调试客户端 PWA（/debug/，独立构建），
+            // 调试页已独立为 OneBot 调试客户端（/debug/，独立构建），
             // 菜单项跳转新窗口，不再挂主站路由
             {
                 path: "/chat",
