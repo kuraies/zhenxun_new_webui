@@ -3,7 +3,7 @@
  */
 
 import { api } from './client'
-import type { StorePlugin } from '@/types/store.types'
+import type { StorePlugin, NbStorePlugin } from '@/types/store.types'
 import type { APIResponse } from '@/types/api-next.types'
 
 export interface StoreResponse {
@@ -38,5 +38,33 @@ export const storeApi = {
      */
     removePlugin(id: number): Promise<APIResponse<boolean>> {
         return api.post('/store/remove', { id })
+    },
+
+    /**
+     * 获取 NoneBot 插件商店列表
+     */
+    getNbStoreList(): Promise<APIResponse<NbStorePlugin[]>> {
+        return api.get<NbStorePlugin[]>('/store/nb/list')
+    },
+
+    /**
+     * 安装 NoneBot 插件
+     */
+    installNbPlugin(moduleName: string): Promise<APIResponse<boolean>> {
+        return api.post('/store/nb/install', { module_name: moduleName })
+    },
+
+    /**
+     * 更新 NoneBot 插件
+     */
+    updateNbPlugin(moduleName: string): Promise<APIResponse<boolean>> {
+        return api.post('/store/nb/update', { module_name: moduleName })
+    },
+
+    /**
+     * 移除 NoneBot 插件
+     */
+    removeNbPlugin(moduleName: string): Promise<APIResponse<boolean>> {
+        return api.post('/store/nb/remove', { module_name: moduleName })
     }
 }

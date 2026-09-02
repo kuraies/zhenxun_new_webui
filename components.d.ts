@@ -13,6 +13,7 @@ declare module 'vue' {
     ColorPicker: typeof import('./src/components/home/ColorPicker.vue')['default']
     Confetti: typeof import('./src/components/zxcomponent/Confetti/Confetti.vue')['default']
     ContextMenu: typeof import('./src/components/zxcomponent/ContextMenu/ContextMenu.vue')['default']
+    CornerFrame: typeof import('./src/components/zxcomponent/CornerFrame/CornerFrame.vue')['default']
     DashboardIsland: typeof import('./src/components/Island/DashboardIsland.vue')['default']
     DatabaseIsland: typeof import('./src/components/Island/DatabaseIsland.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
@@ -54,6 +55,7 @@ declare module 'vue' {
     ThemeCustomizer: typeof import('./src/components/home/ThemeCustomizer.vue')['default']
     User: typeof import('./src/components/User.vue')['default']
     WhiteScreen: typeof import('./src/components/zxcomponent/WhiteScreen/WhiteScreen.vue')['default']
+    ZXDropdown: typeof import('./src/components/zxcomponent/ZXDropdown/ZXDropdown.vue')['default']
     ZXInput: typeof import('./src/components/zxcomponent/ZXInput.vue')['default']
     ZXTextEditor: typeof import('./src/components/ZXTextEditor/index.vue')['default']
   }

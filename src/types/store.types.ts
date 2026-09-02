@@ -40,3 +40,26 @@ export interface StorePlugin {
     tags?: string[]
     [key: string]: unknown
 }
+
+/** NoneBot 商店标签 */
+export interface NbStoreTag {
+    label: string
+    color: string
+}
+
+/** NoneBot 插件商店插件信息 */
+export interface NbStorePlugin {
+    name: string
+    module_name: string
+    project_link: string
+    desc: string
+    tags: NbStoreTag[]
+    author: string
+    version: string
+    is_official: boolean
+    time: string
+    valid: boolean
+    installed: boolean
+    local_version: string | null
+    has_update: boolean
+}

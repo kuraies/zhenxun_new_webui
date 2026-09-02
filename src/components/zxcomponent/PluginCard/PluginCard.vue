@@ -7,6 +7,8 @@ import { ZXNotification } from "@/services/ui";
 
 const props = defineProps<{
     plugin: PluginInfo;
+    pinned?: boolean;
+    resident?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -91,15 +93,16 @@ const handleOpenConfig = (event: Event) => {
 
 <template>
     <div
-        class="group overflow-hidden rounded-3xl bg-white px-2 pt-2 shadow-sm outline-1 outline-slate-200 transition-all duration-300 select-none hover:-translate-y-1 hover:shadow-xl"
+        class="group overflow-hidden rounded-3xl bg-white px-2 pt-2 shadow-sm border border-slate-200 transition-all duration-300 select-none hover:-translate-y-1 hover:shadow-xl"
+        :class="pinned ? 'border-zx-primary!' : ''"
     >
-        <div class="flex flex-col gap-2 p-4">
+        <div class="flex flex-col gap-2 p-3 sm:p-4">
             <!-- 头部：插件信息 + 状态 -->
             <div class="flex items-center justify-between gap-2">
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-2">
                         <h3
-                            class="truncate text-lg font-bold text-gray-800"
+                            class="truncate text-base font-bold text-gray-800 sm:text-lg"
                             :title="plugin.name"
                         >
                             {{ plugin.name }}
@@ -114,16 +117,24 @@ const handleOpenConfig = (event: Event) => {
                 </div>
 
                 <!-- 状态标签 -->
-                <span
-                    :class="
-                        plugin.is_enabled
-                            ? 'bg-green-100 text-green-600'
-                            : 'bg-gray-100 text-gray-500'
-                    "
-                    class="inline-flex h-[22px] flex-shrink-0 items-center rounded-full px-2 text-[11px] leading-none font-medium whitespace-nowrap"
-                >
-                    {{ plugin.is_enabled ? "已启用" : "已禁用" }}
-                </span>
+                <div class="flex flex-shrink-0 items-center gap-1.5">
+                    <span
+                        v-if="pinned"
+                        class="inline-flex h-[22px] items-center rounded-full bg-zx-primary-soft px-2 text-[11px] leading-none font-medium text-zx-primary"
+                    >
+                        置顶
+                    </span>
+                    <span
+                        :class="
+                            plugin.is_enabled
+                                ? 'bg-green-100 text-green-600'
+                                : 'bg-gray-100 text-gray-500'
+                        "
+                        class="inline-flex h-[22px] items-center rounded-full px-2 text-[11px] leading-none font-medium whitespace-nowrap"
+                    >
+                        {{ plugin.is_enabled ? "已启用" : "已禁用" }}
+                    </span>
+                </div>
             </div>
 
             <!-- 描述 -->
@@ -152,11 +163,17 @@ const handleOpenConfig = (event: Event) => {
                 >
                     {{ plugin.is_builtin ? "内置" : "三方" }}
                 </span>
+                <span
+                    v-if="resident"
+                    class="inline-flex h-[22px] flex-shrink-0 items-center rounded-full bg-amber-100 px-2 text-[11px] leading-none font-medium text-amber-600"
+                >
+                    常驻
+                </span>
             </div>
         </div>
 
         <!-- 底部操作栏 -->
-        <div class="flex items-center gap-3 px-4 pt-0 pb-3">
+        <div class="flex items-center gap-3 px-3 pt-0 pb-3 sm:px-4">
             <!-- 开关 + 标签 -->
             <div
                 class="relative inline-flex flex-shrink-0 items-center select-none"
@@ -193,17 +210,13 @@ const handleOpenConfig = (event: Event) => {
 
             <div class="flex-1" />
 
-            <!-- 配置按钮 -->
+            <!-- 配置按钮：没有配置项的插件直接隐藏 -->
             <button
+                v-if="plugin.allow_setting"
                 @click.stop="handleOpenConfig"
-                class="flex-shrink-0 rounded-full p-2 transition-colors"
-                :class="
-                    plugin.allow_setting
-                        ? 'cursor-pointer text-gray-600 hover:bg-gray-100'
-                        : 'cursor-not-allowed text-gray-300 opacity-50'
-                "
-                :disabled="!plugin.allow_setting"
-                :title="plugin.allow_setting ? '插件配置' : '没有配置项'"
+                class="flex-shrink-0 cursor-pointer rounded-full p-2 transition-colors text-gray-600 hover:bg-gray-100"
+                title="插件配置"
+                type="button"
             >
                 <Settings class="h-5 w-5" />
             </button>

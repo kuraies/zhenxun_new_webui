@@ -193,6 +193,17 @@ export interface PluginToggleRequest {
     enable: boolean
 }
 
+export interface PluginSettingsRequest {
+    module: string
+    level?: number
+    limit_superuser?: boolean
+}
+
+export interface PluginMarks {
+    pinned: string[]
+    resident: string[]
+}
+
 export interface PluginConfigItem {
     module: string
     key: string

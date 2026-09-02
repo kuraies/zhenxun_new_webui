@@ -7,6 +7,8 @@ import type {
     PluginListRequest,
     PluginListResult,
     PluginToggleRequest,
+    PluginSettingsRequest,
+    PluginMarks,
     PluginConfigResult,
     APIResponse,
 } from '@/types/api-next.types'
@@ -31,6 +33,27 @@ export const pluginApi = {
      */
     togglePluginStatus(module: string, enable: boolean): Promise<APIResponse<boolean>> {
         return api.post<boolean>('/plugin/toggle', { module, enable })
+    },
+
+    /**
+     * 更新插件通用设置（权限等级 / 限制超级用户，所有插件默认拥有）
+     */
+    updatePluginSettings(request: PluginSettingsRequest): Promise<APIResponse<boolean>> {
+        return api.post<boolean>('/plugin/settings', request)
+    },
+
+    /**
+     * 获取插件标记（置顶/常驻）
+     */
+    getPluginMarks(): Promise<APIResponse<PluginMarks>> {
+        return api.get<PluginMarks>('/plugin/marks')
+    },
+
+    /**
+     * 保存插件标记（全量覆盖）
+     */
+    savePluginMarks(pinned: string[], resident: string[]): Promise<APIResponse<boolean>> {
+        return api.post<boolean>('/plugin/marks', { pinned, resident })
     },
 
     /**
