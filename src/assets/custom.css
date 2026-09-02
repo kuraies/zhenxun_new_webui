@@ -364,3 +364,9 @@
         background-position: -200% 0;
     }
 }
+
+/* 文本选取：主题色底 + 白字 */
+::selection {
+    background: var(--zx-color-primary);
+    color: var(--zx-color-on-primary);
+}

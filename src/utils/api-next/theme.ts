@@ -12,6 +12,8 @@ export interface ThemeConfig {
     primary: string;
     /** light | dark | system（跟随系统） */
     mode: "light" | "dark" | "system";
+    /** 多端统一开关（云端权威，操作端拨动后广播到所有端） */
+    sync?: boolean;
 }
 
 export const themeApi = {

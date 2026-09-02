@@ -6,6 +6,9 @@ interface HSL {
     l: number;
 }
 
+/** 自定义主题挂在根元素上的类名（applyTheme 切回预设时需要一并移除） */
+export const CUSTOM_THEME_CLASS = "theme-zhenxun-custom";
+
 function hexToHsl(hex: string): HSL {
     hex = hex.replace("#", "");
     const r = parseInt(hex.substring(0, 2), 16) / 255;
@@ -131,6 +134,8 @@ export function generateThemeFromColors(
 
         // Primary
         "--zx-color-primary": hsl(p.h, p.s, p.l),
+        // 主色之上的对比文字色（同取色器对勾规则：亮度>55 用深灰，否则白）
+        "--zx-color-on-primary": p.l > 55 ? "#334155" : "#ffffff",
         // hover 方向按主色亮度自适应：亮色变暗、暗色变亮，
         // 否则用户选了深色主色时 hover 再变暗就看不清了
         "--zx-color-primary-hover": isDark
@@ -211,7 +216,7 @@ export function generateThemeFromColors(
 
     return {
         name: "zhenxun-custom",
-        className: "theme-zhenxun-custom",
+        className: CUSTOM_THEME_CLASS,
         cssVars,
         charts,
     };

@@ -13,7 +13,7 @@ import { themeApi, type ThemeConfig } from "@/utils/api-next";
 
 const THEME_STORAGE_KEY = "zhenxun-theme";
 const CUSTOM_COLOR_KEY = "zhenxun-custom-color";
-// 多端统一是每台设备自己的开关，存本地而非云端
+// 多端统一开关跟随云端配置（本地缓存用于首屏），任意一端拨动都会同步到所有端
 const SYNC_ENABLED_KEY = "zhenxun-theme-sync";
 
 const systemDarkQuery =
@@ -132,6 +132,7 @@ export const useThemeStore = defineStore("theme", () => {
             preset: activeThemeName.value,
             primary: customColor.value ?? "#6366f1",
             mode: customMode.value,
+            sync: syncEnabled.value,
         };
     }
 
@@ -145,10 +146,12 @@ export const useThemeStore = defineStore("theme", () => {
         }
     }
 
-    /** 收到 theme_update 广播：本端开启了多端统一才跟随 */
+    /** 收到 theme_update 广播：开关状态全端一致；开启时跟随操作端的主题 */
     function applyRemoteTheme(config: ThemeConfig) {
-        if (!syncEnabled.value) return;
-        applyThemeConfig(config);
+        setSyncEnabledLocal(Boolean(config.sync));
+        if (config.sync) {
+            applyThemeConfig(config);
+        }
     }
 
     /** 把本地主题推送到云端（后端会广播给其他端） */
@@ -160,45 +163,31 @@ export const useThemeStore = defineStore("theme", () => {
         }
     }
 
-    /** 拉取云端主题并应用（多端统一开启时） */
+    /** 拉取云端配置：对齐开关状态，开启时应用云端主题 */
     async function syncFromBackend() {
-        if (!syncEnabled.value) return;
         try {
             const res = await themeApi.getTheme();
             if (res?.success && res.data) {
-                applyThemeConfig(res.data);
+                setSyncEnabledLocal(Boolean(res.data.sync));
+                if (res.data.sync) {
+                    applyThemeConfig(res.data);
+                }
             }
         } catch {
             // 后端不可用时保持本地主题
         }
     }
 
-    function setSyncEnabled(value: boolean) {
+    /** 仅改本地开关与缓存（远端广播走它，避免回环推送） */
+    function setSyncEnabledLocal(value: boolean) {
         syncEnabled.value = value;
         localStorage.setItem(SYNC_ENABLED_KEY, String(value));
-        if (value) {
-            void adoptOrPush();
-        }
     }
 
-    /** 开启多端统一瞬间：云端已有主题就跟随，还是初始默认才推本地主题 */
-    async function adoptOrPush() {
-        try {
-            const res = await themeApi.getTheme();
-            const cloud = res?.data;
-            const untouched =
-                !cloud ||
-                (cloud.source === "preset" &&
-                    cloud.preset === "zhenxun-light" &&
-                    cloud.mode === "light");
-            if (untouched) {
-                await pushToBackend();
-            } else {
-                applyThemeConfig(cloud);
-            }
-        } catch {
-            // 后端不可用：仅记住开关状态，联网后再同步
-        }
+    /** 操作端拨动开关：开关状态与主题都以操作端为准推给云端（后端广播所有端） */
+    function setSyncEnabled(value: boolean) {
+        setSyncEnabledLocal(value);
+        void pushToBackend();
     }
 
     function initTheme() {
@@ -219,10 +208,8 @@ export const useThemeStore = defineStore("theme", () => {
             setTheme(defaultTheme.name);
         }
 
-        // 多端统一：本地先按缓存显示，再用云端配置覆盖
-        if (syncEnabled.value) {
-            void syncFromBackend();
-        }
+        // 开关状态与主题以云端为准（其他端操作过也能对齐）
+        void syncFromBackend();
     }
 
     return {
