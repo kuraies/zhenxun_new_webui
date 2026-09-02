@@ -12,6 +12,8 @@ dist-ssr
 
 # 后端插件目录的 junction 链接（指向 PycharmProjects 里的真寻插件）
 zhenxun-plugin
+# 原版内置 web_ui 插件的 junction 链接（只读参考，禁止修改，见 zhenxun-builtin-webui.README.md）
+zhenxun-builtin-webui
 *.local
 
 # Editor directories and files
@@ -29,3 +31,6 @@ zhenxun-plugin
 # 工具会话产物
 .zcode
 .mimocode
+
+# 参考用临时克隆（不参与版本管理）
+.tmp/
