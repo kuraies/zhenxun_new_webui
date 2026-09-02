@@ -96,7 +96,7 @@ onMounted(() => {
 <template>
     <div class="w-full h-full flex flex-col space-y-4 overflow-y-auto">
         <!-- 头部横幅 -->
-        <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-8 text-gray-800 relative overflow-hidden min-h-[240px]">
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-8 text-gray-800 relative overflow-hidden min-h-[240px]">
             <div class="absolute top-0 right-0 opacity-5">
                 <Sparkles class="w-48 h-48 text-blue-500" />
             </div>
@@ -132,7 +132,7 @@ onMounted(() => {
 
         <!-- 统计卡片 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-4">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
                         <Award class="w-5 h-5 text-yellow-600" />
@@ -144,7 +144,7 @@ onMounted(() => {
                 </div>
             </div>
 
-            <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-4">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                         <Sparkles class="w-5 h-5 text-green-600" />
@@ -156,7 +156,7 @@ onMounted(() => {
                 </div>
             </div>
 
-            <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-4">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center">
                         <Users class="w-5 h-5 text-purple-600" />
@@ -168,7 +168,7 @@ onMounted(() => {
                 </div>
             </div>
 
-            <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-4">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                         <MessageCircle class="w-5 h-5 text-blue-600" />
@@ -182,7 +182,7 @@ onMounted(() => {
         </div>
 
         <!-- 项目信息 -->
-        <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-6">
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
                 <Info class="w-5 h-5 text-blue-500" />
                 <span>项目信息</span>
@@ -220,7 +220,7 @@ onMounted(() => {
         </div>
 
         <!-- 特别感谢 -->
-        <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-6">
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
                 <Coffee class="w-5 h-5 text-pink-500" />
                 <span>特别感谢</span>
@@ -244,7 +244,7 @@ onMounted(() => {
         </div>
 
         <!-- 贡献者 -->
-        <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-6">
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
                 <Users class="w-5 h-5 text-purple-500" />
                 <span>核心贡献者</span>
@@ -267,7 +267,7 @@ onMounted(() => {
         </div>
 
         <!-- 打赏支持 -->
-        <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-6">
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
             <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
                 <Coffee class="w-5 h-5 text-yellow-500" />
                 <span>打赏支持</span>

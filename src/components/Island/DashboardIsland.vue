@@ -7,7 +7,7 @@ const botStore = useBotStore();
 
 <template>
     <div
-        class="group island-pop flex w-fit min-w-40 items-center space-x-3 rounded-full border border-white/10 bg-white px-4 py-2 shadow-sm backdrop-blur-md transition-all hover:scale-105"
+        class="group island-pop flex w-fit min-w-40 items-center space-x-3 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm backdrop-blur-md transition-all hover:scale-105"
     >
         <div class="relative flex h-2 w-2">
             <span

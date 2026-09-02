@@ -162,6 +162,7 @@ onUnmounted(() => stopAnim());
 <template>
     <div class="snap-start">
         <div
+            v-tile-glow
             class="menus-item group flex cursor-pointer items-center rounded-full border transition-[transform,border-color,box-shadow,height,width,padding] duration-[400ms] ease-in-out"
             :class="{
                 'h-12 w-12 justify-center p-0': globalStore.navMini,

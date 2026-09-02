@@ -38,7 +38,7 @@ const handleLeaveGroup = () => {
 
 <template>
     <div
-        class="group bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+        class="group bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
         :class="{ 'opacity-75': !group.status }"
     >
         <div class="p-4 flex flex-col gap-3">
@@ -48,7 +48,7 @@ const handleLeaveGroup = () => {
                     <img
                         :src="group.ava_url"
                         :alt="group.group_name"
-                        class="w-12 h-12 rounded-2xl object-cover flex-shrink-0 outline-1 outline-slate-200"
+                        class="w-12 h-12 rounded-2xl object-cover flex-shrink-0 border border-slate-200"
                     />
                     <div class="min-w-0 flex-1">
                         <h3 class="text-base font-bold text-gray-800 truncate" :title="group.group_name">

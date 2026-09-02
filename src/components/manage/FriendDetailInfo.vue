@@ -108,7 +108,7 @@ watch(() => props.friend, () => {
             <!-- 数据信息 -->
             <div class="grid grid-cols-2 gap-3">
                 <!-- 金币 -->
-                <div class="bg-slate-50 rounded-2xl p-4 outline-1 outline-slate-200">
+                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2">
                             <Coins class="w-4 h-4 text-zx-primary" />
@@ -160,7 +160,7 @@ watch(() => props.friend, () => {
                 </div>
 
                 <!-- 好感度 -->
-                <div class="bg-slate-50 rounded-2xl p-4 outline-1 outline-slate-200">
+                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center gap-2">
                             <Heart class="w-4 h-4 text-zx-primary" />

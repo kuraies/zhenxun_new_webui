@@ -27,7 +27,7 @@ const stats = computed(() => {
     <div class="flex w-full items-center justify-between space-x-2">
         <div class="flex space-x-2">
             <div
-                class="group flex w-fit items-center space-x-3 rounded-full border border-white/10 bg-white px-4 py-2 shadow-sm transition-all hover:scale-105"
+                class="group flex w-fit items-center space-x-3 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm transition-all hover:scale-105"
             >
                 <Blocks class="h-5 w-5 text-blue-500" />
                 <span
@@ -37,7 +37,7 @@ const stats = computed(() => {
             </div>
 
             <div
-                class="group flex w-fit items-center space-x-2 rounded-full border border-white/10 bg-white px-4 shadow-sm transition-all hover:scale-105"
+                class="group flex w-fit items-center space-x-2 rounded-full border border-slate-200 bg-white px-4 shadow-sm transition-all hover:scale-105"
             >
                 <span
                     v-odometer="stats.total"
@@ -49,7 +49,7 @@ const stats = computed(() => {
                 >
             </div>
             <div
-                class="group flex w-fit items-center space-x-2 rounded-full border border-white/10 bg-white px-4 shadow-sm transition-all hover:scale-105"
+                class="group flex w-fit items-center space-x-2 rounded-full border border-slate-200 bg-white px-4 shadow-sm transition-all hover:scale-105"
             >
                 <span
                     v-odometer="stats.active"
@@ -61,7 +61,7 @@ const stats = computed(() => {
                 >
             </div>
             <div
-                class="group flex w-fit items-center space-x-2 rounded-full border border-white/10 bg-white px-4 shadow-sm transition-all hover:scale-105"
+                class="group flex w-fit items-center space-x-2 rounded-full border border-slate-200 bg-white px-4 shadow-sm transition-all hover:scale-105"
             >
                 <span
                     v-odometer="stats.inactive"
@@ -73,7 +73,7 @@ const stats = computed(() => {
                 >
             </div>
             <div
-                class="group flex w-fit items-center space-x-2 rounded-full border border-white/10 bg-white px-4 shadow-sm transition-all hover:scale-105"
+                class="group flex w-fit items-center space-x-2 rounded-full border border-slate-200 bg-white px-4 shadow-sm transition-all hover:scale-105"
             >
                 <span
                     v-odometer="stats.builtin"
@@ -88,7 +88,7 @@ const stats = computed(() => {
 
         <button
             :disabled="loading"
-            class="btn-touch cursor-pointer rounded-full bg-white p-2 shadow-sm transition-colors hover:bg-gray-200 disabled:opacity-50"
+            class="btn-touch cursor-pointer rounded-full border border-slate-200 bg-white p-2 shadow-sm transition-colors hover:bg-gray-200 disabled:opacity-50"
             title="刷新列表"
             @click="loadPlugins"
         >

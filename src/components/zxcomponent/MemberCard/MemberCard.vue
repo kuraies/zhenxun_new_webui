@@ -18,14 +18,14 @@ const handleEdit = () => {
 
 <template>
     <div
-        class="member bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 overflow-hidden transition-all duration-300 hover:shadow-md"
+        class="member bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden transition-all duration-300 hover:shadow-md"
     >
         <div class="p-4 flex items-center gap-3">
             <!-- 头像 -->
             <img
                 :src="(member as any).ava_url"
                 :alt="(member as any).nickname"
-                class="w-10 h-10 rounded-full object-cover flex-shrink-0 outline-1 outline-slate-200"
+                class="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-slate-200"
             />
 
             <!-- 信息 -->

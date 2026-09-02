@@ -198,7 +198,7 @@ const switchTab = (tab: TabType) => {
     <div class="flex h-full w-full flex-col space-y-3 sm:space-y-4">
         <!-- 头部标题 -->
         <div
-            class="flex items-center justify-between rounded-3xl bg-white p-4 shadow-sm outline-1 outline-slate-200"
+            class="flex items-center justify-between rounded-3xl bg-white p-4 shadow-sm border border-slate-200"
         >
             <div class="flex items-center space-x-3">
                 <Settings class="h-6 w-6 flex-shrink-0 text-blue-500" />
@@ -208,7 +208,7 @@ const switchTab = (tab: TabType) => {
 
         <!-- Tab 切换 -->
         <div
-            class="rounded-3xl bg-white p-2 shadow-sm outline-1 outline-slate-200"
+            class="rounded-3xl bg-white p-2 shadow-sm border border-slate-200"
         >
             <div class="flex space-x-2">
                 <button

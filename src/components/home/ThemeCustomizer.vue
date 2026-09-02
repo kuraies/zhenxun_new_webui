@@ -141,7 +141,7 @@ function onSyncToggle(value: string | number | boolean) {
         <div class="flex flex-wrap items-center gap-2">
             <!-- 黑白合并的自适应色板：展示当前模式下可用的那个极端色 -->
             <button
-                class="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border border-[var(--zx-color-border)] transition-transform hover:scale-110"
+                class="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border border-slate-200 transition-transform hover:scale-110"
                 :style="{ background: extremeColor }"
                 :title="mode === 'light' ? '黑色' : '白色'"
                 @click="selectColor({ color: extremeColor })"
@@ -159,7 +159,7 @@ function onSyncToggle(value: string | number | boolean) {
             <button
                 v-for="item in presetColors"
                 :key="item.color"
-                class="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border border-[var(--zx-color-border)] transition-transform hover:scale-110"
+                class="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full border border-slate-200 transition-transform hover:scale-110"
                 :style="{
                     background: item.color,
                 }"

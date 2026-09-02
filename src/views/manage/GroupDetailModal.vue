@@ -391,7 +391,7 @@ onMounted(() => {
                             class="plugin-item flex items-center justify-between p-3 rounded-2xl transition-colors"
                             :class="plugin.is_blocked
                                 ? 'bg-red-50 outline-1 outline-red-200'
-                                : 'bg-white outline-1 outline-slate-200'"
+                                : 'bg-white border border-slate-200'"
                         >
                             <div class="flex items-center gap-3 flex-1 min-w-0">
                                 <div
@@ -505,7 +505,7 @@ onMounted(() => {
 
                             <div class="space-y-3">
                                 <!-- 金币 -->
-                                <div class="bg-slate-50 rounded-2xl p-3 outline-1 outline-slate-200">
+                                <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200">
                                     <div class="flex items-center justify-between mb-2">
                                         <div class="flex items-center gap-2">
                                             <Coins class="w-4 h-4 text-zx-primary" />
@@ -522,7 +522,7 @@ onMounted(() => {
                                 </div>
 
                                 <!-- 好感度 -->
-                                <div class="bg-slate-50 rounded-2xl p-3 outline-1 outline-slate-200">
+                                <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center gap-2">
                                             <Heart class="w-4 h-4 text-zx-primary" />

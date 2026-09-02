@@ -102,7 +102,7 @@ const toggleThemePanel = () => {
         <div class="hidden items-center space-x-1 sm:space-x-2 lg:flex">
             <div ref="requestWrapRef" class="relative hidden lg:block">
                 <button
-                    class="bell-btn group relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[var(--zx-color-border)] bg-[var(--zx-color-surface)] shadow-sm backdrop-blur-md transition-all hover:scale-105 hover:shadow-md sm:h-9 sm:w-9"
+                    class="bell-btn group relative flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm backdrop-blur-md transition-all hover:scale-105 hover:shadow-md sm:h-9 sm:w-9"
                     title="请求处理"
                     @click="toggleRequestPanel"
                 >
@@ -114,7 +114,7 @@ const toggleThemePanel = () => {
 
             <div class="relative" ref="themePanelRef">
                 <button
-                    class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[var(--zx-color-border)] bg-[var(--zx-color-surface)] shadow-sm backdrop-blur-md transition-all hover:scale-105 hover:shadow-md sm:h-9 sm:w-9"
+                    class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm backdrop-blur-md transition-all hover:scale-105 hover:shadow-md sm:h-9 sm:w-9"
                     title="主题选择"
                     @click="toggleThemePanel"
                 >
@@ -123,7 +123,7 @@ const toggleThemePanel = () => {
                 <Transition :css="false" @enter="onDropdownEnter" @leave="onDropdownLeave">
                     <div
                         v-if="showThemePanel"
-                        class="absolute right-0 top-full mt-2 w-72 rounded-xl border border-[var(--zx-color-border)] bg-[var(--zx-color-surface)] p-3 shadow-lg"
+                        class="absolute right-0 top-full mt-2 w-72 rounded-xl border border-slate-200 bg-white p-3 shadow-lg"
                     >
                         <ThemeCustomizer @applied="showThemePanel = false" />
                     </div>
@@ -131,7 +131,7 @@ const toggleThemePanel = () => {
             </div>
 
             <button
-                class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[var(--zx-color-border)] bg-[var(--zx-color-surface)] shadow-sm backdrop-blur-md transition-all hover:scale-105 hover:shadow-md sm:h-9 sm:w-9"
+                class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm backdrop-blur-md transition-all hover:scale-105 hover:shadow-md sm:h-9 sm:w-9"
                 title="设置"
             >
                 <Settings class="h-3.5 w-3.5 text-slate-600 sm:h-4 sm:w-4" />
@@ -141,7 +141,7 @@ const toggleThemePanel = () => {
         <!-- 移动端 / 平板端：收纳为一个按钮，点开菜单 -->
         <div class="relative lg:hidden" ref="compactRef">
             <button
-                class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[var(--zx-color-border)] bg-[var(--zx-color-surface)] shadow-sm backdrop-blur-md transition-all hover:scale-105 hover:shadow-md sm:h-9 sm:w-9"
+                class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm backdrop-blur-md transition-all hover:scale-105 hover:shadow-md sm:h-9 sm:w-9"
                 title="更多"
                 @click="showCompactMenu = !showCompactMenu"
             >
@@ -151,7 +151,7 @@ const toggleThemePanel = () => {
             <Transition :css="false" @enter="onDropdownEnter" @leave="onDropdownLeave">
                 <div
                     v-if="showCompactMenu"
-                    class="absolute right-0 top-full z-20 mt-2 w-72 rounded-2xl border border-[var(--zx-color-border)] bg-[var(--zx-color-surface)] p-1.5 shadow-lg"
+                    class="absolute right-0 top-full z-20 mt-2 w-72 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-lg"
                 >
                     <ThemeCustomizer
                         v-if="compactThemeOpen"

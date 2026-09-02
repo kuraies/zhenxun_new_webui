@@ -133,7 +133,7 @@ onBeforeUnmount(() => {
     <div class="flex h-full w-full flex-col space-y-3 sm:space-y-4">
         <!-- 头部操作：自动滚动 / 清空 -->
         <div
-            class="flex items-center justify-end gap-3 rounded-3xl bg-white p-2 shadow-sm outline-1 outline-slate-200 sm:p-3"
+            class="flex items-center justify-end gap-3 rounded-3xl bg-white p-2 shadow-sm border border-slate-200 sm:p-3"
             v-if="!globalStore.isDesktopMode"
         >
             <button
@@ -157,7 +157,7 @@ onBeforeUnmount(() => {
 
         <!-- 过滤工具栏 -->
         <div
-            class="flex flex-col items-stretch space-y-3 rounded-3xl bg-white p-4 shadow-sm outline-1 outline-slate-200 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4"
+            class="flex flex-col items-stretch space-y-3 rounded-3xl bg-white p-4 shadow-sm border border-slate-200 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4"
         >
             <!-- 搜索框 -->
             <div class="relative flex-1">
@@ -213,7 +213,7 @@ onBeforeUnmount(() => {
         <!-- 日志列表 -->
         <div
             ref="logsContainer"
-            class="min-h-0 flex-1 rounded-3xl bg-white p-4 pr-0.5 shadow-sm outline-1 outline-slate-200"
+            class="min-h-0 flex-1 rounded-3xl bg-white p-4 pr-0.5 shadow-sm border border-slate-200"
         >
             <div class="h-full overflow-y-auto">
                 <div

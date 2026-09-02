@@ -24,7 +24,7 @@ const handleDeleteFriend = () => {
 
 <template>
     <div
-        class="friend bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+        class="friend bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
     >
         <div class="p-4 flex flex-col gap-3">
             <!-- 头部：好友信息 -->
@@ -32,7 +32,7 @@ const handleDeleteFriend = () => {
                 <img
                     :src="friend.ava_url"
                     :alt="friend.nickname"
-                    class="w-12 h-12 rounded-full object-cover flex-shrink-0 outline-1 outline-slate-200"
+                    class="w-12 h-12 rounded-full object-cover flex-shrink-0 border border-slate-200"
                 />
                 <div class="min-w-0 flex-1">
                     <h3 class="text-base font-bold text-gray-800 truncate" :title="friend.nickname">

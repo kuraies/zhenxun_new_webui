@@ -25,14 +25,14 @@ const stats = computed(() => {
     <div class="flex w-full items-center justify-between space-x-2">
         <div class="flex space-x-2 whitespace-nowrap">
             <div
-                class="group flex w-fit items-center space-x-3 rounded-full border border-white/10 bg-white px-4 py-2 shadow-sm transition-all hover:scale-105"
+                class="group flex w-fit items-center space-x-3 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm transition-all hover:scale-105"
             >
                 <Package class="h-5 w-5 text-blue-500" />
                 <span class="text-sm font-medium text-slate-700">插件管理</span>
             </div>
 
             <div
-                class="group flex w-fit items-center space-x-2 rounded-full border border-white/10 bg-white px-4 shadow-sm transition-all hover:scale-105"
+                class="group flex w-fit items-center space-x-2 rounded-full border border-slate-200 bg-white px-4 shadow-sm transition-all hover:scale-105"
             >
                 <span
                     v-odometer="stats.total"
@@ -42,7 +42,7 @@ const stats = computed(() => {
                 <span class="text-xs text-slate-600">总插件数</span>
             </div>
             <div
-                class="group flex w-fit items-center space-x-2 rounded-full border border-white/10 bg-white px-4 shadow-sm transition-all hover:scale-105"
+                class="group flex w-fit items-center space-x-2 rounded-full border border-slate-200 bg-white px-4 shadow-sm transition-all hover:scale-105"
             >
                 <span
                     v-odometer="stats.installed"
@@ -52,7 +52,7 @@ const stats = computed(() => {
                 <span class="text-xs text-slate-600">已安装</span>
             </div>
             <div
-                class="group flex w-fit items-center space-x-2 rounded-full border border-white/10 bg-white px-4 shadow-sm transition-all hover:scale-105"
+                class="group flex w-fit items-center space-x-2 rounded-full border border-slate-200 bg-white px-4 shadow-sm transition-all hover:scale-105"
             >
                 <span
                     v-odometer="stats.available"
@@ -66,7 +66,7 @@ const stats = computed(() => {
         <button
             @click="loadStoreData"
             :disabled="loading"
-            class="btn-touch rounded-full bg-white p-2 shadow-sm transition-colors hover:bg-gray-200 disabled:opacity-50"
+            class="btn-touch rounded-full border border-slate-200 bg-white p-2 shadow-sm transition-colors hover:bg-gray-200 disabled:opacity-50"
             title="刷新列表"
         >
             <svg

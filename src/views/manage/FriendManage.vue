@@ -170,7 +170,7 @@ onMounted(() => {
 <template>
     <div class="w-full h-full flex flex-col space-y-3 sm:space-y-4">
         <!-- 头部标题和统计 -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 bg-white rounded-3xl shadow-sm p-4 outline-1 outline-slate-200">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 bg-white rounded-3xl shadow-sm p-4 border border-slate-200">
             <div class="flex items-center space-x-3">
                 <Users class="h-6 w-6 text-zx-primary flex-shrink-0" />
                 <h2 class="text-lg font-semibold text-gray-800">好友管理</h2>
@@ -195,7 +195,7 @@ onMounted(() => {
             <div class="flex-1 flex flex-col min-w-0">
                 <!-- 统计卡片 -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mb-3">
-                    <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
+                    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-3 text-center">
                         <div class="text-lg sm:text-xl font-bold text-zx-primary">{{ stats.total }}</div>
                         <div class="text-xs text-gray-500 mt-0.5">好友总数</div>
                     </div>
@@ -244,7 +244,7 @@ onMounted(() => {
             </div>
 
             <!-- 右侧：好友详情面板 -->
-            <div class="hidden lg:flex lg:flex-col w-80 flex-shrink-0 bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 overflow-hidden">
+            <div class="hidden lg:flex lg:flex-col w-80 flex-shrink-0 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
                 <!-- 未选中状态 -->
                 <div v-if="!selectedFriend" class="flex-1 flex flex-col items-center justify-center text-gray-400 p-6">
                     <UserCircle class="w-16 h-16 mb-4 opacity-30" />
@@ -266,7 +266,7 @@ onMounted(() => {
                         />
 
                         <!-- 互动趋势图表 -->
-                        <div class="bg-white rounded-3xl outline-1 outline-slate-200 p-4">
+                        <div class="bg-white rounded-3xl border border-slate-200 p-4">
                             <FriendTrendChart :user-id="selectedFriend?.user_id || null" />
                         </div>
                     </div>

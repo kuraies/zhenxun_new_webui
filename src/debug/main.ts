@@ -13,6 +13,7 @@ import {
     getThemePresets,
     type ThemePresetName,
 } from "@/theme";
+import { initTileGlowAuto } from "@/directives/tileGlow";
 import App from "./App.vue";
 
 // ==================== 跟随主站主题 ====================
@@ -61,6 +62,9 @@ window.addEventListener("storage", event => {
 });
 
 createApp(App).mount("#app");
+
+// 统一边框表面自动磁贴发光（深色主题下生效）
+initTileGlowAuto();
 
 // 生产环境注册 Service Worker（dev 下不注册，避免缓存干扰调试）。
 // 独立构建的 base 为 /next/debug/，SW 与页面同目录

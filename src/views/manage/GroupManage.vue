@@ -134,7 +134,7 @@ onMounted(() => {
 <template>
     <div class="w-full h-full flex flex-col space-y-3 sm:space-y-4">
         <!-- 头部标题和统计 -->
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 bg-white rounded-3xl shadow-sm p-4 outline-1 outline-slate-200">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 bg-white rounded-3xl shadow-sm p-4 border border-slate-200">
             <div class="flex items-center space-x-3">
                 <Group class="h-6 w-6 text-zx-primary flex-shrink-0" />
                 <h2 class="text-lg font-semibold text-gray-800">群组管理</h2>
@@ -155,19 +155,19 @@ onMounted(() => {
 
         <!-- 统计卡片 -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-            <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-3 text-center">
                 <div class="text-lg sm:text-xl font-bold text-zx-primary">{{ stats.total }}</div>
                 <div class="text-xs text-gray-500 mt-0.5">总群组数</div>
             </div>
-            <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-3 text-center">
                 <div class="text-lg sm:text-xl font-bold text-green-600">{{ stats.active }}</div>
                 <div class="text-xs text-gray-500 mt-0.5">已启用</div>
             </div>
-            <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-3 text-center">
                 <div class="text-lg sm:text-xl font-bold text-gray-600">{{ stats.inactive }}</div>
                 <div class="text-xs text-gray-500 mt-0.5">已禁用</div>
             </div>
-            <div class="bg-white rounded-3xl shadow-sm outline-1 outline-slate-200 p-3 text-center">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-3 text-center">
                 <div class="text-lg sm:text-xl font-bold text-zx-primary">{{ stats.totalMembers }}</div>
                 <div class="text-xs text-gray-500 mt-0.5">成员总数</div>
             </div>

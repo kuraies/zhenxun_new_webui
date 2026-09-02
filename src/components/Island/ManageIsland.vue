@@ -114,7 +114,7 @@ onMounted(() => {
 <template>
     <div class="flex w-full justify-between">
         <div
-            class="group flex w-fit items-center space-x-3 rounded-full border border-white/10 bg-white px-4 py-2 shadow-sm transition-all hover:scale-105"
+            class="group flex w-fit items-center space-x-3 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm transition-all hover:scale-105"
         >
             <Shield class="h-5 w-5 text-zx-primary" />
             <span class="text-sm font-medium whitespace-nowrap text-slate-700"
@@ -122,7 +122,7 @@ onMounted(() => {
             >
         </div>
         <div
-            class="group island-pop flex w-fit cursor-pointer items-center space-x-3 rounded-full border border-white/10 bg-white px-4 py-2 shadow-sm backdrop-blur-md transition-all hover:scale-105"
+            class="group island-pop flex w-fit cursor-pointer items-center space-x-3 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm backdrop-blur-md transition-all hover:scale-105"
             @click="openRequestDialog"
         >
             <div class="flex items-center space-x-2">

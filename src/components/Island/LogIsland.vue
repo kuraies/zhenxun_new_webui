@@ -16,7 +16,7 @@ const clearLogs = () => {
 <template>
     <div class="flex w-full items-center justify-between">
         <div
-            class="group flex w-fit items-center space-x-3 rounded-full border border-white/10 bg-white px-4 py-2 shadow-sm transition-all hover:scale-105"
+            class="group flex w-fit items-center space-x-3 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm transition-all hover:scale-105"
         >
             <FileText class="h-5 w-5 text-zx-primary" />
             <span class="text-sm font-medium text-slate-700">实时日志</span>

@@ -23,7 +23,7 @@ const emit = defineEmits<{
 
 <template>
     <div
-        class="flex min-h-0 flex-1 flex-col rounded-3xl bg-white shadow-sm outline-1 outline-slate-200"
+        class="flex min-h-0 flex-1 flex-col rounded-3xl bg-white shadow-sm border border-slate-200"
     >
         <div
             class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 p-3"
