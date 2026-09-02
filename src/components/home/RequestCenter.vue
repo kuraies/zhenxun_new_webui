@@ -5,7 +5,7 @@
  * 列表随 bot 切换与 30 秒静默轮询保持更新
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { Bell, X } from "lucide-vue-next";
+import { Bell, Check, EyeOff, X } from "lucide-vue-next";
 import { storeToRefs } from "pinia";
 import { gsap } from "gsap";
 import { ZXMessageBox, ZXNotification } from "@/services/ui";
@@ -184,7 +184,7 @@ onBeforeUnmount(() => {
     <Transition :css="false" @enter="onEnter" @leave="onLeave">
         <div
             v-if="requestDialogOpen && visible"
-            class="absolute right-0 top-full z-40 mt-2 flex max-h-[70vh] w-96 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-[var(--zx-color-border)] bg-[var(--zx-color-surface)] shadow-lg"
+            class="absolute right-0 top-full z-40 mt-2 flex max-h-[70vh] w-96 max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg"
         >
                     <!-- 头部：标题 + 关闭 -->
                     <div
@@ -212,7 +212,7 @@ onBeforeUnmount(() => {
                                 :class="[
                                     'flex min-w-0 cursor-pointer items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-medium transition-all',
                                     activeRequestTab === 'friend'
-                                        ? 'bg-[var(--zx-color-surface)] text-zx-primary shadow-sm'
+                                        ? 'bg-white text-zx-primary shadow-sm'
                                         : 'text-[var(--zx-color-text-muted)] hover:text-[var(--zx-color-text)]',
                                 ]"
                                 type="button"
@@ -224,7 +224,7 @@ onBeforeUnmount(() => {
                                         'min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] leading-none',
                                         activeRequestTab === 'friend'
                                             ? 'bg-zx-primary-soft text-zx-primary'
-                                            : 'bg-[var(--zx-color-surface)] text-[var(--zx-color-text-subtle)]',
+                                            : 'bg-white text-[var(--zx-color-text-subtle)]',
                                     ]"
                                 >
                                     {{ friendRequests.length }}
@@ -234,7 +234,7 @@ onBeforeUnmount(() => {
                                 :class="[
                                     'flex min-w-0 cursor-pointer items-center justify-center gap-1.5 rounded-xl px-3 text-sm font-medium transition-all',
                                     activeRequestTab === 'group'
-                                        ? 'bg-[var(--zx-color-surface)] text-zx-primary shadow-sm'
+                                        ? 'bg-white text-zx-primary shadow-sm'
                                         : 'text-[var(--zx-color-text-muted)] hover:text-[var(--zx-color-text)]',
                                 ]"
                                 type="button"
@@ -246,7 +246,7 @@ onBeforeUnmount(() => {
                                         'min-w-5 rounded-full px-1.5 py-0.5 text-center text-[10px] leading-none',
                                         activeRequestTab === 'group'
                                             ? 'bg-zx-primary-soft text-zx-primary'
-                                            : 'bg-[var(--zx-color-surface)] text-[var(--zx-color-text-subtle)]',
+                                            : 'bg-white text-[var(--zx-color-text-subtle)]',
                                     ]"
                                 >
                                     {{ groupRequests.length }}
@@ -330,27 +330,30 @@ onBeforeUnmount(() => {
                                             >
                                         </p>
                                     </div>
-                                    <div class="flex shrink-0 gap-1.5">
+                                    <div class="flex shrink-0 items-center gap-0.5">
                                         <button
-                                            class="cursor-pointer select-none rounded-full bg-green-50 px-3 py-1 text-[11px] font-semibold text-green-600 hover:bg-green-100"
+                                            class="btn-touch flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-green-600 transition-colors hover:bg-green-50"
+                                            title="同意"
                                             type="button"
                                             @click="handleRequest(req, 'approve')"
                                         >
-                                            同意
+                                            <Check class="size-4" />
                                         </button>
                                         <button
-                                            class="cursor-pointer select-none rounded-full bg-red-50 px-3 py-1 text-[11px] font-semibold text-red-600 hover:bg-red-100"
+                                            class="btn-touch flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-red-500 transition-colors hover:bg-red-50"
+                                            title="拒绝"
                                             type="button"
                                             @click="handleRequest(req, 'refused')"
                                         >
-                                            拒绝
+                                            <X class="size-4" />
                                         </button>
                                         <button
-                                            class="cursor-pointer select-none rounded-full bg-slate-200/70 px-3 py-1 text-[11px] font-semibold text-slate-500 hover:bg-slate-200"
+                                            class="btn-touch flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                                            title="忽略"
                                             type="button"
                                             @click="handleRequest(req, 'ignore')"
                                         >
-                                            忽略
+                                            <EyeOff class="size-4" />
                                         </button>
                                     </div>
                                 </div>
@@ -396,27 +399,30 @@ onBeforeUnmount(() => {
                                             >
                                         </p>
                                     </div>
-                                    <div class="flex shrink-0 gap-1.5">
+                                    <div class="flex shrink-0 items-center gap-0.5">
                                         <button
-                                            class="cursor-pointer select-none rounded-full bg-green-50 px-3 py-1 text-[11px] font-semibold text-green-600 hover:bg-green-100"
+                                            class="btn-touch flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-green-600 transition-colors hover:bg-green-50"
+                                            title="同意"
                                             type="button"
                                             @click="handleRequest(req, 'approve')"
                                         >
-                                            同意
+                                            <Check class="size-4" />
                                         </button>
                                         <button
-                                            class="cursor-pointer select-none rounded-full bg-red-50 px-3 py-1 text-[11px] font-semibold text-red-600 hover:bg-red-100"
+                                            class="btn-touch flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-red-500 transition-colors hover:bg-red-50"
+                                            title="拒绝"
                                             type="button"
                                             @click="handleRequest(req, 'refused')"
                                         >
-                                            拒绝
+                                            <X class="size-4" />
                                         </button>
                                         <button
-                                            class="cursor-pointer select-none rounded-full bg-slate-200/70 px-3 py-1 text-[11px] font-semibold text-slate-500 hover:bg-slate-200"
+                                            class="btn-touch flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                                            title="忽略"
                                             type="button"
                                             @click="handleRequest(req, 'ignore')"
                                         >
-                                            忽略
+                                            <EyeOff class="size-4" />
                                         </button>
                                     </div>
                                 </div>
@@ -435,7 +441,7 @@ onBeforeUnmount(() => {
                         <div class="flex gap-2">
                             <button
                                 :disabled="friendRequests.length === 0"
-                                class="cursor-pointer rounded-full border border-[var(--zx-color-border)] px-3 py-1.5 text-[11px] font-semibold text-[var(--zx-color-text-muted)] transition-colors hover:text-[var(--zx-color-text)] disabled:pointer-events-none disabled:opacity-40"
+                                class="cursor-pointer rounded-full border border-slate-200 px-3 py-1.5 text-[11px] font-semibold text-[var(--zx-color-text-muted)] transition-colors hover:text-[var(--zx-color-text)] disabled:pointer-events-none disabled:opacity-40"
                                 type="button"
                                 @click="clearRequests('friend')"
                             >
@@ -443,7 +449,7 @@ onBeforeUnmount(() => {
                             </button>
                             <button
                                 :disabled="groupRequests.length === 0"
-                                class="cursor-pointer rounded-full border border-[var(--zx-color-border)] px-3 py-1.5 text-[11px] font-semibold text-[var(--zx-color-text-muted)] transition-colors hover:text-[var(--zx-color-text)] disabled:pointer-events-none disabled:opacity-40"
+                                class="cursor-pointer rounded-full border border-slate-200 px-3 py-1.5 text-[11px] font-semibold text-[var(--zx-color-text-muted)] transition-colors hover:text-[var(--zx-color-text)] disabled:pointer-events-none disabled:opacity-40"
                                 type="button"
                                 @click="clearRequests('group')"
                             >

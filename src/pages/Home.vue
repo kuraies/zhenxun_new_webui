@@ -15,7 +15,8 @@ import {
 } from "@/utils/api-next/websocket-logs";
 import { whiteScreen } from "@/services/ui";
 import { routeLoading, router } from "@/router";
-import { getMenuOrderMap } from "@/config/menu";
+import { getMenuOrderMap, mainMenus } from "@/config/menu";
+import { ZXContextMenu, openContextMenu } from "@/components/zxcomponent/ContextMenu";
 import { gsap } from "gsap";
 import { useBotStore } from "@/store/bot";
 import { useManageStore } from "@/store/manage";
@@ -162,6 +163,16 @@ onMounted(async () => {
 
     connectLogsWebSocket();
     onLogMessage(handleLogMessage);
+
+    // 鼠标侧键：拦截浏览器历史导航，按侧边栏顺序切换菜单
+    window.addEventListener("mousedown", onMouseSideNav);
+    window.addEventListener("auxclick", onMouseSideBlock);
+
+    // 全局右键接管
+    window.addEventListener("contextmenu", onGlobalContextMenu);
+
+    // 全局图片禁止拖拽
+    window.addEventListener("dragstart", onGlobalDragStart);
 });
 
 onUnmounted(() => {
@@ -171,6 +182,10 @@ onUnmounted(() => {
     disconnectStatusWebSocket();
     disconnectLogsWebSocket();
     removeSlideDirectionGuard();
+    window.removeEventListener("mousedown", onMouseSideNav);
+    window.removeEventListener("auxclick", onMouseSideBlock);
+    window.removeEventListener("contextmenu", onGlobalContextMenu);
+    window.removeEventListener("dragstart", onGlobalDragStart);
 });
 
 const toggleNav = () => {
@@ -196,6 +211,70 @@ const toggleNav = () => {
     // mini -> hidden：保留 mini 宽度，避免收起动画闪回完整侧边栏
     globalStore.navHidden = true;
 };
+
+// ==================== 鼠标侧键：拦截历史导航 + 按侧边栏顺序切菜单 ====================
+// 侧键上（button 3）= 上一个菜单，侧键下（button 4）= 下一个菜单；
+// 可导航项 = 侧边栏视觉顺序里的非 external、非 hidden 且带 path 的项（父级分组本身不算）
+const sideNavItems = () => {
+    const items: { key: string; path: string }[] = [];
+    for (const menu of mainMenus) {
+        if (menu.hidden) continue;
+        if (menu.children?.length) {
+            for (const child of menu.children) {
+                if (child.hidden || child.external || !child.path) continue;
+                items.push({ key: child.key, path: child.path });
+            }
+        } else if (!menu.external && menu.path) {
+            items.push({ key: menu.key, path: menu.path });
+        }
+    }
+    return items;
+};
+
+const navigateMenu = (offset: 1 | -1) => {
+    const items = sideNavItems();
+    if (!items.length) return;
+    const currentKey = router.currentRoute.value.meta.menuKey as
+        | string
+        | undefined;
+    const index = items.findIndex((item) => item.key === currentKey);
+    // 当前页不在菜单里时，向下取第一个、向上取最后一个
+    const target =
+        index === -1
+            ? items[offset === 1 ? 0 : items.length - 1]
+            : items[(index + offset + items.length) % items.length];
+    if (target && target.key !== currentKey) router.push(target.path);
+};
+
+const onMouseSideNav = (e: MouseEvent) => {
+    if (e.button !== 3 && e.button !== 4) return;
+    e.preventDefault();
+    navigateMenu(e.button === 4 ? 1 : -1);
+};
+
+// auxclick 兜底拦截（部分浏览器在 mouseup/auxclick 阶段触发历史导航）
+const onMouseSideBlock = (e: MouseEvent) => {
+    if (e.button === 3 || e.button === 4) e.preventDefault();
+};
+
+// ==================== 全局右键接管 ====================
+// 输入类元素保留原生菜单（复制/粘贴等）；元素级处理器（如插件卡片）
+// 已打开菜单时不重复接管；其余区域屏蔽原生右键，有选中文本时弹「复制」
+const onGlobalContextMenu = (e: MouseEvent) => {
+    const target = e.target as HTMLElement | null;
+    if (target?.closest("input, textarea, [contenteditable]")) return;
+    if (ZXContextMenu.state.visible) return;
+    openContextMenu(e);
+};
+
+// ==================== 全局图片禁止拖拽 ====================
+// 模拟端是独立应用天然不受影响；联系人聊天区域保留原生拖拽
+const onGlobalDragStart = (e: DragEvent) => {
+    const target = e.target as HTMLElement | null;
+    if (target?.tagName !== "IMG") return;
+    if (router.currentRoute.value.path.startsWith("/chat")) return;
+    e.preventDefault();
+};
 </script>
 
 <template>
@@ -216,7 +295,7 @@ const toggleNav = () => {
                         ? 'pointer-events-none opacity-45 blur-[1.5px]'
                         : ''
                 "
-                class="right relative flex h-full flex-1 flex-col px-2 pb-2 sm:px-4 sm:pb-4 transition-[opacity,filter] duration-200 ease-out"
+                class="right relative flex h-full flex-1 flex-col px-2 pb-2 sm:pl-4 sm:pr-0 sm:pb-4 transition-[opacity,filter] duration-200 ease-out"
             >
                 <!-- 胶片带容器：overflow 裁掉上下页，位移时不会顶出滚动条 -->
                 <div class="page-strip relative min-h-0 flex-1 overflow-hidden">
@@ -273,5 +352,12 @@ const toggleNav = () => {
     height: 100%;
     overflow-y: auto;
     overscroll-behavior: contain;
+}
+
+/* 桌面端滚动条贴屏幕右缘：右列不再留白，内容边距由页面滚动容器内部给出 */
+@media (min-width: 640px) {
+    .page-strip > :deep(*) {
+        padding-right: 1rem;
+    }
 }
 </style>
