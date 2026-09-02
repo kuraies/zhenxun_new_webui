@@ -223,7 +223,7 @@ const marketCards = computed<StorePlugin[]>(() => {
             plugin_type: p.is_official ? "官方" : "",
             is_installed: p.installed,
             has_update: p.has_update,
-            homepage: `https://registry.nonebot.dev/plugin/${p.project_link}:${p.module_name}`,
+            homepage: p.homepage || "",
             tags: p.tags.map((t) => t.label),
         }));
     }

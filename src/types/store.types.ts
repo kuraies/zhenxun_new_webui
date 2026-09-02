@@ -52,6 +52,7 @@ export interface NbStorePlugin {
     name: string
     module_name: string
     project_link: string
+    homepage: string
     desc: string
     tags: NbStoreTag[]
     author: string
